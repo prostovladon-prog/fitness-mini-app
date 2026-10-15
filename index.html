@@ -110,6 +110,7 @@
   .icon.profile { background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
   .icon.progress { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
   .icon.gallery { background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35); }
+  .icon.templates { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35); }
   .nav-card .info { flex: 1; }
   .nav-card .title { font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
   .nav-card .desc { font-size: 12px; color: var(--text-2); margin-top: 4px; }
@@ -128,6 +129,7 @@
   .btn-secondary { background: transparent; color: var(--text-1); border: 1.5px solid var(--card-border); box-shadow: none; }
   .btn-orange { background: linear-gradient(135deg, #ff6b1a 0%, #ff9950 100%); color: white; box-shadow: 0 8px 24px var(--orange-glow); }
   .btn-purple { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: white; box-shadow: 0 8px 24px var(--purple-glow); }
+  .btn-cyan { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); color: white; box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4); }
 
   .back-btn {
     background: none; border: none; color: var(--text-2);
@@ -152,7 +154,7 @@
     outline: none;
   }
   .input-group input:focus, .input-group select:focus { border-color: var(--neon); box-shadow: 0 0 0 4px var(--neon-glow); }
-  .input-group input::placeholder { color: var(--text-3); }
+  .input-group input::placeholder, .input-group textarea::placeholder { color: var(--text-3); }
   .input-group select option { background: var(--dark-2); color: var(--text-1); }
   .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
@@ -259,7 +261,6 @@
   .onboarding-hero h1 { background: linear-gradient(135deg, var(--neon) 0%, #ffffff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .onboarding-hero p { opacity: 0.85; margin-top: 10px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; color: var(--text-2); }
 
-  /* Календарь */
   .date-nav {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--card-bg);
@@ -280,10 +281,7 @@
   .date-nav-center .today-hint { font-size: 9px; color: var(--neon); margin-top: 2px; letter-spacing: 1px; font-weight: 800; }
 
   .macro-ring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-  .macro-ring {
-    background: var(--card-bg); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-sm); padding: 12px 6px; text-align: center;
-  }
+  .macro-ring { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm); padding: 12px 6px; text-align: center; }
   .macro-ring .ring-wrap { width: 60px; height: 60px; margin: 0 auto 8px; position: relative; }
   .macro-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   .macro-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
@@ -306,11 +304,7 @@
   .daily-summary .value.neon { color: var(--neon); }
   .daily-summary .value.orange { color: var(--orange); }
 
-  .meal-item {
-    background: var(--card-bg); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px;
-    display: flex; align-items: center; gap: 12px;
-  }
+  .meal-item { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
   .meal-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .meal-icon.breakfast { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
   .meal-icon.lunch { background: linear-gradient(135deg, #ff6b1a 0%, #ff9950 100%); }
@@ -322,13 +316,7 @@
   .meal-item .kcal { font-weight: 900; font-size: 16px; color: var(--neon); }
   .meal-item .kcal .unit { font-size: 10px; color: var(--text-2); }
 
-  .search-box {
-    width: 100%; padding: 14px 16px;
-    background: rgba(10, 14, 26, 0.7); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-sm); color: var(--text-1);
-    font-size: 15px; font-family: inherit; font-weight: 600;
-    outline: none; margin-bottom: 16px;
-  }
+  .search-box { width: 100%; padding: 14px 16px; background: rgba(10, 14, 26, 0.7); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm); color: var(--text-1); font-size: 15px; font-family: inherit; font-weight: 600; outline: none; margin-bottom: 16px; }
   .search-box:focus { border-color: var(--neon); box-shadow: 0 0 0 4px var(--neon-glow); }
   .search-box::placeholder { color: var(--text-3); }
 
@@ -341,14 +329,8 @@
     cursor: pointer; text-transform: uppercase; letter-spacing: 0.8px;
     display: flex; align-items: center; gap: 6px;
   }
-  .group-tab.active {
-    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
-    color: var(--dark-1); border-color: var(--neon);
-  }
-  .group-tab .count {
-    background: rgba(255,255,255,0.15); padding: 1px 6px;
-    border-radius: 8px; font-size: 9px; font-weight: 900;
-  }
+  .group-tab.active { background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%); color: var(--dark-1); border-color: var(--neon); }
+  .group-tab .count { background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 8px; font-size: 9px; font-weight: 900; }
   .group-tab.active .count { background: rgba(10,14,26,0.25); }
 
   .product-item {
@@ -367,12 +349,7 @@
   .product-item .p-cal { text-align: right; flex-shrink: 0; }
   .product-item .p-cal .val { font-size: 18px; font-weight: 900; color: var(--orange); }
   .product-item .p-cal .lbl { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
-  .custom-badge {
-    display: inline-block; padding: 2px 6px; border-radius: 4px;
-    background: rgba(255, 107, 26, 0.2); color: var(--orange);
-    font-size: 8px; font-weight: 900; letter-spacing: 1px;
-    margin-left: 6px; vertical-align: middle;
-  }
+  .custom-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: rgba(255, 107, 26, 0.2); color: var(--orange); font-size: 8px; font-weight: 900; letter-spacing: 1px; margin-left: 6px; vertical-align: middle; }
 
   .selected-product {
     background: linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(255, 107, 26, 0.08) 100%);
@@ -382,16 +359,9 @@
   }
   .selected-product .sp-name { font-weight: 800; font-size: 15px; }
   .selected-product .sp-info { font-size: 11px; color: var(--text-2); margin-top: 4px; }
-  .selected-product .sp-remove {
-    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #ff5c5c; padding: 8px 12px; border-radius: 10px;
-    cursor: pointer; font-weight: 800; font-size: 12px;
-  }
+  .selected-product .sp-remove { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ff5c5c; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 12px; }
 
-  .product-summary {
-    background: rgba(0, 255, 136, 0.08); border: 1.5px solid var(--neon-glow);
-    border-radius: var(--radius-sm); padding: 14px 16px; margin: 12px 0;
-  }
+  .product-summary { background: rgba(0, 255, 136, 0.08); border: 1.5px solid var(--neon-glow); border-radius: var(--radius-sm); padding: 14px 16px; margin: 12px 0; }
   .product-summary .ps-title { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1.8px; font-weight: 800; margin-bottom: 10px; }
   .product-summary .ps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .product-summary .ps-item { text-align: center; }
@@ -401,92 +371,34 @@
   .product-summary .ps-item .v.k { color: var(--orange); }
   .product-summary .ps-item .l { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; margin-top: 3px; }
 
-  /* ГРАФИК ПИТАНИЯ */
-  .chart-period-tabs {
-    display: flex; gap: 6px; margin-bottom: 16px;
-    background: rgba(10, 14, 26, 0.6); border-radius: 12px; padding: 4px;
-    border: 1.5px solid var(--card-border);
-  }
-  .chart-period-tab {
-    flex: 1; padding: 8px; border-radius: 8px; text-align: center;
-    color: var(--text-2); font-size: 11px; font-weight: 800;
-    cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
-    transition: all 0.2s;
-  }
-  .chart-period-tab.active {
-    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
-    color: var(--dark-1);
-  }
+  .chart-period-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: rgba(10, 14, 26, 0.6); border-radius: 12px; padding: 4px; border: 1.5px solid var(--card-border); }
+  .chart-period-tab { flex: 1; padding: 8px; border-radius: 8px; text-align: center; color: var(--text-2); font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+  .chart-period-tab.active { background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%); color: var(--dark-1); }
 
-  .legend-row {
-    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
-    padding: 0 8px 16px;
-  }
+  .legend-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; padding: 0 8px 16px; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
   .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
   .legend-dot.cal { background: var(--neon); }
-  .legend-dot.pro { background: var(--orange); }
-  .legend-dot.fat { background: var(--purple); }
-  .legend-dot.car { background: var(--yellow); }
 
-  /* ГАЛЕРЕЯ */
-  .gallery-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    margin-bottom: 16px;
-  }
-  .photo-card {
-    background: var(--card-bg); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-sm); overflow: hidden;
-    cursor: pointer; position: relative;
-    transition: all 0.2s;
-  }
+  .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .photo-card { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; }
   .photo-card:active { transform: scale(0.97); border-color: var(--neon); }
-  .photo-card .photo-wrap {
-    width: 100%; aspect-ratio: 3/4; background: rgba(10,14,26,0.8);
-    position: relative; overflow: hidden;
-  }
-  .photo-card img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .photo-card .photo-date {
-    padding: 8px 10px; background: rgba(10,14,26,0.9);
-    font-size: 11px; font-weight: 800;
-    display: flex; justify-content: space-between; align-items: center;
-  }
+  .photo-card .photo-wrap { width: 100%; aspect-ratio: 3/4; background: rgba(10,14,26,0.8); overflow: hidden; }
+  .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-card .photo-date { padding: 8px 10px; background: rgba(10,14,26,0.9); font-size: 11px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
   .photo-card .photo-date .d { color: var(--neon); letter-spacing: 0.5px; }
   .photo-card .photo-date .w { color: var(--text-2); font-size: 10px; }
 
-  .photo-viewer {
-    background: var(--card-bg); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius); padding: 12px; margin-bottom: 16px;
-    text-align: center;
-  }
-  .photo-viewer img {
-    width: 100%; border-radius: var(--radius-sm); display: block;
-    max-height: 70vh; object-fit: contain;
-    background: #000;
-  }
-  .photo-viewer .pv-info {
-    padding: 14px 4px 4px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
+  .photo-viewer { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; text-align: center; }
+  .photo-viewer img { width: 100%; border-radius: var(--radius-sm); display: block; max-height: 70vh; object-fit: contain; background: #000; }
+  .photo-viewer .pv-info { padding: 14px 4px 4px; display: flex; justify-content: space-between; align-items: center; }
   .photo-viewer .pv-date { font-size: 14px; font-weight: 900; color: var(--neon); }
   .photo-viewer .pv-weight { font-size: 13px; color: var(--text-2); font-weight: 700; }
 
-  .compare-container {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    margin-bottom: 16px;
-  }
-  .compare-item {
-    background: var(--card-bg); border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-sm); overflow: hidden;
-  }
+  .compare-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .compare-item { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: var(--radius-sm); overflow: hidden; }
   .compare-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
-  .compare-item .ci-label {
-    padding: 8px; text-align: center;
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 1.2px;
-  }
+  .compare-item .ci-label { padding: 8px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; }
   .compare-item.before .ci-label { background: rgba(239, 68, 68, 0.15); color: #ff5c5c; }
   .compare-item.after .ci-label { background: rgba(0, 255, 136, 0.15); color: var(--neon); }
 
@@ -498,15 +410,245 @@
     cursor: pointer; transition: all 0.2s;
     margin-bottom: 16px;
   }
-  .file-drop:active, .file-drop.has-file {
-    border-color: var(--neon); background: rgba(0, 255, 136, 0.08);
-  }
+  .file-drop:active, .file-drop.has-file { border-color: var(--neon); background: rgba(0, 255, 136, 0.08); }
   .file-drop .fd-icon { font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.7; }
   .file-drop .fd-text { color: var(--text-2); font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
   .file-drop input { display: none; }
-  .file-drop .preview {
-    width: 100%; max-height: 400px; border-radius: 12px;
-    object-fit: cover; margin-top: 12px;
+  .file-drop .preview { width: 100%; max-height: 400px; border-radius: 12px; object-fit: cover; margin-top: 12px; }
+
+  /* ============ ШАБЛОНЫ ============ */
+  .template-card {
+    background: var(--card-bg); backdrop-filter: blur(20px);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+    position: relative;
+  }
+  .template-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  }
+  .template-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+  }
+  .template-header .t-info { flex: 1; min-width: 0; }
+  .template-header .t-name { font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .template-header .t-count { font-size: 11px; color: var(--text-2); margin-top: 4px; letter-spacing: 0.3px; }
+  .template-exercises {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+  }
+  .template-ex-tag {
+    padding: 5px 10px; border-radius: 12px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--neon-glow);
+    font-size: 11px; font-weight: 700; color: var(--neon);
+    letter-spacing: 0.3px;
+  }
+  .template-actions {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+  }
+  .t-action-btn {
+    padding: 10px 14px; border-radius: 12px;
+    border: 1.5px solid var(--card-border);
+    background: rgba(10, 14, 26, 0.6);
+    color: var(--text-1); font-weight: 800; font-size: 12px;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .t-action-btn.start {
+    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
+    color: var(--dark-1); border-color: var(--neon);
+    box-shadow: 0 4px 16px var(--neon-glow);
+  }
+  .t-action-btn:active { transform: scale(0.96); }
+  .t-action-btn.delete { color: #ff5c5c; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
+
+  .draft-exercise {
+    background: var(--card-bg); border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .draft-exercise .de-name { font-weight: 700; font-size: 14px; }
+  .draft-exercise .de-remove {
+    background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ff5c5c; padding: 6px 10px; border-radius: 8px;
+    cursor: pointer; font-weight: 900; font-size: 12px;
+  }
+
+  /* ============ СЕССИЯ ============ */
+  .session-progress {
+    background: rgba(10, 14, 26, 0.6);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 20px;
+    border: 1.5px solid var(--card-border);
+  }
+  .session-progress .sp-label { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+  .session-progress .sp-count { font-size: 22px; font-weight: 900; color: var(--neon); margin-top: 4px; letter-spacing: -0.5px; }
+  .session-bar {
+    height: 6px; background: rgba(255,255,255,0.08);
+    border-radius: 3px; margin-top: 10px; overflow: hidden;
+  }
+  .session-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--neon) 0%, var(--neon-dim) 100%);
+    border-radius: 3px; transition: width 0.4s ease;
+    box-shadow: 0 0 12px var(--neon-glow);
+  }
+  .session-exercise-name {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(255, 107, 26, 0.08) 100%);
+    border: 1.5px solid var(--neon-glow);
+    border-radius: var(--radius); padding: 20px; text-align: center;
+    margin-bottom: 20px;
+  }
+  .session-exercise-name .label { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+  .session-exercise-name .name { font-size: 22px; font-weight: 900; margin-top: 8px; text-transform: uppercase; letter-spacing: -0.3px; }
+
+  .session-nav {
+    display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 16px;
+  }
+  .session-btn {
+    padding: 16px; border-radius: 14px;
+    border: none; cursor: pointer;
+    font-weight: 900; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    transition: all 0.2s;
+  }
+  .session-btn.skip {
+    background: rgba(10, 14, 26, 0.6);
+    border: 1.5px solid var(--card-border);
+    color: var(--text-2);
+  }
+  .session-btn.next {
+    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
+    color: var(--dark-1);
+    box-shadow: 0 8px 24px var(--neon-glow);
+  }
+  .session-btn:active { transform: scale(0.97); }
+
+  /* ============ ТАЙМЕР ОТДЫХА ============ */
+  .timer-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(6, 10, 20, 0.92);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .timer-overlay.active { display: flex; }
+  .timer-content {
+    width: 100%; max-width: 400px;
+    text-align: center;
+  }
+  .timer-content .t-title {
+    font-size: 11px; font-weight: 800; color: var(--neon);
+    text-transform: uppercase; letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+  .timer-content .t-subtitle {
+    font-size: 13px; color: var(--text-2); font-weight: 700;
+    margin-bottom: 32px;
+  }
+  .timer-circle-wrap {
+    position: relative; width: 240px; height: 240px;
+    margin: 0 auto 32px;
+  }
+  .timer-circle-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .timer-circle-wrap .tc-bg {
+    fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8;
+  }
+  .timer-circle-wrap .tc-fg {
+    fill: none; stroke: var(--neon); stroke-width: 8;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 12px var(--neon-glow));
+    transition: stroke-dashoffset 0.3s linear;
+  }
+  .timer-circle-wrap .tc-fg.paused { stroke: var(--orange); filter: drop-shadow(0 0 12px var(--orange-glow)); }
+  .timer-circle-wrap .tc-fg.done { stroke: var(--neon); animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 0 12px var(--neon-glow)); }
+    50% { filter: drop-shadow(0 0 40px var(--neon)) drop-shadow(0 0 60px var(--neon)); }
+  }
+  .timer-time {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 56px; font-weight: 900;
+    color: var(--text-1); letter-spacing: -2px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 20px var(--neon-glow);
+  }
+  .timer-time .sec-unit {
+    font-size: 20px; color: var(--text-2); margin-left: 4px;
+    font-weight: 700;
+  }
+  .timer-presets {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 20px;
+  }
+  .timer-preset {
+    padding: 12px 4px; border-radius: 12px;
+    background: rgba(10, 14, 26, 0.7);
+    border: 1.5px solid var(--card-border);
+    color: var(--text-2); font-size: 13px; font-weight: 800;
+    cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .timer-preset.active {
+    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
+    color: var(--dark-1); border-color: var(--neon);
+    box-shadow: 0 4px 16px var(--neon-glow);
+  }
+  .timer-preset:active { transform: scale(0.96); }
+  .timer-controls {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .timer-ctrl-btn {
+    padding: 16px; border-radius: 14px;
+    border: 1.5px solid var(--card-border);
+    background: rgba(10, 14, 26, 0.7);
+    color: var(--text-1); font-weight: 900; font-size: 13px;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 1.2px;
+    transition: all 0.2s;
+  }
+  .timer-ctrl-btn:active { transform: scale(0.97); background: rgba(0, 255, 136, 0.1); border-color: var(--neon); }
+  .timer-ctrl-btn.pause { color: var(--orange); border-color: var(--orange-glow); }
+  .timer-close-btn {
+    padding: 16px; border-radius: 14px;
+    border: none; background: transparent;
+    color: var(--text-2); font-weight: 800; font-size: 13px;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 1.2px;
+    width: 100%;
+  }
+  .timer-close-btn:active { color: var(--text-1); }
+
+  .floating-timer-btn {
+    position: fixed;
+    bottom: 24px; right: 20px;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
+    color: var(--dark-1); font-size: 28px;
+    border: none; cursor: pointer;
+    box-shadow: 0 8px 24px var(--neon-glow), 0 4px 12px rgba(0,0,0,0.3);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: transform 0.2s;
+  }
+  .floating-timer-btn.active { display: flex; }
+  .floating-timer-btn:active { transform: scale(0.9); }
+  .floating-timer-btn::after {
+    content: attr(data-time);
+    position: absolute; top: -6px; right: -6px;
+    background: var(--dark-2);
+    border: 1.5px solid var(--neon);
+    border-radius: 12px;
+    font-size: 10px; font-weight: 900;
+    color: var(--neon);
+    padding: 3px 7px;
+    letter-spacing: 0.5px;
+    min-width: 32px;
   }
 </style>
 </head>
@@ -565,6 +707,11 @@
       <div class="info"><div class="title">Тренировки</div><div class="desc">Записывай подходы</div></div>
       <div class="arrow">›</div>
     </div>
+    <div class="nav-card" onclick="showScreen('screen-templates')">
+      <div class="icon templates">📋</div>
+      <div class="info"><div class="title">Шаблоны</div><div class="desc">Пуш-день, Ноги, Спина</div></div>
+      <div class="arrow">›</div>
+    </div>
     <div class="nav-card" onclick="showScreen('screen-progress')">
       <div class="icon progress">📊</div>
       <div class="info"><div class="title">Прогресс</div><div class="desc">Графики и статистика</div></div>
@@ -587,10 +734,7 @@
     <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
     <h1>Питание</h1>
     <div style="height:16px"></div>
-    <button class="btn btn-secondary" onclick="showScreen('screen-nutrition-chart')" style="margin-top:0; margin-bottom:16px; padding:14px; font-size:13px;">
-      📊 Смотреть график питания
-    </button>
-
+    <button class="btn btn-secondary" onclick="showScreen('screen-nutrition-chart')" style="margin-top:0; margin-bottom:16px; padding:14px; font-size:13px;">📊 Смотреть график питания</button>
     <div class="date-nav">
       <button class="date-nav-btn" onclick="shiftDate(-1)">‹</button>
       <div class="date-nav-center" onclick="goToday()">
@@ -600,31 +744,16 @@
       </div>
       <button class="date-nav-btn" id="nextDayBtn" onclick="shiftDate(1)">›</button>
     </div>
-
     <div class="macro-ring-grid">
-      <div class="macro-ring cal">
-        <div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringCal" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringCalVal">0%</div></div>
-        <div class="ring-label">Ккал</div>
-      </div>
-      <div class="macro-ring pro">
-        <div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringPro" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringProVal">0%</div></div>
-        <div class="ring-label">Белки</div>
-      </div>
-      <div class="macro-ring fat">
-        <div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringFat" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringFatVal">0%</div></div>
-        <div class="ring-label">Жиры</div>
-      </div>
-      <div class="macro-ring car">
-        <div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringCar" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringCarVal">0%</div></div>
-        <div class="ring-label">Углев.</div>
-      </div>
+      <div class="macro-ring cal"><div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringCal" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringCalVal">0%</div></div><div class="ring-label">Ккал</div></div>
+      <div class="macro-ring pro"><div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringPro" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringProVal">0%</div></div><div class="ring-label">Белки</div></div>
+      <div class="macro-ring fat"><div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringFat" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringFatVal">0%</div></div><div class="ring-label">Жиры</div></div>
+      <div class="macro-ring car"><div class="ring-wrap"><svg viewBox="0 0 60 60"><circle class="ring-bg" cx="30" cy="30" r="25"/><circle class="ring-fg" id="ringCar" cx="30" cy="30" r="25"/></svg><div class="ring-value" id="ringCarVal">0%</div></div><div class="ring-label">Углев.</div></div>
     </div>
-
     <div class="daily-summary">
       <div><div class="label">Съедено</div><div class="value neon" id="totalCalories">0 <span style="font-size:13px; color:var(--text-2);">ккал</span></div></div>
       <div style="text-align:right;"><div class="label">Норма</div><div class="value orange" id="targetCalories">— <span style="font-size:13px; color:var(--text-2);">ккал</span></div></div>
     </div>
-
     <div class="section-title orange">Приёмы пищи</div>
     <div id="mealsList"></div>
     <button class="btn btn-orange" onclick="showScreen('screen-food-add')">+ Добавить приём пищи</button>
@@ -634,24 +763,20 @@
   <div id="screen-nutrition-chart" class="screen">
     <button class="back-btn" onclick="showScreen('screen-food')">‹ Назад</button>
     <h1>График питания</h1>
-    <p class="subtitle">Калории и БЖУ по дням</p>
+    <p class="subtitle">Калории по дням</p>
     <div style="height:16px"></div>
-
     <div class="chart-period-tabs">
       <div class="chart-period-tab active" onclick="setChartPeriod(7, this)">7 дней</div>
       <div class="chart-period-tab" onclick="setChartPeriod(14, this)">14 дней</div>
       <div class="chart-period-tab" onclick="setChartPeriod(30, this)">30 дней</div>
     </div>
-
     <div id="nutritionChartContainer"></div>
-
     <div class="stat-grid" style="margin-top:16px;">
-      <div class="stat-card"><div class="label">Средние калории</div><div class="value" id="ncAvgCal">—</div></div>
-      <div class="stat-card"><div class="label">Средние белки</div><div class="value orange" id="ncAvgPro">—</div></div>
-      <div class="stat-card"><div class="label">Средние жиры</div><div class="value purple" id="ncAvgFat">—</div></div>
-      <div class="stat-card"><div class="label">Средние углеводы</div><div class="value white" id="ncAvgCar">—</div></div>
+      <div class="stat-card"><div class="label">Сред. калории</div><div class="value" id="ncAvgCal">—</div></div>
+      <div class="stat-card"><div class="label">Сред. белки</div><div class="value orange" id="ncAvgPro">—</div></div>
+      <div class="stat-card"><div class="label">Сред. жиры</div><div class="value purple" id="ncAvgFat">—</div></div>
+      <div class="stat-card"><div class="label">Сред. углеводы</div><div class="value white" id="ncAvgCar">—</div></div>
     </div>
-
     <div class="section-title">Последние дни</div>
     <div id="nutritionHistoryList"></div>
   </div>
@@ -662,16 +787,11 @@
     <h1>Новый приём</h1>
     <p class="subtitle">Из базы или вручную</p>
     <div style="height:16px"></div>
-    <button class="btn btn-secondary" onclick="openProductPicker()" style="margin-top:0; margin-bottom:16px; padding:14px; font-size:13px;">
-      🥗 Выбрать из базы продуктов
-    </button>
+    <button class="btn btn-secondary" onclick="openProductPicker()" style="margin-top:0; margin-bottom:16px; padding:14px; font-size:13px;">🥗 Выбрать из базы продуктов</button>
     <div id="selectedProductBox"></div>
     <div class="input-group"><label>Название блюда</label><input id="mealName" placeholder="Овсянка с бананом"></div>
     <div class="input-group"><label>Тип приёма</label>
-      <select id="mealType">
-        <option value="breakfast">🌅 Завтрак</option><option value="lunch">☀️ Обед</option>
-        <option value="dinner">🌙 Ужин</option><option value="snack">🍿 Перекус</option>
-      </select>
+      <select id="mealType"><option value="breakfast">🌅 Завтрак</option><option value="lunch">☀️ Обед</option><option value="dinner">🌙 Ужин</option><option value="snack">🍿 Перекус</option></select>
     </div>
     <div class="input-group"><label>Дата</label><input id="mealDate" type="date"></div>
     <div class="input-group"><label>Калории (ккал)</label><input id="mealCalories" type="number" placeholder="350"></div>
@@ -703,13 +823,9 @@
     <h1>Свой продукт</h1>
     <p class="subtitle">Данные на 100 г</p>
     <div style="height:16px"></div>
-    <div class="input-group"><label>Название продукта</label><input id="custName" placeholder="Протеиновый батончик"></div>
+    <div class="input-group"><label>Название</label><input id="custName" placeholder="Протеиновый батончик"></div>
     <div class="input-group"><label>Категория</label>
-      <select id="custCategory">
-        <option value="Мясо">Мясо</option><option value="Рыба">Рыба</option><option value="Молочка">Молочка</option>
-        <option value="Крупы">Крупы</option><option value="Овощи">Овощи</option><option value="Фрукты">Фрукты</option>
-        <option value="Жиры">Жиры</option><option value="Прочее" selected>Прочее</option>
-      </select>
+      <select id="custCategory"><option value="Мясо">Мясо</option><option value="Рыба">Рыба</option><option value="Молочка">Молочка</option><option value="Крупы">Крупы</option><option value="Овощи">Овощи</option><option value="Фрукты">Фрукты</option><option value="Жиры">Жиры</option><option value="Прочее" selected>Прочее</option></select>
     </div>
     <div class="input-group"><label>Калории на 100 г</label><input id="custCalories" type="number" placeholder="450"></div>
     <div class="input-group"><label>БЖУ на 100 г</label>
@@ -727,9 +843,7 @@
     <button class="back-btn" onclick="showScreen('screen-products')">‹ Назад</button>
     <h1>Порция</h1>
     <div id="portionProductInfo"></div>
-    <div class="input-group" style="margin-top:16px;"><label>Вес порции (г)</label>
-      <input id="portionWeight" type="number" placeholder="100" oninput="updatePortionPreview()">
-    </div>
+    <div class="input-group" style="margin-top:16px;"><label>Вес порции (г)</label><input id="portionWeight" type="number" placeholder="100" oninput="updatePortionPreview()"></div>
     <div class="product-summary">
       <div class="ps-title">БЖУ порции</div>
       <div class="ps-grid">
@@ -766,11 +880,11 @@
     <button class="btn" onclick="addExercise()">Сохранить</button>
   </div>
 
-  <!-- БИБЛИОТЕКА УПРАЖНЕНИЙ -->
+  <!-- БИБЛИОТЕКА -->
   <div id="screen-library" class="screen">
-    <button class="back-btn" onclick="showScreen('screen-add')">‹ Назад</button>
-    <h1>Библиотека</h1>
-    <p class="subtitle">Выбери упражнение</p>
+    <button class="back-btn" onclick="closeLibrary()">‹ Назад</button>
+    <h1 id="libraryTitle">Библиотека</h1>
+    <p class="subtitle" id="librarySubtitle">Выбери упражнение</p>
     <div style="height:16px"></div>
     <input id="libSearch" class="search-box" placeholder="🔍 Поиск упражнения..." oninput="renderLibrary()">
     <div id="libTabs" class="group-tabs"></div>
@@ -813,7 +927,80 @@
     <div class="input-group"><label>Дата</label><input id="apDate" type="date"></div>
     <div class="input-group"><label>Вес (кг)</label><input id="apWeight" type="number" step="0.5" placeholder="60"></div>
     <div class="input-group"><label>Повторения</label><input id="apReps" type="number" placeholder="10"></div>
-    <button class="btn" onclick="addApproach()">Сохранить</button>
+    <button class="btn" onclick="addApproach()">Сохранить и начать отдых ⏱</button>
+    <button class="btn btn-secondary" onclick="addApproachNoTimer()" style="padding:14px; font-size:13px;">Сохранить без таймера</button>
+  </div>
+
+  <!-- ШАБЛОНЫ -->
+  <div id="screen-templates" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
+    <h1>Шаблоны</h1>
+    <p class="subtitle">Готовые программы тренировок</p>
+    <div class="section-title">Мои шаблоны</div>
+    <div id="templatesList"></div>
+    <button class="btn btn-cyan" onclick="openTemplateCreate()">+ Создать шаблон</button>
+  </div>
+
+  <!-- СОЗДАНИЕ ШАБЛОНА -->
+  <div id="screen-template-create" class="screen">
+    <button class="back-btn" onclick="cancelTemplateCreate()">‹ Назад</button>
+    <h1 id="templateCreateTitle">Новый шаблон</h1>
+    <p class="subtitle">Собери упражнения в одну программу</p>
+    <div style="height:16px"></div>
+    <div class="input-group"><label>Название шаблона</label>
+      <input id="tplName" placeholder="Например: Пуш-день">
+    </div>
+    <div class="input-group"><label>Эмодзи-иконка</label>
+      <select id="tplIcon">
+        <option value="💪" selected>💪 Силовой</option>
+        <option value="🔥">🔥 Пуш</option>
+        <option value="🎯">🎯 Пулл</option>
+        <option value="🦵">🦵 Ноги</option>
+        <option value="🏋️">🏋️ Всё тело</option>
+        <option value="⚡">⚡ Быстрая</option>
+        <option value="🧘">🧘 Растяжка</option>
+      </select>
+    </div>
+
+    <div class="section-title purple">Упражнения в шаблоне</div>
+    <div id="templateDraftList"></div>
+
+    <button class="btn btn-secondary" onclick="openLibraryForTemplate()" style="padding:14px; font-size:13px;">+ Добавить упражнение из библиотеки</button>
+    <button class="btn btn-cyan" onclick="saveTemplate()">Сохранить шаблон 💾</button>
+  </div>
+
+  <!-- СЕССИЯ ТРЕНИРОВКИ -->
+  <div id="screen-workout-session" class="screen">
+    <button class="back-btn" onclick="cancelSession()">✕ Отменить тренировку</button>
+    <h1>Тренировка</h1>
+    <p class="subtitle" id="sessionTemplateName"></p>
+    <div style="height:16px"></div>
+
+    <div class="session-progress">
+      <div class="sp-label">Упражнение</div>
+      <div class="sp-count" id="sessionCount">1 / 5</div>
+      <div class="session-bar"><div class="session-bar-fill" id="sessionBarFill" style="width: 0%"></div></div>
+    </div>
+
+    <div class="session-exercise-name">
+      <div class="label">Сейчас делаем</div>
+      <div class="name" id="sessionExerciseName"></div>
+    </div>
+
+    <div class="input-group"><label>Дата тренировки</label>
+      <input id="sessionDate" type="date">
+    </div>
+    <div class="input-group"><label>Рабочий вес (кг)</label>
+      <input id="sessionWeight" type="number" step="0.5" placeholder="60" inputmode="decimal">
+    </div>
+    <div class="input-group"><label>Повторения</label>
+      <input id="sessionReps" type="number" placeholder="10" inputmode="numeric">
+    </div>
+
+    <div class="session-nav">
+      <button class="session-btn skip" onclick="skipSessionExercise()">Пропустить</button>
+      <button class="session-btn next" id="sessionNextBtn" onclick="nextSessionExercise()">Далее →</button>
+    </div>
   </div>
 
   <!-- ГАЛЕРЕЯ -->
@@ -822,9 +1009,7 @@
     <h1>Галерея</h1>
     <p class="subtitle">Фото прогресса</p>
     <div style="height:16px"></div>
-
     <button class="btn btn-purple" onclick="showScreen('screen-add-photo')" style="margin-top:0; margin-bottom:20px;">📸 Добавить фото</button>
-
     <div id="galleryContent"></div>
   </div>
 
@@ -834,26 +1019,15 @@
     <h1>Новое фото</h1>
     <p class="subtitle">Сегодня я выгляжу так</p>
     <div style="height:16px"></div>
-
     <label class="file-drop" id="fileDrop">
       <span class="fd-icon">📷</span>
       <span class="fd-text" id="fileDropText">Нажми, чтобы выбрать фото</span>
       <input type="file" id="photoInput" accept="image/*" onchange="onPhotoSelected(event)">
       <img id="photoPreview" class="preview" style="display:none;">
     </label>
-
-    <div class="input-group"><label>Дата фото</label>
-      <input id="photoDate" type="date">
-    </div>
-
-    <div class="input-group"><label>Вес (кг) — необязательно</label>
-      <input id="photoWeight" type="number" step="0.1" placeholder="Например: 75.5">
-    </div>
-
-    <div class="input-group"><label>Заметка — необязательно</label>
-      <textarea id="photoNote" rows="2" placeholder="После 30 дней тренировок..."></textarea>
-    </div>
-
+    <div class="input-group"><label>Дата фото</label><input id="photoDate" type="date"></div>
+    <div class="input-group"><label>Вес (кг) — необязательно</label><input id="photoWeight" type="number" step="0.1" placeholder="Например: 75.5"></div>
+    <div class="input-group"><label>Заметка — необязательно</label><textarea id="photoNote" rows="2" placeholder="После 30 дней тренировок..."></textarea></div>
     <button class="btn btn-purple" onclick="savePhoto()">Сохранить фото 💾</button>
   </div>
 
@@ -896,6 +1070,39 @@
 
 </div>
 
+<!-- ТАЙМЕР ОТДЫХА (оверлей) -->
+<div class="timer-overlay" id="timerOverlay">
+  <div class="timer-content">
+    <div class="t-title">Отдых между подходами</div>
+    <div class="t-subtitle" id="timerExerciseName">—</div>
+
+    <div class="timer-circle-wrap">
+      <svg viewBox="0 0 240 240">
+        <circle class="tc-bg" cx="120" cy="120" r="110"/>
+        <circle class="tc-fg" id="timerCircle" cx="120" cy="120" r="110" style="stroke-dasharray: 691.15; stroke-dashoffset: 0;"/>
+      </svg>
+      <div class="timer-time" id="timerDisplay">90<span class="sec-unit">с</span></div>
+    </div>
+
+    <div class="timer-presets">
+      <div class="timer-preset" onclick="setTimerPreset(60, this)">60с</div>
+      <div class="timer-preset active" onclick="setTimerPreset(90, this)">90с</div>
+      <div class="timer-preset" onclick="setTimerPreset(120, this)">120с</div>
+      <div class="timer-preset" onclick="setTimerPreset(180, this)">180с</div>
+    </div>
+
+    <div class="timer-controls">
+      <button class="timer-ctrl-btn" onclick="addTimerTime(30)">+30с</button>
+      <button class="timer-ctrl-btn pause" id="timerPauseBtn" onclick="toggleTimerPause()">⏸ Пауза</button>
+    </div>
+
+    <button class="timer-close-btn" onclick="closeTimer()">Закрыть таймер</button>
+  </div>
+</div>
+
+<!-- Плавающая кнопка таймера -->
+<button class="floating-timer-btn" id="floatingTimerBtn" data-time="90" onclick="openTimerFromFloat()">⏱</button>
+
 <script>
   const tg = window.Telegram.WebApp;
   tg.ready(); tg.expand();
@@ -906,6 +1113,7 @@
   const MEALS_KEY = 'fitness_meals';
   const CUSTOM_PRODUCTS_KEY = 'fitness_custom_products';
   const PHOTOS_KEY = 'fitness_photos';
+  const TEMPLATES_KEY = 'fitness_templates';
 
   const EXERCISE_LIBRARY = [
     { name: 'Жим штанги лёжа', group: 'Грудь' }, { name: 'Жим гантелей лёжа', group: 'Грудь' },
@@ -935,14 +1143,9 @@
     { name: 'Гребной тренажёр', group: 'Кардио' }, { name: 'Скакалка', group: 'Кардио' }
   ];
   const EX_GROUPS_META = [
-    { name: 'Все', icon: '🏋️' },
-    { name: 'Грудь', icon: '🫁' },
-    { name: 'Спина', icon: '🔙' },
-    { name: 'Ноги', icon: '🦵' },
-    { name: 'Плечи', icon: '💪' },
-    { name: 'Руки', icon: '💪' },
-    { name: 'Пресс', icon: '🔥' },
-    { name: 'Кардио', icon: '🏃' }
+    { name: 'Все', icon: '🏋️' }, { name: 'Грудь', icon: '🫁' }, { name: 'Спина', icon: '🔙' },
+    { name: 'Ноги', icon: '🦵' }, { name: 'Плечи', icon: '💪' }, { name: 'Руки', icon: '💪' },
+    { name: 'Пресс', icon: '🔥' }, { name: 'Кардио', icon: '🏃' }
   ];
   let selectedExGroup = 'Все';
 
@@ -1033,6 +1236,9 @@
   let currentChartPeriod = 7;
   let selectedPhotoId = null;
   let pendingPhotoData = null;
+  let libraryMode = 'exercise'; // 'exercise' | 'template'
+  let templateDraft = { id: null, name: '', icon: '💪', exercises: [] };
+  let sessionData = null;
 
   function loadProfile() { try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; } catch { return null; } }
   function saveProfileData(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
@@ -1043,7 +1249,9 @@
   function loadCustomProducts() { try { return JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_KEY)) || []; } catch { return []; } }
   function saveCustomProducts(d) { localStorage.setItem(CUSTOM_PRODUCTS_KEY, JSON.stringify(d)); }
   function loadPhotos() { try { return JSON.parse(localStorage.getItem(PHOTOS_KEY)) || []; } catch { return []; } }
-  function savePhotos(d) { try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(d)); } catch(e) { alert('Память переполнена. Удалите несколько старых фото.'); } }
+  function savePhotos(d) { try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(d)); } catch(e) { alert('Память переполнена. Удалите старые фото.'); } }
+  function loadTemplates() { try { return JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || []; } catch { return []; } }
+  function saveTemplates(d) { localStorage.setItem(TEMPLATES_KEY, JSON.stringify(d)); }
 
   function allProducts() { return [...FOOD_LIBRARY, ...loadCustomProducts()]; }
 
@@ -1056,7 +1264,6 @@
   const DAYS = ['ВОСКРЕСЕНЬЕ','ПОНЕДЕЛЬНИК','ВТОРНИК','СРЕДА','ЧЕТВЕРГ','ПЯТНИЦА','СУББОТА'];
   const DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
   const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-  const MONTHS_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 
   function formatDate(iso) {
     const d = new Date(iso);
@@ -1109,10 +1316,13 @@
     if (id === 'screen-library') renderLibrary();
     if (id === 'screen-products') renderProducts();
     if (id === 'screen-gallery') renderGallery();
+    if (id === 'screen-templates') renderTemplates();
+    if (id === 'screen-template-create') renderTemplateDraft();
     if (id === 'screen-add-approach') {
       const ex = loadExercises().find(e => e.id === currentExerciseId);
       if (ex) document.getElementById('approachExName').textContent = ex.name;
     }
+    if (id === 'screen-workout-session') renderSession();
   }
 
   function saveProfile() {
@@ -1166,7 +1376,7 @@
     document.getElementById('bmiStatus').textContent = status;
   }
 
-  // КАЛЕНДАРЬ ПИТАНИЯ
+  // ПИТАНИЕ
   function shiftDate(delta) {
     const d = new Date(currentFoodDate);
     d.setDate(d.getDate() + delta);
@@ -1200,10 +1410,7 @@
     document.getElementById('targetCalories').innerHTML = (target ? Math.round(target.calories) : '—') + ' <span style="font-size:13px; color:var(--text-2);">ккал</span>';
 
     const list = document.getElementById('mealsList');
-    if (meals.length === 0) {
-      list.innerHTML = `<div class="empty"><span class="big-emoji">🍽</span>В этот день ничего нет</div>`;
-      return;
-    }
+    if (meals.length === 0) { list.innerHTML = `<div class="empty"><span class="big-emoji">🍽</span>В этот день ничего нет</div>`; return; }
     const typeIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍿' };
     const sorted = [...meals].sort((a, b) => b.id - a.id);
     list.innerHTML = sorted.map(m => `
@@ -1215,8 +1422,7 @@
         </div>
         <div class="kcal">${Math.round(m.calories)}<span class="unit"> ккал</span></div>
         <button class="delete-btn" onclick="deleteMeal(${m.id})">🗑</button>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
   function updateRing(ringId, valId, value, target) {
@@ -1262,7 +1468,6 @@
     renderFood();
   }
 
-  // ГРАФИК ПИТАНИЯ
   function setChartPeriod(days, el) {
     currentChartPeriod = days;
     document.querySelectorAll('.chart-period-tab').forEach(t => t.classList.remove('active'));
@@ -1288,15 +1493,9 @@
         sum.fat += m.fats || 0;
         sum.car += m.carbs || 0;
       });
-      days.push({
-        date: iso,
-        dayShort: DAYS_SHORT[d.getDay()],
-        dayNum: d.getDate(),
-        ...sum
-      });
+      days.push({ date: iso, dayShort: DAYS_SHORT[d.getDay()], dayNum: d.getDate(), ...sum });
     }
 
-    // Средние
     const nonEmpty = days.filter(d => d.cal > 0);
     const avgCal = nonEmpty.length ? Math.round(nonEmpty.reduce((s, d) => s + d.cal, 0) / nonEmpty.length) : 0;
     const avgPro = nonEmpty.length ? Math.round(nonEmpty.reduce((s, d) => s + d.pro, 0) / nonEmpty.length) : 0;
@@ -1313,33 +1512,24 @@
       return;
     }
 
-    // SVG график
-    const W = 480, H = 220;
-    const padL = 42, padR = 16, padT = 20, padB = 40;
-    const chartW = W - padL - padR;
-    const chartH = H - padT - padB;
+    const W = 480, H = 220, padL = 42, padR = 16, padT = 20, padB = 40;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
     const maxVal = Math.max(...days.map(d => d.cal), target?.calories || 0) * 1.1 || 100;
-
     const barW = chartW / days.length * 0.7;
     const stepX = chartW / days.length;
 
-    let bars = '';
-    let labels = '';
+    let bars = '', labels = '';
     days.forEach((d, i) => {
       const x = padL + i * stepX + (stepX - barW) / 2;
       const barH = (d.cal / maxVal) * chartH;
       const y = padT + chartH - barH;
       const color = d.cal >= (target?.calories || 1) * 0.9 && d.cal <= (target?.calories || 1) * 1.1
-        ? 'url(#barOK)' : d.cal > (target?.calories || 1) * 1.1
-        ? 'url(#barOver)' : 'url(#barUnder)';
-      if (d.cal > 0) {
-        bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${color}" opacity="0.9"/>`;
-      } else {
-        bars += `<rect x="${x}" y="${padT + chartH - 3}" width="${barW}" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>`;
-      }
+        ? 'url(#barOK)' : d.cal > (target?.calories || 1) * 1.1 ? 'url(#barOver)' : 'url(#barUnder)';
+      bars += d.cal > 0
+        ? `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" fill="${color}" opacity="0.9"/>`
+        : `<rect x="${x}" y="${padT + chartH - 3}" width="${barW}" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>`;
     });
 
-    // Подписи дней
     const labelStep = days.length > 14 ? 3 : days.length > 7 ? 2 : 1;
     days.forEach((d, i) => {
       if (i % labelStep === 0 || i === days.length - 1) {
@@ -1349,17 +1539,13 @@
       }
     });
 
-    // Целевая линия
     let targetLine = '';
     if (target) {
       const yT = padT + chartH - (target.calories / maxVal) * chartH;
-      targetLine = `
-        <line x1="${padL}" y1="${yT}" x2="${W - padR}" y2="${yT}" stroke="#ff6b1a" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
-        <text x="${W - padR - 4}" y="${yT - 4}" font-size="9" fill="#ff6b1a" text-anchor="end" font-weight="800">НОРМА ${target.calories}</text>
-      `;
+      targetLine = `<line x1="${padL}" y1="${yT}" x2="${W - padR}" y2="${yT}" stroke="#ff6b1a" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.7"/>
+        <text x="${W - padR - 4}" y="${yT - 4}" font-size="9" fill="#ff6b1a" text-anchor="end" font-weight="800">НОРМА ${target.calories}</text>`;
     }
 
-    // Сетка
     let grid = '';
     for (let i = 0; i <= 4; i++) {
       const y = padT + (i / 4) * chartH;
@@ -1368,66 +1554,46 @@
       grid += `<text x="${padL - 6}" y="${y + 3}" font-size="9" fill="#5c6580" text-anchor="end" font-weight="700">${Math.round(val)}</text>`;
     }
 
-    // Итоговая плашка
-    let summaryCard = '';
-    if (days.length > 0) {
-      const lastDay = days[days.length - 1];
-      const diff = lastDay.cal - (target?.calories || 0);
-      const sign = diff > 0 ? '+' : '';
-      const color = Math.abs(diff) < (target?.calories || 1) * 0.1 ? 'var(--neon)' : diff > 0 ? '#ff5c5c' : 'var(--orange)';
-      summaryCard = `
-        <div class="chart-card" style="padding:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <div style="font-size:10px; color:var(--text-2); text-transform:uppercase; letter-spacing:1.8px; font-weight:800;">Сегодня</div>
-              <div style="font-size:28px; font-weight:900; color:var(--neon); margin-top:4px;">${Math.round(lastDay.cal)} <span style="font-size:13px; color:var(--text-2);">ккал</span></div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:10px; color:var(--text-2); text-transform:uppercase; letter-spacing:1.8px; font-weight:800;">Отклонение</div>
-              <div style="font-size:22px; font-weight:900; color:${color}; margin-top:4px;">${sign}${Math.round(diff)}</div>
-            </div>
+    const lastDay = days[days.length - 1];
+    const diff = lastDay.cal - (target?.calories || 0);
+    const sign = diff > 0 ? '+' : '';
+    const color = Math.abs(diff) < (target?.calories || 1) * 0.1 ? 'var(--neon)' : diff > 0 ? '#ff5c5c' : 'var(--orange)';
+    const summaryCard = `
+      <div class="chart-card" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:10px; color:var(--text-2); text-transform:uppercase; letter-spacing:1.8px; font-weight:800;">Сегодня</div>
+            <div style="font-size:28px; font-weight:900; color:var(--neon); margin-top:4px;">${Math.round(lastDay.cal)} <span style="font-size:13px; color:var(--text-2);">ккал</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:10px; color:var(--text-2); text-transform:uppercase; letter-spacing:1.8px; font-weight:800;">Отклонение</div>
+            <div style="font-size:22px; font-weight:900; color:${color}; margin-top:4px;">${sign}${Math.round(diff)}</div>
           </div>
         </div>
-      `;
-    }
+      </div>`;
 
     container.innerHTML = summaryCard + `
       <div class="chart-card">
         <div class="chart-title">📊 Калории за ${currentChartPeriod} дней</div>
         <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
           <defs>
-            <linearGradient id="barOK" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#00ff88" stop-opacity="1"/>
-              <stop offset="100%" stop-color="#00cc6a" stop-opacity="0.5"/>
-            </linearGradient>
-            <linearGradient id="barOver" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ff5c5c" stop-opacity="1"/>
-              <stop offset="100%" stop-color="#cc1a1a" stop-opacity="0.5"/>
-            </linearGradient>
-            <linearGradient id="barUnder" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ff6b1a" stop-opacity="1"/>
-              <stop offset="100%" stop-color="#cc5500" stop-opacity="0.5"/>
-            </linearGradient>
+            <linearGradient id="barOK" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ff88"/><stop offset="100%" stop-color="#00cc6a" stop-opacity="0.5"/></linearGradient>
+            <linearGradient id="barOver" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff5c5c"/><stop offset="100%" stop-color="#cc1a1a" stop-opacity="0.5"/></linearGradient>
+            <linearGradient id="barUnder" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff6b1a"/><stop offset="100%" stop-color="#cc5500" stop-opacity="0.5"/></linearGradient>
           </defs>
-          ${grid}
-          ${targetLine}
-          ${bars}
-          ${labels}
+          ${grid}${targetLine}${bars}${labels}
         </svg>
         <div class="legend-row" style="padding-top:12px;">
           <div class="legend-item"><div class="legend-dot cal"></div>В норме</div>
           <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Меньше</div>
           <div class="legend-item"><div class="legend-dot" style="background:#ff5c5c"></div>Больше</div>
         </div>
-      </div>
-    `;
+      </div>`;
 
-    // Список последних дней
     const histList = document.getElementById('nutritionHistoryList');
     const recent = [...days].reverse().filter(d => d.cal > 0).slice(0, 10);
-    if (recent.length === 0) {
-      histList.innerHTML = '';
-    } else {
+    if (recent.length === 0) histList.innerHTML = '';
+    else {
       histList.innerHTML = recent.map(d => {
         const f = formatDate(d.date);
         const pct = target ? Math.round((d.cal / target.calories) * 100) : 0;
@@ -1439,27 +1605,23 @@
               <div style="font-size:11px; color:var(--text-2); margin-top:4px;">Б ${Math.round(d.pro)} · Ж ${Math.round(d.fat)} · У ${Math.round(d.car)}</div>
             </div>
             <div class="history-date"><span class="day-name">${f.day}</span>${f.short}</div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
   }
 
-  // БАЗА ПРОДУКТОВ
   function renderProducts() {
     const tabsDiv = document.getElementById('prodTabs');
     tabsDiv.innerHTML = PROD_GROUPS.map(g => {
       const cnt = g === 'Все' ? allProducts().length : allProducts().filter(x => x.cat === g).length;
       return `<div class="group-tab ${g === selectedProdGroup ? 'active' : ''}" onclick="selectProdGroup('${g}')">${g}<span class="count">${cnt}</span></div>`;
     }).join('');
-
     const search = (document.getElementById('prodSearch').value || '').toLowerCase();
     const custom = loadCustomProducts();
     const customNames = new Set(custom.map(p => p.name));
     let items = allProducts();
     if (selectedProdGroup !== 'Все') items = items.filter(e => e.cat === selectedProdGroup);
     if (search) items = items.filter(e => e.name.toLowerCase().includes(search));
-
     const listDiv = document.getElementById('prodList');
     if (items.length === 0) { listDiv.innerHTML = '<div class="empty">Ничего не найдено</div>'; return; }
     listDiv.innerHTML = items.map(e => {
@@ -1471,8 +1633,7 @@
             <div class="p-macros">Б <span class="b">${e.p}</span> · Ж <span class="f">${e.f}</span> · У <span class="c">${e.c}</span> · на 100г</div>
           </div>
           <div class="p-cal"><div class="val">${e.cal}</div><div class="lbl">ккал</div></div>
-        </div>
-      `;
+        </div>`;
     }).join('');
   }
 
@@ -1564,7 +1725,7 @@
     if (!cal || cal <= 0) return alert('Введите калории');
     const products = loadCustomProducts();
     if (products.find(x => x.name.toLowerCase() === name.toLowerCase())) {
-      if (!confirm('Продукт с таким названием уже есть. Заменить?')) return;
+      if (!confirm('Продукт уже есть. Заменить?')) return;
       const filtered = products.filter(x => x.name.toLowerCase() !== name.toLowerCase());
       filtered.push({ name, cat, cal, p, f, c });
       saveCustomProducts(filtered);
@@ -1607,13 +1768,226 @@
           <div class="p-macros" style="font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--neon); margin-top:4px; font-weight:800;">${e.group}</div>
         </div>
         <div style="color:var(--neon); font-size:22px; font-weight:300;">+</div>
+      </div>`).join('');
+  }
+
+  function selectExGroup(g) { selectedExGroup = g; renderLibrary(); }
+
+  function openLibrary() {
+    libraryMode = 'exercise';
+    document.getElementById('libraryTitle').textContent = 'Библиотека';
+    document.getElementById('librarySubtitle').textContent = 'Выбери упражнение';
+    selectedExGroup = 'Все';
+    document.getElementById('libSearch').value = '';
+    showScreen('screen-library');
+  }
+
+  function openLibraryForTemplate() {
+    libraryMode = 'template';
+    document.getElementById('libraryTitle').textContent = 'Добавить в шаблон';
+    document.getElementById('librarySubtitle').textContent = 'Выбери упражнение';
+    selectedExGroup = 'Все';
+    document.getElementById('libSearch').value = '';
+    showScreen('screen-library');
+  }
+
+  function closeLibrary() {
+    if (libraryMode === 'template') showScreen('screen-template-create');
+    else showScreen('screen-add');
+  }
+
+  function pickExercise(name) {
+    if (libraryMode === 'template') {
+      templateDraft.exercises.push(name);
+      showScreen('screen-template-create');
+    } else {
+      document.getElementById('exName').value = name;
+      showScreen('screen-add');
+    }
+  }
+
+  // ШАБЛОНЫ
+  function renderTemplates() {
+    const templates = loadTemplates();
+    const list = document.getElementById('templatesList');
+    if (templates.length === 0) {
+      list.innerHTML = `<div class="empty"><span class="big-emoji">📋</span>Пока нет шаблонов.<br>Создай первый — «Пуш-день», «Ноги» или «Спина».</div>`;
+      return;
+    }
+    list.innerHTML = templates.map(t => `
+      <div class="template-card">
+        <div class="template-header">
+          <div class="template-icon">${t.icon}</div>
+          <div class="t-info">
+            <div class="t-name">${t.name}</div>
+            <div class="t-count">${t.exercises.length} упражнений</div>
+          </div>
+        </div>
+        <div class="template-exercises">
+          ${t.exercises.slice(0, 5).map(e => `<div class="template-ex-tag">${e}</div>`).join('')}
+          ${t.exercises.length > 5 ? `<div class="template-ex-tag">+${t.exercises.length - 5}</div>` : ''}
+        </div>
+        <div class="template-actions">
+          <button class="t-action-btn start" onclick="startSession(${t.id})">▶ Начать</button>
+          <button class="t-action-btn" onclick="editTemplate(${t.id})">✏️</button>
+          <button class="t-action-btn delete" onclick="deleteTemplate(${t.id})">🗑</button>
+        </div>
       </div>
     `).join('');
   }
 
-  function selectExGroup(g) { selectedExGroup = g; renderLibrary(); }
-  function openLibrary() { selectedExGroup = 'Все'; document.getElementById('libSearch').value = ''; showScreen('screen-library'); }
-  function pickExercise(name) { document.getElementById('exName').value = name; showScreen('screen-add'); }
+  function openTemplateCreate() {
+    templateDraft = { id: null, name: '', icon: '💪', exercises: [] };
+    document.getElementById('templateCreateTitle').textContent = 'Новый шаблон';
+    document.getElementById('tplName').value = '';
+    document.getElementById('tplIcon').value = '💪';
+    showScreen('screen-template-create');
+  }
+
+  function editTemplate(id) {
+    const t = loadTemplates().find(x => x.id === id);
+    if (!t) return;
+    templateDraft = JSON.parse(JSON.stringify(t));
+    document.getElementById('templateCreateTitle').textContent = 'Редактировать';
+    document.getElementById('tplName').value = t.name;
+    document.getElementById('tplIcon').value = t.icon;
+    showScreen('screen-template-create');
+  }
+
+  function renderTemplateDraft() {
+    const list = document.getElementById('templateDraftList');
+    if (templateDraft.exercises.length === 0) {
+      list.innerHTML = `<div class="empty" style="padding:24px 16px; font-size:13px;">Пока пусто. Нажми «+ Добавить упражнение».</div>`;
+      return;
+    }
+    list.innerHTML = templateDraft.exercises.map((e, i) => `
+      <div class="draft-exercise">
+        <div class="de-name">${i + 1}. ${e}</div>
+        <button class="de-remove" onclick="removeDraftExercise(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function removeDraftExercise(i) {
+    templateDraft.exercises.splice(i, 1);
+    renderTemplateDraft();
+  }
+
+  function cancelTemplateCreate() {
+    if (templateDraft.exercises.length > 0 || templateDraft.name) {
+      if (!confirm('Отменить изменения?')) return;
+    }
+    templateDraft = { id: null, name: '', icon: '💪', exercises: [] };
+    showScreen('screen-templates');
+  }
+
+  function saveTemplate() {
+    const name = document.getElementById('tplName').value.trim();
+    const icon = document.getElementById('tplIcon').value;
+    if (!name) return alert('Введите название');
+    if (templateDraft.exercises.length === 0) return alert('Добавьте хотя бы одно упражнение');
+
+    const templates = loadTemplates();
+    if (templateDraft.id) {
+      const idx = templates.findIndex(x => x.id === templateDraft.id);
+      templates[idx] = { id: templateDraft.id, name, icon, exercises: [...templateDraft.exercises] };
+    } else {
+      templates.push({ id: Date.now(), name, icon, exercises: [...templateDraft.exercises] });
+    }
+    saveTemplates(templates);
+    templateDraft = { id: null, name: '', icon: '💪', exercises: [] };
+    showScreen('screen-templates');
+  }
+
+  function deleteTemplate(id) {
+    if (!confirm('Удалить шаблон?')) return;
+    saveTemplates(loadTemplates().filter(t => t.id !== id));
+    renderTemplates();
+  }
+
+  // СЕССИЯ ТРЕНИРОВКИ
+  function startSession(templateId) {
+    const t = loadTemplates().find(x => x.id === templateId);
+    if (!t) return;
+    sessionData = {
+      templateName: t.name,
+      exercises: t.exercises.map(name => ({ name, weight: null, reps: null, skipped: false })),
+      index: 0
+    };
+    document.getElementById('sessionTemplateName').textContent = t.name;
+    document.getElementById('sessionDate').value = todayISO();
+    showScreen('screen-workout-session');
+  }
+
+  function renderSession() {
+    if (!sessionData) return;
+    const ex = sessionData.exercises[sessionData.index];
+    document.getElementById('sessionCount').textContent = `${sessionData.index + 1} / ${sessionData.exercises.length}`;
+    document.getElementById('sessionExerciseName').textContent = ex.name;
+    document.getElementById('sessionBarFill').style.width = ((sessionData.index) / sessionData.exercises.length * 100) + '%';
+    document.getElementById('sessionWeight').value = ex.weight || '';
+    document.getElementById('sessionReps').value = ex.reps || '';
+    document.getElementById('sessionNextBtn').textContent = sessionData.index === sessionData.exercises.length - 1 ? 'Завершить ✓' : 'Далее →';
+    setTimeout(() => document.getElementById('sessionWeight').focus(), 200);
+  }
+
+  function skipSessionExercise() {
+    if (!sessionData) return;
+    sessionData.exercises[sessionData.index].skipped = true;
+    advanceSession();
+  }
+
+  function nextSessionExercise() {
+    if (!sessionData) return;
+    const w = parseFloat(document.getElementById('sessionWeight').value);
+    const r = parseInt(document.getElementById('sessionReps').value);
+    const ex = sessionData.exercises[sessionData.index];
+    if (!w || !r) {
+      if (!confirm('Не введены вес и повторения. Пропустить упражнение?')) return;
+      ex.skipped = true;
+    } else {
+      ex.weight = w;
+      ex.reps = r;
+      ex.skipped = false;
+    }
+    advanceSession();
+  }
+
+  function advanceSession() {
+    if (sessionData.index < sessionData.exercises.length - 1) {
+      sessionData.index++;
+      renderSession();
+    } else {
+      finishSession();
+    }
+  }
+
+  function finishSession() {
+    const date = document.getElementById('sessionDate').value || todayISO();
+    const data = loadExercises();
+    let added = 0;
+    sessionData.exercises.forEach(sEx => {
+      if (sEx.skipped || !sEx.weight || !sEx.reps) return;
+      let ex = data.find(e => e.name.toLowerCase() === sEx.name.toLowerCase());
+      if (!ex) {
+        ex = { id: Date.now() + Math.random(), name: sEx.name, history: [] };
+        data.push(ex);
+      }
+      ex.history.push({ weight: sEx.weight, reps: sEx.reps, date });
+      added++;
+    });
+    saveExercises(data);
+    sessionData = null;
+    alert(`Тренировка завершена! ✅\nДобавлено подходов: ${added}`);
+    showScreen('screen-workouts');
+  }
+
+  function cancelSession() {
+    if (!sessionData) { showScreen('screen-templates'); return; }
+    if (!confirm('Отменить тренировку? Данные не сохранятся.')) return;
+    sessionData = null;
+    showScreen('screen-templates');
+  }
 
   // ГРАФИК ПРОГРЕССИИ
   function buildChart(history) {
@@ -1659,17 +2033,13 @@
         <div class="chart-title">📈 Прогрессия веса (кг)</div>
         <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
           <defs>
-            <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#00ff88" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
-            </linearGradient>
+            <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ff88" stop-opacity="0.35"/><stop offset="100%" stop-color="#00ff88" stop-opacity="0"/></linearGradient>
             <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
           ${gridLines}
           <path d="${fillD}" fill="url(#fillGrad)"/>
           <path d="${pathD}" fill="none" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)"/>
-          ${dots}
-          ${dateLabels}
+          ${dots}${dateLabels}
         </svg>
       </div>`;
   }
@@ -1682,9 +2052,7 @@
     document.getElementById('pgTotalVolume').innerHTML = Math.round(totalVolume).toLocaleString('ru-RU') + '<span class="unit">кг</span>';
     document.getElementById('pgTotalExercises').textContent = exercises.length;
     let bestLift = null;
-    exercises.forEach(ex => ex.history.forEach(h => {
-      if (!bestLift || h.weight > bestLift.weight) bestLift = { weight: h.weight };
-    }));
+    exercises.forEach(ex => ex.history.forEach(h => { if (!bestLift || h.weight > bestLift.weight) bestLift = { weight: h.weight }; }));
     document.getElementById('pgBestLift').textContent = bestLift ? bestLift.weight + 'кг' : '—';
     const list = document.getElementById('progressExercises');
     if (exercises.length === 0) { list.innerHTML = `<div class="empty"><span class="big-emoji">📊</span>Нет данных для статистики.</div>`; return; }
@@ -1701,8 +2069,7 @@
             <div style="font-size:14px; font-weight:900; color:${color};">${sign}${diff.toFixed(1)} кг</div>
           </div>
           ${sorted.length >= 2 ? buildChart(sorted) : `<div style="text-align:center; color:var(--text-3); font-size:12px; padding:20px 0;">Нужно минимум 2 записи</div>`}
-        </div>
-      `;
+        </div>`;
     }).join('');
   }
 
@@ -1810,7 +2177,166 @@
     document.getElementById('apWeight').value = '';
     document.getElementById('apReps').value = '';
     document.getElementById('apDate').value = todayISO();
+    // Открываем таймер с именем упражнения
+    openTimer(ex.name);
+  }
+
+  function addApproachNoTimer() {
+    const date = document.getElementById('apDate').value || todayISO();
+    const weight = parseFloat(document.getElementById('apWeight').value);
+    const reps = parseInt(document.getElementById('apReps').value);
+    if (!weight || !reps) return alert('Введите вес и повторения');
+    const data = loadExercises();
+    const ex = data.find(e => e.id === currentExerciseId);
+    if (!ex) return;
+    ex.history.push({ weight, reps, date });
+    saveExercises(data);
+    document.getElementById('apWeight').value = '';
+    document.getElementById('apReps').value = '';
+    document.getElementById('apDate').value = todayISO();
     showScreen('screen-history');
+  }
+
+  // ============ ТАЙМЕР ОТДЫХА ============
+  let timerState = {
+    total: 90,
+    remaining: 90,
+    running: false,
+    paused: false,
+    interval: null,
+    exerciseName: ''
+  };
+
+  function openTimer(exerciseName) {
+    timerState.exerciseName = exerciseName || '';
+    document.getElementById('timerExerciseName').textContent = exerciseName || '';
+    setTimerPreset(90, document.querySelectorAll('.timer-preset')[1]);
+    document.getElementById('timerOverlay').classList.add('active');
+  }
+
+  function openTimerFromFloat() {
+    document.getElementById('timerOverlay').classList.add('active');
+  }
+
+  function closeTimer() {
+    stopTimerInterval();
+    timerState.running = false;
+    timerState.paused = false;
+    document.getElementById('timerOverlay').classList.remove('active');
+    document.getElementById('floatingTimerBtn').classList.remove('active');
+    showScreen('screen-history');
+  }
+
+  function setTimerPreset(seconds, el) {
+    document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('active'));
+    if (el) el.classList.add('active');
+    stopTimerInterval();
+    timerState.total = seconds;
+    timerState.remaining = seconds;
+    timerState.running = true;
+    timerState.paused = false;
+    updateTimerDisplay();
+    startTimerInterval();
+    document.getElementById('timerPauseBtn').textContent = '⏸ Пауза';
+    document.getElementById('floatingTimerBtn').classList.add('active');
+  }
+
+  function startTimerInterval() {
+    timerState.interval = setInterval(() => {
+      if (timerState.paused) return;
+      timerState.remaining--;
+      if (timerState.remaining <= 0) {
+        timerState.remaining = 0;
+        updateTimerDisplay();
+        stopTimerInterval();
+        timerState.running = false;
+        onTimerComplete();
+        return;
+      }
+      updateTimerDisplay();
+      updateFloatingButton();
+    }, 1000);
+  }
+
+  function stopTimerInterval() {
+    if (timerState.interval) { clearInterval(timerState.interval); timerState.interval = null; }
+  }
+
+  function updateTimerDisplay() {
+    const display = document.getElementById('timerDisplay');
+    display.innerHTML = timerState.remaining + '<span class="sec-unit">с</span>';
+    const circle = document.getElementById('timerCircle');
+    const circumference = 2 * Math.PI * 110;
+    const pct = timerState.total > 0 ? timerState.remaining / timerState.total : 0;
+    circle.style.strokeDashoffset = circumference * (1 - pct);
+    circle.classList.remove('paused', 'done');
+    if (timerState.paused) circle.classList.add('paused');
+    updateFloatingButton();
+  }
+
+  function updateFloatingButton() {
+    document.getElementById('floatingTimerBtn').setAttribute('data-time', timerState.remaining + 'с');
+  }
+
+  function toggleTimerPause() {
+    timerState.paused = !timerState.paused;
+    document.getElementById('timerPauseBtn').textContent = timerState.paused ? '▶ Продолжить' : '⏸ Пауза';
+    updateTimerDisplay();
+  }
+
+  function addTimerTime(sec) {
+    timerState.remaining += sec;
+    timerState.total = Math.max(timerState.total, timerState.remaining);
+    if (!timerState.running && !timerState.paused) {
+      timerState.running = true;
+      startTimerInterval();
+    }
+    updateTimerDisplay();
+  }
+
+  function onTimerComplete() {
+    // Вибрация
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+    // Звук через Web Audio API
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const playBeep = (freq, startTime, duration) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+        gain.gain.linearRampToValueAtTime(0, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+      const now = audioCtx.currentTime;
+      playBeep(880, now, 0.15);
+      playBeep(1100, now + 0.2, 0.15);
+      playBeep(1320, now + 0.4, 0.3);
+    } catch (e) { /* звук недоступен */ }
+    // Telegram haptic
+    if (tg.HapticFeedback) {
+      try { tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+    }
+    // Показываем кнопку "Заново"
+    const circle = document.getElementById('timerCircle');
+    circle.classList.add('done');
+    const pauseBtn = document.getElementById('timerPauseBtn');
+    pauseBtn.textContent = '🔄 Заново';
+    pauseBtn.onclick = function() {
+      setTimerPreset(timerState.total, document.querySelector('.timer-preset.active'));
+      pauseBtn.onclick = toggleTimerPause;
+    };
+    // Авто-закрытие через 5 секунд
+    setTimeout(() => {
+      if (timerState.remaining === 0 && !timerState.running) {
+        closeTimer();
+      }
+    }, 5000);
   }
 
   // ============ ГАЛЕРЕЯ ============
@@ -1822,15 +2348,9 @@
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let { width, height } = img;
-          if (width > height && width > maxSize) {
-            height = Math.round((height * maxSize) / width);
-            width = maxSize;
-          } else if (height > maxSize) {
-            width = Math.round((width * maxSize) / height);
-            height = maxSize;
-          }
-          canvas.width = width;
-          canvas.height = height;
+          if (width > height && width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
+          else if (height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+          canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas.toDataURL('image/jpeg', quality));
@@ -1861,17 +2381,9 @@
     const date = document.getElementById('photoDate').value || todayISO();
     const weight = parseFloat(document.getElementById('photoWeight').value) || null;
     const note = document.getElementById('photoNote').value.trim();
-
     const photos = loadPhotos();
-    photos.push({
-      id: Date.now(),
-      date,
-      weight,
-      note,
-      data: pendingPhotoData
-    });
+    photos.push({ id: Date.now(), date, weight, note, data: pendingPhotoData });
     savePhotos(photos);
-
     pendingPhotoData = null;
     document.getElementById('photoPreview').style.display = 'none';
     document.getElementById('fileDrop').classList.remove('has-file');
@@ -1879,31 +2391,19 @@
     document.getElementById('photoWeight').value = '';
     document.getElementById('photoNote').value = '';
     document.getElementById('photoDate').value = todayISO();
-
     showScreen('screen-gallery');
   }
 
   function renderGallery() {
     const photos = loadPhotos().sort((a, b) => new Date(b.date) - new Date(a.date));
     const container = document.getElementById('galleryContent');
-
-    if (photos.length === 0) {
-      container.innerHTML = `<div class="empty"><span class="big-emoji">📸</span>Пока нет фото.<br>Добавь первое — и следи за прогрессом!</div>`;
-      return;
-    }
-
+    if (photos.length === 0) { container.innerHTML = `<div class="empty"><span class="big-emoji">📸</span>Пока нет фото.<br>Добавь первое!</div>`; return; }
     let html = '';
-
-    // Кнопка сравнения
-    if (photos.length >= 2) {
-      html += `<button class="btn btn-secondary" onclick="openCompare()" style="margin-bottom:20px; padding:14px; font-size:13px;">🔄 Сравнить до / после</button>`;
-    }
-
+    if (photos.length >= 2) html += `<button class="btn btn-secondary" onclick="openCompare()" style="margin-bottom:20px; padding:14px; font-size:13px;">🔄 Сравнить до / после</button>`;
     html += `<div class="section-title purple">Все фото (${photos.length})</div>`;
     html += '<div class="gallery-grid">';
     photos.forEach(p => {
       const f = formatDate(p.date);
-      const dShort = `${f.day.slice(0,2)} ${f.short.split(' ')[0]} ${f.short.split(' ')[1].slice(0,3)}`;
       html += `
         <div class="photo-card" onclick="openPhotoView(${p.id})">
           <div class="photo-wrap"><img src="${p.data}" alt=""></div>
@@ -1914,7 +2414,6 @@
         </div>`;
     });
     html += '</div>';
-
     container.innerHTML = html;
   }
 
@@ -1935,8 +2434,7 @@
         </div>
         ${photo.note ? `<div style="padding:12px 4px 0; text-align:left; color:var(--text-2); font-size:13px; line-height:1.5;">📝 ${photo.note}</div>` : ''}
       </div>
-      <button class="btn" style="background:rgba(239,68,68,0.15); color:#ff5c5c; border:1.5px solid rgba(239,68,68,0.3); box-shadow:none;" onclick="deletePhoto(${id})">🗑 Удалить фото</button>
-    `;
+      <button class="btn" style="background:rgba(239,68,68,0.15); color:#ff5c5c; border:1.5px solid rgba(239,68,68,0.3); box-shadow:none;" onclick="deletePhoto(${id})">🗑 Удалить фото</button>`;
     showScreen('screen-photo-view');
   }
 
@@ -1949,25 +2447,13 @@
   function openCompare() {
     const photos = loadPhotos().sort((a, b) => new Date(a.date) - new Date(b.date));
     if (photos.length < 2) return;
-    const first = photos[0];
-    const last = photos[photos.length - 1];
-
-    const f1 = formatDate(first.date);
-    const f2 = formatDate(last.date);
-
+    const first = photos[0], last = photos[photos.length - 1];
+    const f1 = formatDate(first.date), f2 = formatDate(last.date);
     document.getElementById('compareContent').innerHTML = `
       <div class="compare-container">
-        <div class="compare-item before">
-          <img src="${first.data}" alt="">
-          <div class="ci-label">ДО · ${f1.short}</div>
-        </div>
-        <div class="compare-item after">
-          <img src="${last.data}" alt="">
-          <div class="ci-label">ПОСЛЕ · ${f2.short}</div>
-        </div>
-      </div>
-    `;
-
+        <div class="compare-item before"><img src="${first.data}" alt=""><div class="ci-label">ДО · ${f1.short}</div></div>
+        <div class="compare-item after"><img src="${last.data}" alt=""><div class="ci-label">ПОСЛЕ · ${f2.short}</div></div>
+      </div>`;
     let statsHtml = '';
     if (first.weight && last.weight) {
       const diff = last.weight - first.weight;
@@ -1979,12 +2465,10 @@
           <div class="progress-label">Изменение веса</div>
           <div class="progress-value" style="color:${color};">${sign}${diff.toFixed(1)} кг</div>
           <div class="progress-sub">за ${days} дн.</div>
-        </div>
-      `;
+        </div>`;
     } else {
       statsHtml += `<div style="text-align:center; color:var(--text-2); font-size:13px; padding:20px 0;">Укажи вес в фото, чтобы видеть разницу</div>`;
     }
-
     document.getElementById('compareStats').innerHTML = statsHtml;
     showScreen('screen-compare');
   }
