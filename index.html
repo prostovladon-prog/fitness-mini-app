@@ -6,165 +6,603 @@
 <title>Фитнес-Эксперт</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  body {
-    background: var(--tg-theme-bg-color, #ffffff);
-    color: var(--tg-theme-text-color, #000000);
-    min-height: 100vh;
-    padding: 16px;
+  :root {
+    --grad-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --grad-orange: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --grad-blue: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --grad-green: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --grad-purple: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    --grad-sunset: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --bg-card: #ffffff;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.1);
+    --shadow-lg: 0 12px 40px rgba(102,126,234,0.25);
+    --radius: 20px;
+    --radius-sm: 12px;
   }
-  .container { max-width: 500px; margin: 0 auto; }
-  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    background: #f5f6fa;
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+  }
+  
+  .container { max-width: 520px; margin: 0 auto; padding: 16px; }
+  
+  /* ---- Экраны ---- */
+  .screen { display: none; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* ---- Шапка ---- */
+  .top-bar {
+    background: var(--grad-main);
+    margin: -16px -16px 20px -16px;
+    padding: 24px 20px 32px;
+    border-radius: 0 0 28px 28px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .top-bar::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  
+  .top-bar::after {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -10%;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  
   .avatar {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: var(--tg-theme-button-color, #2481cc);
-    color: white; display: flex; align-items: center;
-    justify-content: center; font-weight: bold; font-size: 18px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(10px);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 22px;
+    border: 2px solid rgba(255,255,255,0.4);
     flex-shrink: 0;
   }
-  h1 { font-size: 20px; }
-  .subtitle { color: var(--tg-theme-hint-color, #888); font-size: 13px; margin-top: 2px; }
-  .card {
-    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-    border-radius: 12px; padding: 16px; margin-bottom: 10px;
-    cursor: pointer; transition: transform 0.1s;
+  
+  .greeting { font-size: 13px; opacity: 0.85; }
+  .user-name { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  
+  /* ---- Быстрая статистика ---- */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
   }
-  .card:active { transform: scale(0.98); }
-  .card h3 { font-size: 16px; margin-bottom: 6px; }
-  .card p { font-size: 13px; color: var(--tg-theme-hint-color, #888); }
+  
+  .stat-mini {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-sm);
+    padding: 12px 10px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .stat-mini .value { font-size: 18px; font-weight: 700; }
+  .stat-mini .label { font-size: 10px; opacity: 0.85; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  /* ---- Заголовки ---- */
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  h2 { font-size: 20px; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.3px; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin: 24px 0 12px 4px;
+  }
+  
+  /* ---- Карточки-навигация ---- */
+  .nav-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; align-items: center; gap: 16px;
+    position: relative; overflow: hidden;
+  }
+  
+  .nav-card:active {
+    transform: scale(0.97);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .nav-card .icon {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .nav-card .icon.food { background: var(--grad-orange); }
+  .nav-card .icon.workout { background: var(--grad-blue); }
+  .nav-card .icon.ai { background: var(--grad-purple); }
+  .nav-card .icon.profile { background: var(--grad-green); }
+  
+  .nav-card .info { flex: 1; }
+  .nav-card .title { font-weight: 700; font-size: 16px; }
+  .nav-card .desc { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+  .nav-card .arrow { color: #d1d5db; font-size: 20px; }
+  
+  /* ---- Кнопки ---- */
   .btn {
-    display: block; width: 100%; padding: 14px;
-    background: var(--tg-theme-button-color, #2481cc);
-    color: var(--tg-theme-button-text-color, white);
-    border: none; border-radius: 10px; font-size: 16px;
-    font-weight: 600; cursor: pointer; margin-top: 12px;
+    display: block; width: 100%;
+    padding: 16px;
+    background: var(--grad-main);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
   }
-  .btn:active { opacity: 0.8; }
+  
+  .btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+  
   .btn-secondary {
-    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-    color: var(--tg-theme-text-color, #000);
+    background: white;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+    border: 1.5px solid #e5e7eb;
   }
+  
   .back-btn {
-    background: none; border: none; color: var(--tg-theme-link-color, #2481cc);
-    font-size: 15px; cursor: pointer; padding: 4px 0; margin-bottom: 16px;
+    background: none; border: none;
+    color: var(--text-secondary);
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
   }
-  .input-group { margin-bottom: 14px; }
+  
+  /* ---- Формы ---- */
+  .input-group { margin-bottom: 16px; }
   .input-group label {
-    display: block; font-size: 13px; margin-bottom: 6px;
-    color: var(--tg-theme-hint-color, #888);
+    display: block;
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  .input-group input {
-    width: 100%; padding: 12px; font-size: 16px;
-    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-    border: 1px solid var(--tg-theme-hint-color, #ddd);
-    border-radius: 8px; color: var(--tg-theme-text-color, #000);
+  
+  .input-group input, .input-group select {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    background: white;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    font-family: inherit;
+    outline: none;
   }
+  
+  .input-group input:focus, .input-group select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+  }
+  
+  /* ---- Карточки упражнений ---- */
   .exercise-item {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-    border-radius: 10px; padding: 14px; margin-bottom: 8px;
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
   }
+  
+  .exercise-item:active { transform: scale(0.98); }
+  .exercise-item.has-progress { border-left-color: #43e97b; }
+  
   .exercise-item .info { flex: 1; }
-  .exercise-item .name { font-weight: 600; font-size: 15px; }
-  .exercise-item .last {
-    font-size: 12px; color: var(--tg-theme-hint-color, #888);
+  .exercise-item .name { font-weight: 700; font-size: 16px; }
+  .exercise-item .meta {
+    font-size: 13px; color: var(--text-secondary);
     margin-top: 4px;
+    display: flex; gap: 10px; align-items: center;
   }
+  
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .badge-up { background: #d1fae5; color: #065f46; }
+  .badge-same { background: #fef3c7; color: #92400e; }
+  .badge-down { background: #fee2e2; color: #991b1b; }
+  
   .delete-btn {
-    background: none; border: none; font-size: 20px;
-    cursor: pointer; padding: 4px 8px; opacity: 0.6;
+    background: #fef2f2;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px;
+    color: #ef4444;
   }
+  
+  /* ---- История ---- */
   .history-item {
-    background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-    border-radius: 8px; padding: 12px; margin-bottom: 6px;
-    display: flex; justify-content: space-between; font-size: 14px;
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: var(--shadow-sm);
   }
-  .history-date { color: var(--tg-theme-hint-color, #888); font-size: 12px; }
+  
+  .history-values { font-weight: 700; font-size: 15px; }
+  .history-date {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: right;
+  }
+  
+  .history-date .day-name {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+  
   .empty {
-    text-align: center; padding: 40px 20px;
-    color: var(--tg-theme-hint-color, #888); font-size: 14px;
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-secondary);
+    font-size: 15px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
   }
-  .screen { display: none; }
-  .screen.active { display: block; }
+  
+  .empty .big-emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+  
+  /* ---- Профиль-карточка ---- */
+  .profile-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+  }
+  
+  .profile-row {
+    display: flex; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 15px;
+  }
+  
+  .profile-row:last-child { border-bottom: none; }
+  .profile-row .key { color: var(--text-secondary); }
+  .profile-row .val { font-weight: 700; }
+  
+  /* ---- ИМТ ---- */
+  .bmi-card {
+    background: var(--grad-main);
+    border-radius: var(--radius);
+    padding: 20px;
+    color: white;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .bmi-value { font-size: 36px; font-weight: 800; margin: 8px 0 4px; }
+  .bmi-label { font-size: 13px; opacity: 0.9; }
+  .bmi-status { 
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+  
+  /* ---- Прогресс-бар ---- */
+  .progress-bar {
+    background: #f3f4f6;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: var(--grad-green);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
 </style>
 </head>
 <body>
+
 <div class="container">
 
-  <!-- ЭКРАН 1: ГЛАВНЫЙ -->
-  <div id="screen-home" class="screen active">
-    <div class="header">
-      <div class="avatar" id="avatar">?</div>
-      <div>
-        <h1 id="userName">Привет!</h1>
-        <div class="subtitle">Фитнес-Эксперт</div>
+  <!-- ==== ЭКРАН: ОНБОРДИНГ ==== -->
+  <div id="screen-onboarding" class="screen">
+    <div class="top-bar" style="text-align:center;">
+      <div style="font-size:52px; margin-bottom:10px;">💪</div>
+      <h1 style="font-size:26px;">Добро пожаловать!</h1>
+      <p style="opacity:0.9; margin-top:8px; font-size:14px;">Давайте познакомимся</p>
+    </div>
+
+    <div class="input-group">
+      <label>Ваш пол</label>
+      <select id="obGender">
+        <option value="">Выберите...</option>
+        <option value="male">Мужской</option>
+        <option value="female">Женский</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Возраст</label>
+      <input id="obAge" type="number" placeholder="25">
+    </div>
+
+    <div class="input-group">
+      <label>Вес (кг)</label>
+      <input id="obWeight" type="number" step="0.1" placeholder="75">
+    </div>
+
+    <div class="input-group">
+      <label>Рост (см)</label>
+      <input id="obHeight" type="number" placeholder="180">
+    </div>
+
+    <div class="input-group">
+      <label>Ваша цель</label>
+      <select id="obGoal">
+        <option value="lose">Похудеть</option>
+        <option value="gain">Набрать массу</option>
+        <option value="maintain" selected>Поддерживать форму</option>
+      </select>
+    </div>
+
+    <button class="btn" onclick="saveProfile()">Начать тренировки 🚀</button>
+  </div>
+
+  <!-- ==== ЭКРАН: ГЛАВНЫЙ ==== -->
+  <div id="screen-home" class="screen">
+    <div class="top-bar">
+      <div class="user-row">
+        <div class="avatar" id="avatar">?</div>
+        <div>
+          <div class="greeting">С возвращением 👋</div>
+          <div class="user-name" id="userName">Привет!</div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-mini">
+          <div class="value" id="statWeight">—</div>
+          <div class="label">Вес</div>
+        </div>
+        <div class="stat-mini">
+          <div class="value" id="statWorkouts">0</div>
+          <div class="label">Тренировок</div>
+        </div>
+        <div class="stat-mini">
+          <div class="value" id="statExercises">0</div>
+          <div class="label">Упражнений</div>
+        </div>
       </div>
     </div>
 
-    <div class="card" onclick="showScreen('screen-workouts')">
-      <h3>🍎 Дневник питания</h3>
-      <p>Скоро появится: БЖУ и калории</p>
+    <div class="nav-card" onclick="showScreen('screen-workouts')">
+      <div class="icon workout">💪</div>
+      <div class="info">
+        <div class="title">Тренировки</div>
+        <div class="desc">Записывай подходы и следи за прогрессом</div>
+      </div>
+      <div class="arrow">›</div>
     </div>
 
-    <div class="card" onclick="showScreen('screen-workouts')">
-      <h3>💪 Тренировки</h3>
-      <p>Записывай упражнения и прогрессию</p>
+    <div class="nav-card" onclick="alert('Скоро появится! 🍎')">
+      <div class="icon food">🍎</div>
+      <div class="info">
+        <div class="title">Дневник питания</div>
+        <div class="desc">Скоро появится: БЖУ и калории</div>
+      </div>
+      <div class="arrow">›</div>
     </div>
 
-    <div class="card">
-      <h3>🤖 ИИ-Эксперт</h3>
-      <p>Скоро появится: советы по тренировкам</p>
+    <div class="nav-card" onclick="alert('Скоро появится! 🤖')">
+      <div class="icon ai">🤖</div>
+      <div class="info">
+        <div class="title">ИИ-Эксперт</div>
+        <div class="desc">Советы по тренировкам и питанию</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+
+    <div class="nav-card" onclick="showScreen('screen-profile')">
+      <div class="icon profile">👤</div>
+      <div class="info">
+        <div class="title">Мой профиль</div>
+        <div class="desc">Вес, рост, ИМТ, цель</div>
+      </div>
+      <div class="arrow">›</div>
     </div>
   </div>
 
-  <!-- ЭКРАН 2: ТРЕНИРОВКИ -->
+  <!-- ==== ЭКРАН: ТРЕНИРОВКИ ==== -->
   <div id="screen-workouts" class="screen">
-    <button class="back-btn" onclick="showScreen('screen-home')">← Назад</button>
-    <h1 style="margin-bottom:16px;">💪 Мои упражнения</h1>
+    <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
+    <h1>Тренировки 💪</h1>
+    <p class="subtitle">Записывай упражнения и прогрессию</p>
+
+    <div class="section-title">Мои упражнения</div>
     <div id="exercisesList"></div>
+
     <button class="btn" onclick="showScreen('screen-add')">+ Добавить упражнение</button>
   </div>
 
-  <!-- ЭКРАН 3: ДОБАВЛЕНИЕ УПРАЖНЕНИЯ -->
+  <!-- ==== ЭКРАН: ДОБАВЛЕНИЕ УПРАЖНЕНИЯ ==== -->
   <div id="screen-add" class="screen">
-    <button class="back-btn" onclick="showScreen('screen-workouts')">← Назад</button>
-    <h1 style="margin-bottom:16px;">Новое упражнение</h1>
+    <button class="back-btn" onclick="showScreen('screen-workouts')">‹ Назад</button>
+    <h1>Новое упражнение</h1>
+    <p class="subtitle">Заполни первый подход</p>
+
+    <div style="height:20px"></div>
+
     <div class="input-group">
       <label>Название упражнения</label>
       <input id="exName" placeholder="Например: Жим лёжа">
     </div>
+
+    <div class="input-group">
+      <label>Дата тренировки</label>
+      <input id="exDate" type="date">
+    </div>
+
     <div class="input-group">
       <label>Вес (кг)</label>
       <input id="exWeight" type="number" step="0.5" placeholder="60">
     </div>
+
     <div class="input-group">
       <label>Повторения</label>
       <input id="exReps" type="number" placeholder="10">
     </div>
-    <button class="btn" onclick="addExercise()">Сохранить</button>
+
+    <button class="btn" onclick="addExercise()">Сохранить 💾</button>
   </div>
 
-  <!-- ЭКРАН 4: ИСТОРИЯ УПРАЖНЕНИЯ -->
+  <!-- ==== ЭКРАН: ИСТОРИЯ УПРАЖНЕНИЯ ==== -->
   <div id="screen-history" class="screen">
-    <button class="back-btn" onclick="showScreen('screen-workouts')">← Назад</button>
-    <h1 id="historyTitle" style="margin-bottom:16px;"></h1>
+    <button class="back-btn" onclick="showScreen('screen-workouts')">‹ Назад</button>
+    <h1 id="historyTitle"></h1>
+    <div id="progressSummary"></div>
+
+    <div class="section-title">История подходов</div>
     <div id="historyList"></div>
+
     <button class="btn" onclick="showScreen('screen-add-approach')">+ Добавить подход</button>
   </div>
 
-  <!-- ЭКРАН 5: ДОБАВЛЕНИЕ ПОДХОДА -->
+  <!-- ==== ЭКРАН: ДОБАВЛЕНИЕ ПОДХОДА ==== -->
   <div id="screen-add-approach" class="screen">
-    <button class="back-btn" onclick="showScreen('screen-history')">← Назад</button>
-    <h1 style="margin-bottom:16px;">Новый подход</h1>
+    <button class="back-btn" onclick="showScreen('screen-history')">‹ Назад</button>
+    <h1>Новый подход</h1>
+    <p class="subtitle" id="approachExName"></p>
+
+    <div style="height:20px"></div>
+
+    <div class="input-group">
+      <label>Дата тренировки</label>
+      <input id="apDate" type="date">
+    </div>
+
     <div class="input-group">
       <label>Вес (кг)</label>
       <input id="apWeight" type="number" step="0.5" placeholder="60">
     </div>
+
     <div class="input-group">
       <label>Повторения</label>
       <input id="apReps" type="number" placeholder="10">
     </div>
-    <button class="btn" onclick="addApproach()">Сохранить</button>
+
+    <button class="btn" onclick="addApproach()">Сохранить 💾</button>
+  </div>
+
+  <!-- ==== ЭКРАН: ПРОФИЛЬ ==== -->
+  <div id="screen-profile" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
+    <h1>Мой профиль 👤</h1>
+
+    <div style="height:20px"></div>
+
+    <div class="bmi-card">
+      <div class="bmi-label">Индекс массы тела</div>
+      <div class="bmi-value" id="bmiValue">—</div>
+      <div class="bmi-status" id="bmiStatus">—</div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-row">
+        <span class="key">Вес</span>
+        <span class="val" id="profWeight">— кг</span>
+      </div>
+      <div class="profile-row">
+        <span class="key">Рост</span>
+        <span class="val" id="profHeight">— см</span>
+      </div>
+      <div class="profile-row">
+        <span class="key">Возраст</span>
+        <span class="val" id="profAge">— лет</span>
+      </div>
+      <div class="profile-row">
+        <span class="key">Пол</span>
+        <span class="val" id="profGender">—</span>
+      </div>
+      <div class="profile-row">
+        <span class="key">Цель</span>
+        <span class="val" id="profGoal">—</span>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="editProfile()">✏️ Изменить данные</button>
+    <button class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="showScreen('screen-home')">Сохранить</button>
   </div>
 
 </div>
@@ -173,55 +611,198 @@
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
+  tg.setHeaderColor('secondary_bg_color');
 
   const user = tg.initDataUnsafe?.user;
-  if (user) {
-    document.getElementById('userName').textContent = user.first_name || 'Привет!';
-    document.getElementById('avatar').textContent = (user.first_name?.[0] || '?').toUpperCase();
-  }
-
+  
   // ---- Работа с данными ----
-  const STORAGE_KEY = 'fitness_exercises';
+  const PROFILE_KEY = 'fitness_profile';
+  const EXERCISES_KEY = 'fitness_exercises_v2';
 
-  function loadData() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch { return []; }
+  function loadProfile() {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; }
+    catch { return null; }
   }
 
-  function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  function saveProfileData(p) {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+  }
+
+  function loadExercises() {
+    try { return JSON.parse(localStorage.getItem(EXERCISES_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveExercises(data) {
+    localStorage.setItem(EXERCISES_KEY, JSON.stringify(data));
   }
 
   let currentExerciseId = null;
+
+  // ---- Утилиты ----
+  function todayISO() {
+    const d = new Date();
+    const tz = d.getTimezoneOffset() * 60000;
+    return new Date(d - tz).toISOString().slice(0, 10);
+  }
+
+  const DAYS = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const day = DAYS[d.getDay()];
+    const date = d.getDate();
+    const month = MONTHS[d.getMonth()];
+    const year = String(d.getFullYear()).slice(-2);
+    return { day, short: `${date} ${month} '${year}` };
+  }
+
+  // ---- Инициализация ----
+  function init() {
+    // Данные пользователя Telegram
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name || 'Спортсмен';
+      document.getElementById('avatar').textContent = (user.first_name?.[0] || '?').toUpperCase();
+    }
+
+    // Установить сегодняшнюю дату в поля
+    document.getElementById('exDate').value = todayISO();
+    document.getElementById('apDate').value = todayISO();
+
+    // Проверяем профиль
+    const profile = loadProfile();
+    if (!profile) {
+      showScreen('screen-onboarding');
+    } else {
+      showScreen('screen-home');
+      renderHome();
+    }
+  }
 
   // ---- Навигация ----
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
 
     if (id === 'screen-workouts') renderExercises();
     if (id === 'screen-history') renderHistory();
+    if (id === 'screen-home') renderHome();
+    if (id === 'screen-profile') renderProfile();
+    if (id === 'screen-add-approach') {
+      const ex = loadExercises().find(e => e.id === currentExerciseId);
+      if (ex) document.getElementById('approachExName').textContent = ex.name;
+    }
   }
 
-  // ---- Тренировки ----
+  // ---- Онбординг ----
+  function saveProfile() {
+    const gender = document.getElementById('obGender').value;
+    const age = parseInt(document.getElementById('obAge').value);
+    const weight = parseFloat(document.getElementById('obWeight').value);
+    const height = parseInt(document.getElementById('obHeight').value);
+    const goal = document.getElementById('obGoal').value;
+
+    if (!gender) return alert('Выберите пол');
+    if (!age || age < 10 || age > 100) return alert('Введите корректный возраст');
+    if (!weight || weight < 30) return alert('Введите вес');
+    if (!height || height < 100) return alert('Введите рост');
+
+    saveProfileData({ gender, age, weight, height, goal });
+    showScreen('screen-home');
+    renderHome();
+  }
+
+  function editProfile() {
+    const p = loadProfile();
+    if (!p) return;
+    document.getElementById('obGender').value = p.gender;
+    document.getElementById('obAge').value = p.age;
+    document.getElementById('obWeight').value = p.weight;
+    document.getElementById('obHeight').value = p.height;
+    document.getElementById('obGoal').value = p.goal;
+    showScreen('screen-onboarding');
+  }
+
+  // ---- Главный экран ----
+  function renderHome() {
+    const p = loadProfile();
+    const exercises = loadExercises();
+
+    if (p) {
+      document.getElementById('statWeight').textContent = p.weight + ' кг';
+    }
+    document.getElementById('statExercises').textContent = exercises.length;
+
+    const totalWorkouts = exercises.reduce((sum, ex) => sum + ex.history.length, 0);
+    document.getElementById('statWorkouts').textContent = totalWorkouts;
+  }
+
+  // ---- Профиль ----
+  function renderProfile() {
+    const p = loadProfile();
+    if (!p) return;
+
+    document.getElementById('profWeight').textContent = p.weight + ' кг';
+    document.getElementById('profHeight').textContent = p.height + ' см';
+    document.getElementById('profAge').textContent = p.age + ' лет';
+    document.getElementById('profGender').textContent = p.gender === 'male' ? 'Мужской' : 'Женский';
+    
+    const goalMap = { lose: 'Похудеть', gain: 'Набрать массу', maintain: 'Поддерживать' };
+    document.getElementById('profGoal').textContent = goalMap[p.goal] || '—';
+
+    // ИМТ
+    const bmi = p.weight / Math.pow(p.height / 100, 2);
+    document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+
+    let status = '—';
+    if (bmi < 18.5) status = 'Недостаток веса';
+    else if (bmi < 25) status = 'Норма ✅';
+    else if (bmi < 30) status = 'Избыточный вес';
+    else status = 'Ожирение';
+    document.getElementById('bmiStatus').textContent = status;
+  }
+
+  // ---- Упражнения ----
   function renderExercises() {
     const list = document.getElementById('exercisesList');
-    const data = loadData();
+    const data = loadExercises();
 
     if (data.length === 0) {
-      list.innerHTML = '<div class="empty">Пока нет упражнений.<br>Добавьте первое! 👇</div>';
+      list.innerHTML = `
+        <div class="empty">
+          <span class="big-emoji">🏋️</span>
+          Пока нет упражнений.<br>Добавьте первое!
+        </div>`;
       return;
     }
 
     list.innerHTML = data.map(ex => {
-      const last = ex.history[ex.history.length - 1];
-      const lastText = last ? `Последний: ${last.weight} кг × ${last.reps}` : 'Нет записей';
+      const sorted = [...ex.history].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const last = sorted[sorted.length - 1];
+      const first = sorted[0];
+      
+      let badge = '';
+      if (sorted.length > 1) {
+        const diff = last.weight - first.weight;
+        if (diff > 0) badge = `<span class="badge badge-up">+${diff} кг ↑</span>`;
+        else if (diff < 0) badge = `<span class="badge badge-down">${diff} кг ↓</span>`;
+        else badge = `<span class="badge badge-same">= без изменений</span>`;
+      }
+
+      const lastText = last
+        ? `Последний: ${last.weight} кг × ${last.reps}`
+        : 'Нет записей';
+
       return `
-        <div class="exercise-item">
-          <div class="info" onclick="openHistory(${ex.id})">
+        <div class="exercise-item ${sorted.length > 1 ? 'has-progress' : ''}" onclick="openHistory(${ex.id})">
+          <div class="info">
             <div class="name">${ex.name}</div>
-            <div class="last">${lastText}</div>
+            <div class="meta">
+              <span>${lastText}</span>
+              ${badge}
+            </div>
           </div>
           <button class="delete-btn" onclick="deleteExercise(${ex.id}); event.stopPropagation();">🗑</button>
         </div>
@@ -231,83 +812,116 @@
 
   function addExercise() {
     const name = document.getElementById('exName').value.trim();
+    const date = document.getElementById('exDate').value || todayISO();
     const weight = parseFloat(document.getElementById('exWeight').value);
     const reps = parseInt(document.getElementById('exReps').value);
 
     if (!name) return alert('Введите название');
     if (!weight || !reps) return alert('Введите вес и повторения');
 
-    const data = loadData();
+    const data = loadExercises();
     data.push({
       id: Date.now(),
       name: name,
-      history: [{ weight, reps, date: new Date().toISOString() }]
+      history: [{ weight, reps, date }]
     });
-    saveData(data);
+    saveExercises(data);
 
     document.getElementById('exName').value = '';
     document.getElementById('exWeight').value = '';
     document.getElementById('exReps').value = '';
+    document.getElementById('exDate').value = todayISO();
 
     showScreen('screen-workouts');
   }
 
   function deleteExercise(id) {
-    if (!confirm('Удалить упражнение?')) return;
-    const data = loadData().filter(ex => ex.id !== id);
-    saveData(data);
+    if (!confirm('Удалить упражнение и всю его историю?')) return;
+    const data = loadExercises().filter(ex => ex.id !== id);
+    saveExercises(data);
     renderExercises();
   }
 
-  // ---- История ----
+  // ---- История упражнения ----
   function openHistory(id) {
     currentExerciseId = id;
-    const ex = loadData().find(e => e.id === id);
+    const ex = loadExercises().find(e => e.id === id);
     if (!ex) return;
     document.getElementById('historyTitle').textContent = ex.name;
     showScreen('screen-history');
   }
 
   function renderHistory() {
-    const ex = loadData().find(e => e.id === currentExerciseId);
+    const ex = loadExercises().find(e => e.id === currentExerciseId);
     if (!ex) return;
 
+    const sorted = [...ex.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Прогресс
+    const progressDiv = document.getElementById('progressSummary');
+    if (sorted.length > 1) {
+      const first = sorted[sorted.length - 1];
+      const last = sorted[0];
+      const diff = last.weight - first.weight;
+      const sign = diff > 0 ? '+' : '';
+      const color = diff > 0 ? '#065f46' : diff < 0 ? '#991b1b' : '#92400e';
+      const bg = diff > 0 ? '#d1fae5' : diff < 0 ? '#fee2e2' : '#fef3c7';
+      
+      progressDiv.innerHTML = `
+        <div style="background:${bg}; border-radius:16px; padding:16px; margin-bottom:16px;">
+          <div style="font-size:12px; color:${color}; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Прогресс</div>
+          <div style="font-size:26px; font-weight:800; color:${color}; margin-top:4px;">${sign}${diff.toFixed(1)} кг</div>
+          <div style="font-size:13px; color:${color}; opacity:0.8; margin-top:2px;">с ${first.weight} кг до ${last.weight} кг</div>
+        </div>
+      `;
+    } else {
+      progressDiv.innerHTML = '';
+    }
+
+    // Список
     const list = document.getElementById('historyList');
-    if (ex.history.length === 0) {
+    if (sorted.length === 0) {
       list.innerHTML = '<div class="empty">Нет записей</div>';
       return;
     }
 
-    list.innerHTML = [...ex.history].reverse().map(h => {
-      const d = new Date(h.date);
-      const dateStr = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    list.innerHTML = sorted.map(h => {
+      const f = formatDate(h.date);
       return `
         <div class="history-item">
-          <span>${h.weight} кг × ${h.reps}</span>
-          <span class="history-date">${dateStr}</span>
+          <div class="history-values">${h.weight} кг × ${h.reps}</div>
+          <div class="history-date">
+            <span class="day-name">${f.day}</span>
+            ${f.short}
+          </div>
         </div>
       `;
     }).join('');
   }
 
   function addApproach() {
+    const date = document.getElementById('apDate').value || todayISO();
     const weight = parseFloat(document.getElementById('apWeight').value);
     const reps = parseInt(document.getElementById('apReps').value);
 
     if (!weight || !reps) return alert('Введите вес и повторения');
 
-    const data = loadData();
+    const data = loadExercises();
     const ex = data.find(e => e.id === currentExerciseId);
     if (!ex) return;
 
-    ex.history.push({ weight, reps, date: new Date().toISOString() });
-    saveData(data);
+    ex.history.push({ weight, reps, date });
+    saveExercises(data);
 
     document.getElementById('apWeight').value = '';
     document.getElementById('apReps').value = '';
+    document.getElementById('apDate').value = todayISO();
 
     showScreen('screen-history');
   }
+
+  // ---- Запуск ----
+  init();
 </script>
 </body>
 </html>
