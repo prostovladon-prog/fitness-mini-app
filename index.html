@@ -11,12 +11,15 @@
     --neon-dim: #00cc6a;
     --orange: #ff6b1a;
     --purple: #a855f7;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --red: #ef4444;
+    --yellow: #fbbf24;
     --orange-glow: rgba(255, 107, 26, 0.4);
     --neon-glow: rgba(0, 255, 136, 0.35);
     --purple-glow: rgba(168, 85, 247, 0.35);
     --dark-1: #0a0e1a;
     --dark-2: #131828;
-    --dark-3: #1c2237;
     --card-bg: rgba(28, 34, 55, 0.75);
     --card-border: rgba(0, 255, 136, 0.15);
     --text-1: #ffffff;
@@ -29,23 +32,18 @@
   html, body { height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-    color: var(--text-1);
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-    background: var(--dark-1);
+    color: var(--text-1); min-height: 100vh; overflow-x: hidden;
+    position: relative; background: var(--dark-1);
   }
   body::before {
-    content: '';
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background-image: linear-gradient(rgba(10, 14, 26, 0.85), rgba(10, 14, 26, 0.96)),
       url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80');
     background-size: cover; background-position: center; background-attachment: fixed;
     z-index: -2;
   }
   body::after {
-    content: '';
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background:
       radial-gradient(circle at 15% 10%, rgba(0, 255, 136, 0.15) 0%, transparent 40%),
       radial-gradient(circle at 85% 85%, rgba(255, 107, 26, 0.12) 0%, transparent 40%);
@@ -73,8 +71,7 @@
   .avatar {
     width: 56px; height: 56px; border-radius: 50%;
     background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
-    color: var(--dark-1);
-    display: flex; align-items: center; justify-content: center;
+    color: var(--dark-1); display: flex; align-items: center; justify-content: center;
     font-weight: 900; font-size: 22px;
     box-shadow: 0 0 20px var(--neon-glow), inset 0 -2px 6px rgba(0,0,0,0.2);
     flex-shrink: 0;
@@ -87,16 +84,15 @@
   }
   .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; position: relative; z-index: 1; }
   .stat-mini {
-    background: rgba(10, 14, 26, 0.6);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-sm);
-    padding: 12px 8px; text-align: center;
+    background: rgba(10, 14, 26, 0.6); border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm); padding: 12px 8px; text-align: center;
     backdrop-filter: blur(10px);
   }
   .stat-mini .value { font-size: 20px; font-weight: 900; color: var(--neon); text-shadow: 0 0 12px var(--neon-glow); letter-spacing: -0.5px; }
   .stat-mini .label { font-size: 9px; color: var(--text-2); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
 
   h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; line-height: 1.1; }
+  h2 { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.3px; }
   .subtitle { color: var(--text-2); font-size: 13px; margin-top: 6px; letter-spacing: 0.3px; }
   .section-title {
     font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px;
@@ -104,10 +100,11 @@
     display: flex; align-items: center; gap: 8px;
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--neon-glow), transparent); }
+  .section-title.orange { color: var(--orange); }
+  .section-title.orange::after { background: linear-gradient(to right, var(--orange-glow), transparent); }
 
   .nav-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1.5px solid var(--card-border);
     border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
     cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -142,6 +139,10 @@
   .btn:active { transform: scale(0.97); box-shadow: 0 4px 12px var(--neon-glow); }
   .btn-secondary { background: transparent; color: var(--text-1); border: 1.5px solid var(--card-border); box-shadow: none; }
   .btn-secondary:active { background: rgba(0, 255, 136, 0.1); border-color: var(--neon); }
+  .btn-orange {
+    background: linear-gradient(135deg, #ff6b1a 0%, #ff9950 100%);
+    color: white; box-shadow: 0 8px 24px var(--orange-glow);
+  }
 
   .back-btn {
     background: none; border: none; color: var(--text-2);
@@ -172,6 +173,9 @@
   .input-group input::placeholder { color: var(--text-3); }
   .input-group select option { background: var(--dark-2); color: var(--text-1); }
 
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
   .exercise-item {
     background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1.5px solid var(--card-border);
@@ -191,10 +195,9 @@
   .badge-down { background: rgba(239, 68, 68, 0.15); color: #ff5c5c; border: 1px solid rgba(239, 68, 68, 0.3); }
 
   .delete-btn {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.25);
-    border-radius: 12px; font-size: 16px;
-    cursor: pointer; padding: 10px 12px; color: #ff5c5c;
+    background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 12px; font-size: 16px; cursor: pointer;
+    padding: 10px 12px; color: #ff5c5c;
   }
   .delete-btn:active { background: rgba(239, 68, 68, 0.25); }
 
@@ -220,47 +223,30 @@
   .progress-hero.same .progress-value { color: var(--orange); }
   .progress-sub { font-size: 12px; opacity: 0.8; font-weight: 600; }
 
-  /* ---- ГРАФИК ---- */
   .chart-card {
     background: var(--card-bg); backdrop-filter: blur(20px);
     border: 1.5px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 20px 12px 16px;
-    margin-bottom: 16px;
+    border-radius: var(--radius); padding: 20px 12px 16px; margin-bottom: 16px;
     position: relative; overflow: hidden;
   }
   .chart-card::before {
     content: ''; position: absolute; top: -30%; right: -20%;
     width: 200px; height: 200px;
     background: radial-gradient(circle, var(--neon-glow) 0%, transparent 70%);
-    border-radius: 50%; filter: blur(30px);
-    pointer-events: none;
+    border-radius: 50%; filter: blur(30px); pointer-events: none;
   }
-  .chart-title {
-    font-size: 11px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 2.5px; color: var(--text-2);
-    padding: 0 8px 12px;
-  }
+  .chart-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: var(--text-2); padding: 0 8px 12px; }
   .chart-svg { width: 100%; display: block; }
 
-  /* Статистические плашки */
-  .stat-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
-  }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .stat-card {
     background: var(--card-bg); backdrop-filter: blur(20px);
     border: 1.5px solid var(--card-border);
     border-radius: var(--radius-sm); padding: 16px;
     position: relative; overflow: hidden;
   }
-  .stat-card .label {
-    font-size: 9px; color: var(--text-2); text-transform: uppercase;
-    letter-spacing: 1.5px; font-weight: 800;
-  }
-  .stat-card .value {
-    font-size: 24px; font-weight: 900; letter-spacing: -0.8px;
-    margin-top: 6px; color: var(--neon);
-  }
+  .stat-card .label { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; }
+  .stat-card .value { font-size: 24px; font-weight: 900; letter-spacing: -0.8px; margin-top: 6px; color: var(--neon); }
   .stat-card .value.orange { color: var(--orange); }
   .stat-card .value.purple { color: var(--purple); }
   .stat-card .value.white { color: var(--text-1); }
@@ -303,8 +289,7 @@
   .bmi-value { font-size: 48px; font-weight: 900; margin: 10px 0 4px; color: var(--neon); text-shadow: 0 0 24px var(--neon-glow); letter-spacing: -2px; position: relative; z-index: 1; line-height: 1; }
   .bmi-status {
     display: inline-block; padding: 6px 14px;
-    background: rgba(10, 14, 26, 0.6);
-    border: 1px solid var(--card-border);
+    background: rgba(10, 14, 26, 0.6); border: 1px solid var(--card-border);
     border-radius: 20px; font-size: 11px; font-weight: 800;
     margin-top: 8px; text-transform: uppercase; letter-spacing: 1.5px;
     position: relative; z-index: 1;
@@ -320,6 +305,125 @@
   .onboarding-hero .emoji { font-size: 64px; margin-bottom: 12px; display: block; filter: drop-shadow(0 0 30px var(--neon-glow)); }
   .onboarding-hero h1 { background: linear-gradient(135deg, var(--neon) 0%, #ffffff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .onboarding-hero p { opacity: 0.85; margin-top: 10px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; color: var(--text-2); }
+
+  /* ==== ДНЕВНИК ПИТАНИЯ ==== */
+  .macro-ring-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .macro-ring {
+    background: var(--card-bg); backdrop-filter: blur(20px);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm); padding: 12px 6px;
+    text-align: center; position: relative;
+  }
+  .macro-ring .ring-wrap {
+    width: 60px; height: 60px; margin: 0 auto 8px;
+    position: relative;
+  }
+  .macro-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .macro-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
+  .macro-ring .ring-fg { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+  .macro-ring .ring-value {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px; font-weight: 900; color: var(--text-1);
+    letter-spacing: -0.5px;
+  }
+  .macro-ring .ring-label { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 800; }
+  .macro-ring.cal .ring-fg { stroke: var(--neon); filter: drop-shadow(0 0 6px var(--neon-glow)); }
+  .macro-ring.pro .ring-fg { stroke: var(--orange); filter: drop-shadow(0 0 6px var(--orange-glow)); }
+  .macro-ring.fat .ring-fg { stroke: var(--purple); filter: drop-shadow(0 0 6px var(--purple-glow)); }
+  .macro-ring.car .ring-fg { stroke: var(--yellow); filter: drop-shadow(0 0 6px rgba(251,191,36,0.4)); }
+
+  .daily-summary {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(255, 107, 26, 0.06) 100%);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .daily-summary .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px; color: var(--text-2); font-weight: 800; }
+  .daily-summary .value { font-size: 22px; font-weight: 900; margin-top: 4px; letter-spacing: -0.5px; }
+  .daily-summary .value.neon { color: var(--neon); text-shadow: 0 0 12px var(--neon-glow); }
+  .daily-summary .value.orange { color: var(--orange); }
+
+  .meal-item {
+    background: var(--card-bg); backdrop-filter: blur(20px);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .meal-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .meal-icon.breakfast { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+  .meal-icon.lunch { background: linear-gradient(135deg, #ff6b1a 0%, #ff9950 100%); }
+  .meal-icon.dinner { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); }
+  .meal-icon.snack { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+  .meal-item .info { flex: 1; min-width: 0; }
+  .meal-item .name { font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meal-item .meta { font-size: 11px; color: var(--text-2); margin-top: 4px; letter-spacing: 0.2px; }
+  .meal-item .kcal { font-weight: 900; font-size: 16px; color: var(--neon); text-align: right; flex-shrink: 0; letter-spacing: -0.3px; }
+  .meal-item .kcal .unit { font-size: 10px; color: var(--text-2); font-weight: 600; }
+
+  /* ==== БИБЛИОТЕКА ==== */
+  .search-box {
+    width: 100%; padding: 14px 16px;
+    background: rgba(10, 14, 26, 0.7);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm); color: var(--text-1);
+    font-size: 15px; font-family: inherit; font-weight: 600;
+    outline: none; margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+  }
+  .search-box:focus { border-color: var(--neon); box-shadow: 0 0 0 4px var(--neon-glow); }
+  .search-box::placeholder { color: var(--text-3); }
+
+  .group-tabs {
+    display: flex; gap: 6px; overflow-x: auto;
+    padding-bottom: 8px; margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .group-tabs::-webkit-scrollbar { display: none; }
+  .group-tab {
+    flex-shrink: 0;
+    padding: 8px 14px; border-radius: 20px;
+    background: rgba(10, 14, 26, 0.6);
+    border: 1.5px solid var(--card-border);
+    color: var(--text-2); font-size: 12px; font-weight: 800;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.8px;
+    transition: all 0.2s;
+  }
+  .group-tab.active {
+    background: linear-gradient(135deg, var(--neon) 0%, var(--neon-dim) 100%);
+    color: var(--dark-1); border-color: var(--neon);
+    box-shadow: 0 4px 16px var(--neon-glow);
+  }
+
+  .library-item {
+    background: var(--card-bg); backdrop-filter: blur(20px);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    margin-bottom: 8px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: all 0.2s;
+  }
+  .library-item:active {
+    transform: scale(0.98);
+    border-color: var(--neon);
+    background: rgba(0, 255, 136, 0.08);
+  }
+  .library-item .lib-name { font-weight: 700; font-size: 15px; }
+  .library-item .lib-group {
+    font-size: 10px; color: var(--text-2); text-transform: uppercase;
+    letter-spacing: 1.2px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+  }
+  .library-item .plus { color: var(--neon); font-size: 22px; font-weight: 300; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -369,9 +473,9 @@
 
     <div class="section-title">Меню</div>
 
-    <div class="nav-card" onclick="showScreen('screen-progress')">
-      <div class="icon progress">📊</div>
-      <div class="info"><div class="title">Прогресс</div><div class="desc">Графики и статистика</div></div>
+    <div class="nav-card" onclick="showScreen('screen-food')">
+      <div class="icon food">🍎</div>
+      <div class="info"><div class="title">Дневник питания</div><div class="desc">БЖУ, калории, приёмы пищи</div></div>
       <div class="arrow">›</div>
     </div>
 
@@ -381,9 +485,9 @@
       <div class="arrow">›</div>
     </div>
 
-    <div class="nav-card" onclick="alert('Скоро появится! 🍎')">
-      <div class="icon food">🍎</div>
-      <div class="info"><div class="title">Питание</div><div class="desc">Скоро: БЖУ и калории</div></div>
+    <div class="nav-card" onclick="showScreen('screen-progress')">
+      <div class="icon progress">📊</div>
+      <div class="info"><div class="title">Прогресс</div><div class="desc">Графики и статистика</div></div>
       <div class="arrow">›</div>
     </div>
 
@@ -400,35 +504,111 @@
     </div>
   </div>
 
-  <!-- ==== ПРОГРЕСС ==== -->
-  <div id="screen-progress" class="screen">
+  <!-- ==== ДНЕВНИК ПИТАНИЯ ==== -->
+  <div id="screen-food" class="screen">
     <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
-    <h1>Прогресс</h1>
-    <p class="subtitle">Твои результаты в цифрах</p>
+    <h1>Питание</h1>
+    <p class="subtitle" id="foodDateLabel"></p>
 
     <div style="height:20px"></div>
 
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="label">Всего подходов</div>
-        <div class="value" id="pgTotalApproaches">0</div>
+    <div class="macro-ring-grid">
+      <div class="macro-ring cal">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+            <circle class="ring-fg" id="ringCal" cx="30" cy="30" r="25"/>
+          </svg>
+          <div class="ring-value" id="ringCalVal">0%</div>
+        </div>
+        <div class="ring-label">Ккал</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Общий тоннаж</div>
-        <div class="value orange" id="pgTotalVolume">0<span class="unit">кг</span></div>
+      <div class="macro-ring pro">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+            <circle class="ring-fg" id="ringPro" cx="30" cy="30" r="25"/>
+          </svg>
+          <div class="ring-value" id="ringProVal">0%</div>
+        </div>
+        <div class="ring-label">Белки</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Упражнений</div>
-        <div class="value purple" id="pgTotalExercises">0</div>
+      <div class="macro-ring fat">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+            <circle class="ring-fg" id="ringFat" cx="30" cy="30" r="25"/>
+          </svg>
+          <div class="ring-value" id="ringFatVal">0%</div>
+        </div>
+        <div class="ring-label">Жиры</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Лучший подход</div>
-        <div class="value white" id="pgBestLift">—</div>
+      <div class="macro-ring car">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 60 60">
+            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+            <circle class="ring-fg" id="ringCar" cx="30" cy="30" r="25"/>
+          </svg>
+          <div class="ring-value" id="ringCarVal">0%</div>
+        </div>
+        <div class="ring-label">Углев.</div>
       </div>
     </div>
 
-    <div class="section-title">Прогресс по упражнениям</div>
-    <div id="progressExercises"></div>
+    <div class="daily-summary">
+      <div>
+        <div class="label">Съедено сегодня</div>
+        <div class="value neon" id="totalCalories">0 <span style="font-size:13px; color:var(--text-2);">ккал</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="label">Норма</div>
+        <div class="value orange" id="targetCalories">— <span style="font-size:13px; color:var(--text-2);">ккал</span></div>
+      </div>
+    </div>
+
+    <div class="section-title orange">Приёмы пищи сегодня</div>
+    <div id="mealsList"></div>
+
+    <button class="btn btn-orange" onclick="showScreen('screen-food-add')">+ Добавить приём пищи</button>
+  </div>
+
+  <!-- ==== ДОБАВЛЕНИЕ ЕДЫ ==== -->
+  <div id="screen-food-add" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-food')">‹ Назад</button>
+    <h1>Новый приём</h1>
+    <p class="subtitle">Заполни данные о еде</p>
+    <div style="height:20px"></div>
+
+    <div class="input-group"><label>Название блюда</label>
+      <input id="mealName" placeholder="Овсянка с бананом">
+    </div>
+
+    <div class="input-group"><label>Тип приёма</label>
+      <select id="mealType">
+        <option value="breakfast">🌅 Завтрак</option>
+        <option value="lunch">☀️ Обед</option>
+        <option value="dinner">🌙 Ужин</option>
+        <option value="snack">🍿 Перекус</option>
+      </select>
+    </div>
+
+    <div class="input-group"><label>Дата</label>
+      <input id="mealDate" type="date">
+    </div>
+
+    <div class="input-group"><label>Калории (ккал)</label>
+      <input id="mealCalories" type="number" placeholder="350">
+    </div>
+
+    <div class="input-group"><label>БЖУ (граммы)</label>
+      <div class="input-row-3">
+        <input id="mealProtein" type="number" placeholder="Б">
+        <input id="mealFats" type="number" placeholder="Ж">
+        <input id="mealCarbs" type="number" placeholder="У">
+      </div>
+    </div>
+
+    <button class="btn btn-orange" onclick="addMeal()">Сохранить 🍽</button>
   </div>
 
   <!-- ==== ТРЕНИРОВКИ ==== -->
@@ -438,7 +618,7 @@
     <p class="subtitle">Твой журнал силовых</p>
     <div class="section-title">Упражнения</div>
     <div id="exercisesList"></div>
-    <button class="btn" onclick="showScreen('screen-add')">+ Добавить упражнение</button>
+    <button class="btn" onclick="openAddExercise()">+ Добавить упражнение</button>
   </div>
 
   <!-- ==== ДОБАВЛЕНИЕ УПРАЖНЕНИЯ ==== -->
@@ -447,11 +627,50 @@
     <h1>Новое упражнение</h1>
     <p class="subtitle">Первая запись</p>
     <div style="height:20px"></div>
-    <div class="input-group"><label>Название</label><input id="exName" placeholder="Жим лёжа"></div>
+
+    <div class="input-group"><label>Название</label>
+      <input id="exName" placeholder="Жим лёжа">
+    </div>
+
+    <button class="btn btn-secondary" onclick="openLibrary()" style="margin-top:0; margin-bottom:16px; padding:14px; font-size:13px;">
+      📚 Выбрать из библиотеки
+    </button>
+
     <div class="input-group"><label>Дата</label><input id="exDate" type="date"></div>
     <div class="input-group"><label>Вес (кг)</label><input id="exWeight" type="number" step="0.5" placeholder="60"></div>
     <div class="input-group"><label>Повторения</label><input id="exReps" type="number" placeholder="10"></div>
     <button class="btn" onclick="addExercise()">Сохранить</button>
+  </div>
+
+  <!-- ==== БИБЛИОТЕКА УПРАЖНЕНИЙ ==== -->
+  <div id="screen-library" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-add')">‹ Назад</button>
+    <h1>Библиотека</h1>
+    <p class="subtitle">Выбери упражнение</p>
+    <div style="height:16px"></div>
+
+    <input id="libSearch" class="search-box" placeholder="🔍 Поиск упражнения..." oninput="renderLibrary()">
+
+    <div id="libTabs" class="group-tabs"></div>
+    <div id="libList"></div>
+  </div>
+
+  <!-- ==== ПРОГРЕСС ==== -->
+  <div id="screen-progress" class="screen">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹ Назад</button>
+    <h1>Прогресс</h1>
+    <p class="subtitle">Твои результаты в цифрах</p>
+    <div style="height:20px"></div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Всего подходов</div><div class="value" id="pgTotalApproaches">0</div></div>
+      <div class="stat-card"><div class="label">Общий тоннаж</div><div class="value orange" id="pgTotalVolume">0<span class="unit">кг</span></div></div>
+      <div class="stat-card"><div class="label">Упражнений</div><div class="value purple" id="pgTotalExercises">0</div></div>
+      <div class="stat-card"><div class="label">Лучший подход</div><div class="value white" id="pgBestLift">—</div></div>
+    </div>
+
+    <div class="section-title">Прогресс по упражнениям</div>
+    <div id="progressExercises"></div>
   </div>
 
   <!-- ==== ИСТОРИЯ ==== -->
@@ -506,11 +725,78 @@
 
   const PROFILE_KEY = 'fitness_profile';
   const EXERCISES_KEY = 'fitness_exercises_v2';
+  const MEALS_KEY = 'fitness_meals';
 
+  // ==== БИБЛИОТЕКА УПРАЖНЕНИЙ ====
+  const EXERCISE_LIBRARY = [
+    // Грудь
+    { name: 'Жим штанги лёжа', group: 'Грудь' },
+    { name: 'Жим гантелей лёжа', group: 'Грудь' },
+    { name: 'Жим штанги на наклонной', group: 'Грудь' },
+    { name: 'Жим гантелей на наклонной', group: 'Грудь' },
+    { name: 'Отжимания от пола', group: 'Грудь' },
+    { name: 'Разводка гантелей лёжа', group: 'Грудь' },
+    { name: 'Брусья на грудь', group: 'Грудь' },
+    { name: 'Кроссовер на блоке', group: 'Грудь' },
+    // Спина
+    { name: 'Становая тяга', group: 'Спина' },
+    { name: 'Подтягивания', group: 'Спина' },
+    { name: 'Тяга штанги в наклоне', group: 'Спина' },
+    { name: 'Тяга гантели одной рукой', group: 'Спина' },
+    { name: 'Тяга верхнего блока', group: 'Спина' },
+    { name: 'Тяга горизонтального блока', group: 'Спина' },
+    { name: 'Гиперэкстензия', group: 'Спина' },
+    { name: 'Шраги со штангой', group: 'Спина' },
+    // Ноги
+    { name: 'Приседания со штангой', group: 'Ноги' },
+    { name: 'Жим ногами', group: 'Ноги' },
+    { name: 'Выпады с гантелями', group: 'Ноги' },
+    { name: 'Румынская тяга', group: 'Ноги' },
+    { name: 'Разгибание ног в тренажёре', group: 'Ноги' },
+    { name: 'Сгибание ног в тренажёре', group: 'Ноги' },
+    { name: 'Подъёмы на носки стоя', group: 'Ноги' },
+    { name: 'Болгарские выпады', group: 'Ноги' },
+    // Плечи
+    { name: 'Жим штанги стоя', group: 'Плечи' },
+    { name: 'Жим гантелей сидя', group: 'Плечи' },
+    { name: 'Махи гантелями в стороны', group: 'Плечи' },
+    { name: 'Махи гантелями перед собой', group: 'Плечи' },
+    { name: 'Разводка в наклоне (задняя дельта)', group: 'Плечи' },
+    { name: 'Тяга штанги к подбородку', group: 'Плечи' },
+    // Руки
+    { name: 'Подъём штанги на бицепс', group: 'Руки' },
+    { name: 'Подъём гантелей на бицепс', group: 'Руки' },
+    { name: 'Молотковые сгибания', group: 'Руки' },
+    { name: 'Французский жим лёжа', group: 'Руки' },
+    { name: 'Разгибание на трицепс на блоке', group: 'Руки' },
+    { name: 'Отжимания узким хватом', group: 'Руки' },
+    { name: 'Брусья на трицепс', group: 'Руки' },
+    // Пресс
+    { name: 'Скручивания', group: 'Пресс' },
+    { name: 'Планка', group: 'Пресс' },
+    { name: 'Подъём ног в висе', group: 'Пресс' },
+    { name: 'Скручивания на блоке', group: 'Пресс' },
+    { name: 'Велосипед', group: 'Пресс' },
+    { name: 'Русский твист', group: 'Пресс' },
+    // Кардио
+    { name: 'Бег на дорожке', group: 'Кардио' },
+    { name: 'Ходьба в горку', group: 'Кардио' },
+    { name: 'Велотренажёр', group: 'Кардио' },
+    { name: 'Эллиптический тренажёр', group: 'Кардио' },
+    { name: 'Гребной тренажёр', group: 'Кардио' },
+    { name: 'Скакалка', group: 'Кардио' }
+  ];
+
+  const GROUPS = ['Все','Грудь','Спина','Ноги','Плечи','Руки','Пресс','Кардио'];
+  let selectedGroup = 'Все';
+
+  // ==== ХРАНИЛИЩА ====
   function loadProfile() { try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || null; } catch { return null; } }
   function saveProfileData(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
   function loadExercises() { try { return JSON.parse(localStorage.getItem(EXERCISES_KEY)) || []; } catch { return []; } }
   function saveExercises(d) { localStorage.setItem(EXERCISES_KEY, JSON.stringify(d)); }
+  function loadMeals() { try { return JSON.parse(localStorage.getItem(MEALS_KEY)) || []; } catch { return []; } }
+  function saveMeals(d) { localStorage.setItem(MEALS_KEY, JSON.stringify(d)); }
 
   let currentExerciseId = null;
 
@@ -528,6 +814,35 @@
     return { day: DAYS[d.getDay()], short: `${d.getDate()} ${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}` };
   }
 
+  // ==== РАСЧЁТ НОРМЫ КБЖУ (Миффлин-Сан Жеор) ====
+  function calcDailyTarget() {
+    const p = loadProfile();
+    if (!p) return null;
+
+    // BMR
+    let bmr;
+    if (p.gender === 'male') {
+      bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
+    } else {
+      bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age - 161;
+    }
+
+    // TDEE (лёгкая активность × 1.375)
+    let tdee = bmr * 1.375;
+
+    // Корректировка под цель
+    if (p.goal === 'lose') tdee *= 0.8;
+    else if (p.goal === 'gain') tdee *= 1.2;
+
+    const calories = Math.round(tdee);
+    // БЖУ: 30% / 25% / 45%
+    const protein = Math.round((calories * 0.30) / 4);
+    const fats = Math.round((calories * 0.25) / 9);
+    const carbs = Math.round((calories * 0.45) / 4);
+
+    return { calories, protein, fats, carbs };
+  }
+
   function init() {
     if (user) {
       document.getElementById('userName').textContent = user.first_name || 'Атлет';
@@ -535,6 +850,8 @@
     }
     document.getElementById('exDate').value = todayISO();
     document.getElementById('apDate').value = todayISO();
+    document.getElementById('mealDate').value = todayISO();
+
     const profile = loadProfile();
     if (!profile) showScreen('screen-onboarding');
     else { showScreen('screen-home'); renderHome(); }
@@ -549,6 +866,8 @@
     if (id === 'screen-home') renderHome();
     if (id === 'screen-profile') renderProfile();
     if (id === 'screen-progress') renderProgress();
+    if (id === 'screen-food') renderFood();
+    if (id === 'screen-library') renderLibrary();
     if (id === 'screen-add-approach') {
       const ex = loadExercises().find(e => e.id === currentExerciseId);
       if (ex) document.getElementById('approachExName').textContent = ex.name;
@@ -606,32 +925,164 @@
     document.getElementById('bmiStatus').textContent = status;
   }
 
-  // ============ ГРАФИК (SVG) ============
-  function buildChart(history) {
-    // history: [{weight, reps, date}] — уже отсортирован по возрастанию даты
-    if (history.length < 2) return '';
+  // ============ ДНЕВНИК ПИТАНИЯ ============
+  function renderFood() {
+    const today = todayISO();
+    const f = formatDate(today);
+    document.getElementById('foodDateLabel').textContent = `${f.day}, ${f.short}`;
 
+    const meals = loadMeals().filter(m => m.date === today);
+    const target = calcDailyTarget();
+
+    const sum = { calories: 0, protein: 0, fats: 0, carbs: 0 };
+    meals.forEach(m => {
+      sum.calories += m.calories || 0;
+      sum.protein += m.protein || 0;
+      sum.fats += m.fats || 0;
+      sum.carbs += m.carbs || 0;
+    });
+
+    // Кольца
+    updateRing('ringCal', 'ringCalVal', sum.calories, target?.calories || 0);
+    updateRing('ringPro', 'ringProVal', sum.protein, target?.protein || 0);
+    updateRing('ringFat', 'ringFatVal', sum.fats, target?.fats || 0);
+    updateRing('ringCar', 'ringCarVal', sum.carbs, target?.carbs || 0);
+
+    // Тексты
+    document.getElementById('totalCalories').innerHTML = Math.round(sum.calories) + ' <span style="font-size:13px; color:var(--text-2);">ккал</span>';
+    document.getElementById('targetCalories').innerHTML = (target ? Math.round(target.calories) : '—') + ' <span style="font-size:13px; color:var(--text-2);">ккал</span>';
+
+    // Список
+    const list = document.getElementById('mealsList');
+    if (meals.length === 0) {
+      list.innerHTML = `<div class="empty"><span class="big-emoji">🍽</span>Сегодня ещё ничего не добавлено</div>`;
+      return;
+    }
+    const typeIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', snack: '🍿' };
+    const sorted = [...meals].sort((a, b) => b.id - a.id);
+    list.innerHTML = sorted.map(m => `
+      <div class="meal-item">
+        <div class="meal-icon ${m.type}">${typeIcons[m.type] || '🍽'}</div>
+        <div class="info">
+          <div class="name">${m.name}</div>
+          <div class="meta">Б ${m.protein} · Ж ${m.fats} · У ${m.carbs}</div>
+        </div>
+        <div class="kcal">${m.calories}<span class="unit"> ккал</span></div>
+        <button class="delete-btn" onclick="deleteMeal(${m.id})">🗑</button>
+      </div>
+    `).join('');
+  }
+
+  function updateRing(ringId, valId, value, target) {
+    const ring = document.getElementById(ringId);
+    const valEl = document.getElementById(valId);
+    const radius = 25;
+    const circumference = 2 * Math.PI * radius;
+    ring.style.strokeDasharray = circumference;
+    let pct = target > 0 ? Math.min(value / target, 1) : 0;
+    ring.style.strokeDashoffset = circumference * (1 - pct);
+    valEl.textContent = Math.round((value / (target || 1)) * 100) + '%';
+    if (value === 0) valEl.textContent = '0%';
+  }
+
+  function addMeal() {
+    const name = document.getElementById('mealName').value.trim();
+    const type = document.getElementById('mealType').value;
+    const date = document.getElementById('mealDate').value || todayISO();
+    const calories = parseInt(document.getElementById('mealCalories').value) || 0;
+    const protein = parseFloat(document.getElementById('mealProtein').value) || 0;
+    const fats = parseFloat(document.getElementById('mealFats').value) || 0;
+    const carbs = parseFloat(document.getElementById('mealCarbs').value) || 0;
+
+    if (!name) return alert('Введите название');
+    if (calories <= 0) return alert('Введите калории');
+
+    const meals = loadMeals();
+    meals.push({ id: Date.now(), name, type, date, calories, protein, fats, carbs });
+    saveMeals(meals);
+
+    document.getElementById('mealName').value = '';
+    document.getElementById('mealCalories').value = '';
+    document.getElementById('mealProtein').value = '';
+    document.getElementById('mealFats').value = '';
+    document.getElementById('mealCarbs').value = '';
+    document.getElementById('mealDate').value = todayISO();
+
+    showScreen('screen-food');
+  }
+
+  function deleteMeal(id) {
+    if (!confirm('Удалить приём пищи?')) return;
+    saveMeals(loadMeals().filter(m => m.id !== id));
+    renderFood();
+  }
+
+  // ============ БИБЛИОТЕКА УПРАЖНЕНИЙ ============
+  function renderLibrary() {
+    // Табы групп
+    const tabsDiv = document.getElementById('libTabs');
+    tabsDiv.innerHTML = GROUPS.map(g => `
+      <div class="group-tab ${g === selectedGroup ? 'active' : ''}" onclick="selectGroup('${g}')">${g}</div>
+    `).join('');
+
+    // Список
+    const search = (document.getElementById('libSearch').value || '').toLowerCase();
+    let items = EXERCISE_LIBRARY;
+    if (selectedGroup !== 'Все') items = items.filter(e => e.group === selectedGroup);
+    if (search) items = items.filter(e => e.name.toLowerCase().includes(search));
+
+    const listDiv = document.getElementById('libList');
+    if (items.length === 0) {
+      listDiv.innerHTML = '<div class="empty">Ничего не найдено</div>';
+      return;
+    }
+    listDiv.innerHTML = items.map(e => `
+      <div class="library-item" onclick="pickExercise('${e.name.replace(/'/g, "\\'")}')">
+        <div>
+          <div class="lib-name">${e.name}</div>
+          <div style="margin-top:4px;"><span class="lib-group">${e.group}</span></div>
+        </div>
+        <div class="plus">+</div>
+      </div>
+    `).join('');
+  }
+
+  function selectGroup(g) {
+    selectedGroup = g;
+    renderLibrary();
+  }
+
+  function openLibrary() {
+    selectedGroup = 'Все';
+    document.getElementById('libSearch').value = '';
+    showScreen('screen-library');
+  }
+
+  function pickExercise(name) {
+    document.getElementById('exName').value = name;
+    showScreen('screen-add');
+  }
+
+  // ============ ГРАФИК ============
+  function buildChart(history) {
+    if (history.length < 2) return '';
     const W = 460, H = 200;
     const padL = 40, padR = 20, padT = 20, padB = 30;
     const chartW = W - padL - padR;
     const chartH = H - padT - padB;
-
     const weights = history.map(h => h.weight);
     const minW = Math.min(...weights);
     const maxW = Math.max(...weights);
     const range = maxW - minW || 1;
     const pad = range * 0.15;
-
     const yMin = minW - pad;
     const yMax = maxW + pad;
+    const points = history.map((h, i) => ({
+      x: padL + (i / (history.length - 1)) * chartW,
+      y: padT + chartH - ((h.weight - yMin) / (yMax - yMin)) * chartH,
+      weight: h.weight, date: h.date
+    }));
 
-    const points = history.map((h, i) => {
-      const x = padL + (i / (history.length - 1)) * chartW;
-      const y = padT + chartH - ((h.weight - yMin) / (yMax - yMin)) * chartH;
-      return { x, y, weight: h.weight, date: h.date };
-    });
-
-    // Гладкая линия через точки (Catmull-Rom → Bezier)
     let pathD = `M ${points[0].x} ${points[0].y}`;
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i === 0 ? 0 : i - 1];
@@ -644,11 +1095,8 @@
       const c2y = p2.y - (p3.y - p1.y) / 6;
       pathD += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
     }
-
-    // Заливка под линией
     const fillD = pathD + ` L ${points[points.length - 1].x} ${padT + chartH} L ${points[0].x} ${padT + chartH} Z`;
 
-    // Горизонтальные линии сетки
     let gridLines = '';
     const steps = 4;
     for (let i = 0; i <= steps; i++) {
@@ -657,19 +1105,14 @@
       gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
       gridLines += `<text x="${padL - 6}" y="${y + 4}" font-size="9" fill="#5c6580" text-anchor="end" font-weight="700">${val.toFixed(0)}</text>`;
     }
-
-    // Подписи дат
     let dateLabels = '';
-    const maxLabels = 4;
-    const stepL = Math.max(1, Math.ceil(points.length / maxLabels));
+    const stepL = Math.max(1, Math.ceil(points.length / 4));
     points.forEach((p, i) => {
       if (i % stepL === 0 || i === points.length - 1) {
         const d = new Date(p.date);
         dateLabels += `<text x="${p.x}" y="${H - 8}" font-size="9" fill="#5c6580" text-anchor="middle" font-weight="700">${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}</text>`;
       }
     });
-
-    // Точки на графике
     const dots = points.map(p => `
       <circle cx="${p.x}" cy="${p.y}" r="4" fill="#0a0e1a" stroke="#00ff88" stroke-width="2.5"/>
       <circle cx="${p.x}" cy="${p.y}" r="8" fill="#00ff88" opacity="0.15"/>
@@ -686,10 +1129,7 @@
             </linearGradient>
             <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="3" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
           ${gridLines}
@@ -702,38 +1142,25 @@
     `;
   }
 
-  // ============ ПРОГРЕСС ЭКРАН ============
   function renderProgress() {
     const exercises = loadExercises();
     const totalApproaches = exercises.reduce((s, ex) => s + ex.history.length, 0);
-
-    // Тоннаж = сумма всех (вес × повторения)
-    const totalVolume = exercises.reduce((sum, ex) => {
-      return sum + ex.history.reduce((s, h) => s + (h.weight * h.reps), 0);
-    }, 0);
-
+    const totalVolume = exercises.reduce((sum, ex) => sum + ex.history.reduce((s, h) => s + (h.weight * h.reps), 0), 0);
     document.getElementById('pgTotalApproaches').textContent = totalApproaches;
     document.getElementById('pgTotalVolume').innerHTML = Math.round(totalVolume).toLocaleString('ru-RU') + '<span class="unit">кг</span>';
     document.getElementById('pgTotalExercises').textContent = exercises.length;
 
-    // Лучший подход
     let bestLift = null;
-    exercises.forEach(ex => {
-      ex.history.forEach(h => {
-        if (!bestLift || h.weight > bestLift.weight) {
-          bestLift = { weight: h.weight, name: ex.name };
-        }
-      });
-    });
+    exercises.forEach(ex => ex.history.forEach(h => {
+      if (!bestLift || h.weight > bestLift.weight) bestLift = { weight: h.weight, name: ex.name };
+    }));
     document.getElementById('pgBestLift').textContent = bestLift ? bestLift.weight + 'кг' : '—';
 
-    // Список с прогрессом
     const list = document.getElementById('progressExercises');
     if (exercises.length === 0) {
-      list.innerHTML = `<div class="empty"><span class="big-emoji">📊</span>Нет данных для статистики.<br>Добавь упражнения в разделе «Тренировки».</div>`;
+      list.innerHTML = `<div class="empty"><span class="big-emoji">📊</span>Нет данных для статистики.</div>`;
       return;
     }
-
     list.innerHTML = exercises.map(ex => {
       const sorted = [...ex.history].sort((a, b) => new Date(a.date) - new Date(b.date));
       const first = sorted[0];
@@ -741,20 +1168,18 @@
       const diff = last.weight - first.weight;
       const sign = diff > 0 ? '+' : '';
       const color = diff > 0 ? 'var(--neon)' : diff < 0 ? '#ff5c5c' : 'var(--orange)';
-
       return `
         <div class="exercise-item" onclick="openHistory(${ex.id})" style="flex-direction:column; align-items:stretch;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div class="name">${ex.name}</div>
             <div style="font-size:14px; font-weight:900; color:${color};">${sign}${diff.toFixed(1)} кг</div>
           </div>
-          ${sorted.length >= 2 ? buildChart(sorted) : `<div style="text-align:center; color:var(--text-3); font-size:12px; padding:20px 0;">Нужно минимум 2 записи для графика</div>`}
+          ${sorted.length >= 2 ? buildChart(sorted) : `<div style="text-align:center; color:var(--text-3); font-size:12px; padding:20px 0;">Нужно минимум 2 записи</div>`}
         </div>
       `;
     }).join('');
   }
 
-  // ============ УПРАЖНЕНИЯ ============
   function renderExercises() {
     const list = document.getElementById('exercisesList');
     const data = loadExercises();
@@ -786,6 +1211,14 @@
     }).join('');
   }
 
+  function openAddExercise() {
+    document.getElementById('exName').value = '';
+    document.getElementById('exWeight').value = '';
+    document.getElementById('exReps').value = '';
+    document.getElementById('exDate').value = todayISO();
+    showScreen('screen-add');
+  }
+
   function addExercise() {
     const name = document.getElementById('exName').value.trim();
     const date = document.getElementById('exDate').value || todayISO();
@@ -796,10 +1229,6 @@
     const data = loadExercises();
     data.push({ id: Date.now(), name, history: [{ weight, reps, date }] });
     saveExercises(data);
-    document.getElementById('exName').value = '';
-    document.getElementById('exWeight').value = '';
-    document.getElementById('exReps').value = '';
-    document.getElementById('exDate').value = todayISO();
     showScreen('screen-workouts');
   }
 
@@ -822,8 +1251,6 @@
     if (!ex) return;
     const sorted = [...ex.history].sort((a, b) => new Date(b.date) - new Date(a.date));
     const asc = [...ex.history].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // Прогресс-плашка
     const progressDiv = document.getElementById('progressSummary');
     if (sorted.length > 1) {
       const first = asc[0];
@@ -840,12 +1267,8 @@
     } else {
       progressDiv.innerHTML = '';
     }
-
-    // График
     const chartDiv = document.getElementById('historyChart');
     chartDiv.innerHTML = asc.length >= 2 ? buildChart(asc) : '';
-
-    // Список истории
     const list = document.getElementById('historyList');
     if (sorted.length === 0) {
       list.innerHTML = '<div class="empty">Нет записей</div>';
