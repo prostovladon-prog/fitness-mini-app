@@ -2,95 +2,143 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>FIT EXPERT</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root {
-    --mint: #00d9a3; --mint-dim: #00b88a; --mint-soft: #e6faf5;
-    --mint-glow: rgba(0,217,163,.35);
-    --black: #0f1314; --dark: #1a1f21; --dark-2: #24292b;
-    --white: #ffffff; --gray-1: #f4f6f7; --gray-2: #e8ebed;
-    --text-dark: #0f1314; --text-gray: #7a8085; --text-light: #ffffff;
-    --orange: #ff9f43; --purple: #a29bfe; --red: #ff6b6b; --yellow: #feca57; --blue: #54a0ff;
-    --radius: 22px; --radius-sm: 16px; --radius-xs: 12px;
+  /* ============ ТЕМЫ ============ */
+  body {
+    /* Light — по умолчанию */
+    --bg-main: #f4f6f7;
+    --bg-alt: #e8ebed;
+    --card-bg: #ffffff;
+    --text-primary: #0f1314;
+    --text-secondary: #7a8085;
+    --text-tertiary: #a8b0b5;
+    --accent: #00d9a3;
+    --accent-dim: #00b88a;
+    --accent-soft: #e6faf5;
+    --accent-glow: rgba(0,217,163,.35);
+    --border: #f4f6f7;
+    --dark-block: #0f1314;
     --shadow-sm: 0 2px 8px rgba(15,19,20,.04);
     --shadow: 0 4px 20px rgba(15,19,20,.08);
     --shadow-lg: 0 12px 40px rgba(15,19,20,.12);
-    --shadow-mint: 0 8px 24px rgba(0,217,163,.35);
+    --shadow-accent: 0 8px 24px rgba(0,217,163,.35);
+    --orange: #ff9f43;
+    --purple: #a29bfe;
+    --red: #ff6b6b;
+    --yellow: #feca57;
+    --blue: #54a0ff;
+    --mint: #00d9a3;
+  }
+  body.theme-dark {
+    --bg-main: #0f1314;
+    --bg-alt: #1a1f21;
+    --card-bg: #1a1f21;
+    --text-primary: #ffffff;
+    --text-secondary: #a8b0b5;
+    --text-tertiary: #5a6066;
+    --accent: #00d9a3;
+    --accent-dim: #00b88a;
+    --accent-soft: #0d2a22;
+    --accent-glow: rgba(0,217,163,.4);
+    --border: #24292b;
+    --dark-block: #24292b;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+    --shadow: 0 4px 20px rgba(0,0,0,.4);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.5);
+    --shadow-accent: 0 8px 24px rgba(0,217,163,.4);
+  }
+  body.theme-blue {
+    --bg-main: #eef2ff;
+    --bg-alt: #e0e7ff;
+    --card-bg: #ffffff;
+    --text-primary: #1e3a8a;
+    --text-secondary: #64748b;
+    --text-tertiary: #94a3b8;
+    --accent: #3b82f6;
+    --accent-dim: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-glow: rgba(59,130,246,.35);
+    --border: #eef2ff;
+    --dark-block: #1e3a8a;
+    --shadow-sm: 0 2px 8px rgba(30,58,138,.06);
+    --shadow: 0 4px 20px rgba(30,58,138,.1);
+    --shadow-lg: 0 12px 40px rgba(30,58,138,.15);
+    --shadow-accent: 0 8px 24px rgba(59,130,246,.35);
+    --mint: #3b82f6;
+  }
+  body.theme-orange {
+    --bg-main: #fff7ed;
+    --bg-alt: #ffedd5;
+    --card-bg: #ffffff;
+    --text-primary: #7c2d12;
+    --text-secondary: #9a6e52;
+    --text-tertiary: #c9a98c;
+    --accent: #ff8c1a;
+    --accent-dim: #e67a00;
+    --accent-soft: #ffedd5;
+    --accent-glow: rgba(255,140,26,.35);
+    --border: #fff7ed;
+    --dark-block: #7c2d12;
+    --shadow-sm: 0 2px 8px rgba(124,45,18,.06);
+    --shadow: 0 4px 20px rgba(124,45,18,.1);
+    --shadow-lg: 0 12px 40px rgba(124,45,18,.15);
+    --shadow-accent: 0 8px 24px rgba(255,140,26,.35);
+    --mint: #ff8c1a;
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-    background: var(--gray-1);
-    color: var(--text-dark);
+    background: var(--bg-main);
+    color: var(--text-primary);
     min-height:100vh;
-    padding-bottom: 100px;
+    padding-bottom: calc(170px + env(safe-area-inset-bottom, 0px));
+    transition: background .3s, color .3s;
   }
-  .container { max-width:520px; margin:0 auto; padding:20px 16px 20px; }
+  .container { max-width:520px; margin:0 auto; padding:20px 16px 40px; }
   .screen { display:none; animation:fadeIn .3s ease; }
   .screen.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ==== HEADER ==== */
-  .screen-header {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:20px; padding-top:8px;
-  }
+  .screen-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-top:8px; }
   .screen-header .sh-left { display:flex; align-items:center; gap:12px; }
-  .screen-header h1 {
-    font-size:32px; font-weight:900; letter-spacing:-1.2px;
-    text-transform:uppercase; line-height:1;
-  }
+  .screen-header h1 { font-size:32px; font-weight:900; letter-spacing:-1.2px; text-transform:uppercase; line-height:1; color: var(--text-primary); }
   .screen-header .avatar-mini {
     width:44px; height:44px; border-radius:50%;
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
     color:#fff; display:flex; align-items:center; justify-content:center;
     font-weight:900; font-size:17px; flex-shrink:0;
-    box-shadow: 0 4px 12px var(--mint-glow);
+    box-shadow: 0 4px 12px var(--accent-glow);
   }
   .screen-header .icon-btn {
     width:44px; height:44px; border-radius:50%;
-    background: var(--white); border:none; cursor:pointer;
+    background: var(--card-bg); border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     font-size:18px; box-shadow: var(--shadow-sm);
-    transition: transform .15s;
+    transition: transform .15s; color: var(--text-primary);
   }
   .screen-header .icon-btn:active { transform: scale(.9); }
-
   .back-btn {
     display:inline-flex; align-items:center; gap:6px;
-    background: var(--white); border:none; cursor:pointer;
+    background: var(--card-bg); border:none; cursor:pointer;
     padding:10px 16px; border-radius:50px;
-    font-size:13px; font-weight:800; color: var(--text-dark);
+    font-size:13px; font-weight:800; color: var(--text-primary);
     text-transform:uppercase; letter-spacing:.5px;
     box-shadow: var(--shadow-sm); margin-bottom:16px;
-    transition: transform .15s;
   }
   .back-btn:active { transform: scale(.95); }
 
-  /* ==== CARDS ==== */
-  .card {
-    background: var(--white); border-radius: var(--radius);
-    padding:20px; margin-bottom:12px;
-    box-shadow: var(--shadow-sm);
-  }
-  .card-photo {
-    border-radius: var(--radius); overflow:hidden;
-    margin-bottom:12px; box-shadow: var(--shadow);
-    position:relative; cursor:pointer; transition: transform .2s;
-  }
+  .card { background: var(--card-bg); border-radius: 22px; padding:20px; margin-bottom:12px; box-shadow: var(--shadow-sm); transition: background .3s; }
+  .card-photo { border-radius:22px; overflow:hidden; margin-bottom:12px; box-shadow: var(--shadow); position:relative; cursor:pointer; transition: transform .2s; }
   .card-photo:active { transform: scale(.98); }
-  .card-photo .cp-img {
-    width:100%; height:200px; object-fit:cover; display:block;
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
-  }
+  .card-photo .cp-img { width:100%; height:200px; object-fit:cover; display:block; }
   .card-photo .cp-overlay {
     position:absolute; top:0; left:0; right:0; bottom:0;
     background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.6) 100%);
-    padding:16px; display:flex; flex-direction:column; justify-content:space-between;
-    color:#fff;
+    padding:16px; display:flex; flex-direction:column; justify-content:space-between; color:#fff;
   }
   .card-photo .cp-tag {
     display:inline-flex; align-items:center; gap:6px;
@@ -99,229 +147,127 @@
     font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px;
     align-self:flex-start;
   }
-  .card-photo .cp-bottom h3 {
-    font-size:22px; font-weight:900; letter-spacing:-.5px;
-    text-transform:uppercase; margin-bottom:4px;
-  }
+  .card-photo .cp-bottom h3 { font-size:22px; font-weight:900; letter-spacing:-.5px; text-transform:uppercase; margin-bottom:4px; }
   .card-photo .cp-bottom p { font-size:12px; opacity:.9; font-weight:600; }
 
-  /* ==== STATS CARDS ==== */
-  .stats-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    margin-bottom:12px;
-  }
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
   .stat-big {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; box-shadow: var(--shadow-sm);
-    display:flex; flex-direction:column; gap:4px;
-    cursor:pointer; transition: transform .15s;
+    background: var(--card-bg); border-radius: 16px; padding:16px;
+    box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap:4px;
+    cursor:pointer; transition: transform .15s, background .3s;
   }
   .stat-big:active { transform: scale(.98); }
-  .stat-big .sb-top {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:8px;
-  }
-  .stat-big .sb-label {
-    font-size:11px; font-weight:800; color: var(--text-gray);
-    text-transform:uppercase; letter-spacing:1px;
-  }
-  .stat-big .sb-icon {
-    width:28px; height:28px; border-radius:9px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:14px;
-  }
-  .stat-big .sb-icon.mint { background: var(--mint-soft); color: var(--mint); }
+  .stat-big .sb-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .stat-big .sb-label { font-size:11px; font-weight:800; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+  .stat-big .sb-icon { width:28px; height:28px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .stat-big .sb-icon.mint { background: var(--accent-soft); color: var(--accent); }
   .stat-big .sb-icon.orange { background: #fff2e0; color: var(--orange); }
   .stat-big .sb-icon.purple { background: #f0edff; color: var(--purple); }
   .stat-big .sb-icon.red { background: #ffe8e8; color: var(--red); }
   .stat-big .sb-icon.blue { background: #e5efff; color: var(--blue); }
-  .stat-big .sb-value {
-    font-size:32px; font-weight:900; letter-spacing:-1.5px;
-    line-height:1; color: var(--text-dark);
-  }
-  .stat-big .sb-value .unit {
-    font-size:13px; color: var(--text-gray); font-weight:700;
-    margin-left:2px; letter-spacing:0;
-  }
-  .stat-big .sb-target {
-    font-size:11px; color: var(--text-gray); font-weight:700;
-  }
+  body.theme-dark .stat-big .sb-icon.orange { background: rgba(255,159,67,.15); }
+  body.theme-dark .stat-big .sb-icon.purple { background: rgba(162,155,254,.15); }
+  body.theme-dark .stat-big .sb-icon.red { background: rgba(255,107,107,.15); }
+  body.theme-dark .stat-big .sb-icon.blue { background: rgba(84,160,255,.15); }
+  .stat-big .sb-value { font-size:32px; font-weight:900; letter-spacing:-1.5px; line-height:1; color: var(--text-primary); }
+  .stat-big .sb-value .unit { font-size:13px; color: var(--text-secondary); font-weight:700; margin-left:2px; letter-spacing:0; }
+  .stat-big .sb-target { font-size:11px; color: var(--text-secondary); font-weight:700; }
 
-  /* ==== HERO CARD ==== */
   .hero-card {
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
-    border-radius: var(--radius);
-    padding:20px; margin-bottom:12px;
-    color:#fff; box-shadow: var(--shadow-mint);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+    border-radius: 22px; padding:20px; margin-bottom:12px;
+    color:#fff; box-shadow: var(--shadow-accent);
     position:relative; overflow:hidden;
   }
-  .hero-card::before {
-    content:''; position:absolute; top:-50%; right:-30%;
-    width:200px; height:200px; background: rgba(255,255,255,.15);
-    border-radius:50%;
-  }
-  .hero-card .hc-label {
-    font-size:11px; font-weight:800; text-transform:uppercase;
-    letter-spacing:1.5px; opacity:.85; margin-bottom:6px;
-  }
-  .hero-card .hc-title {
-    font-size:26px; font-weight:900; letter-spacing:-1px;
-    line-height:1.1; margin-bottom:12px;
-    position:relative; z-index:1;
-  }
-  .hero-card .hc-row {
-    display:flex; gap:8px; align-items:center;
-    position:relative; z-index:1;
-  }
-  .hero-card .hc-pill {
-    background: rgba(255,255,255,.25); backdrop-filter: blur(10px);
-    padding:6px 14px; border-radius:50px;
-    font-size:12px; font-weight:800; letter-spacing:.5px;
-  }
-  .hero-card .hc-ring {
-    position:absolute; top:20px; right:20px;
-    width:60px; height:60px;
-  }
-  .hero-card .hc-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
-  .hero-card .hc-ring .bg { fill:none; stroke:rgba(255,255,255,.25); stroke-width:5; }
-  .hero-card .hc-ring .fg { fill:none; stroke:#fff; stroke-width:5; stroke-linecap:round; }
-  .hero-card .hc-ring .val {
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    font-size:14px; font-weight:900;
-  }
+  .hero-card::before { content:''; position:absolute; top:-50%; right:-30%; width:200px; height:200px; background: rgba(255,255,255,.15); border-radius:50%; }
+  .hero-card .hc-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; opacity:.85; margin-bottom:6px; position:relative; z-index:1; }
+  .hero-card .hc-title { font-size:26px; font-weight:900; letter-spacing:-1px; line-height:1.1; margin-bottom:12px; position:relative; z-index:1; }
+  .hero-card .hc-row { display:flex; gap:8px; align-items:center; position:relative; z-index:1; flex-wrap:wrap; }
+  .hero-card .hc-pill { background: rgba(255,255,255,.25); backdrop-filter: blur(10px); padding:6px 14px; border-radius:50px; font-size:12px; font-weight:800; letter-spacing:.5px; }
 
-  /* ==== BUTTONS ==== */
   .btn {
     display:block; width:100%; padding:18px;
-    background: var(--mint); color:#fff;
+    background: var(--accent); color:#fff;
     border:none; border-radius: 50px;
     font-size:15px; font-weight:900; cursor:pointer;
     margin-top:14px; text-transform:uppercase; letter-spacing:.8px;
-    box-shadow: var(--shadow-mint);
-    transition: all .15s;
+    box-shadow: var(--shadow-accent); transition: all .15s;
   }
   .btn:active { transform: scale(.97); }
-  .btn-secondary {
-    background: var(--white); color: var(--text-dark);
-    box-shadow: var(--shadow-sm);
-  }
-  .btn-dark {
-    background: var(--black); color:#fff;
-    box-shadow: 0 8px 24px rgba(15,19,20,.25);
-  }
-  .btn-danger {
-    background: #ffe8e8; color: var(--red);
-    box-shadow: none;
-  }
+  .btn-secondary { background: var(--card-bg); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+  .btn-dark { background: var(--dark-block); color:#fff; box-shadow: 0 8px 24px rgba(15,19,20,.25); }
+  .btn-danger { background: #ffe8e8; color: var(--red); box-shadow: none; }
+  body.theme-dark .btn-danger { background: rgba(255,107,107,.15); }
 
-  /* ==== CHIPS ==== */
-  .chips {
-    display:flex; gap:8px; overflow-x:auto;
-    padding-bottom:6px; margin-bottom:14px;
-    scrollbar-width:none;
-  }
+  .chips { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
   .chips::-webkit-scrollbar { display:none; }
   .chip {
-    flex-shrink:0; padding:10px 18px;
-    border-radius:50px; background: var(--white);
-    border:none; cursor:pointer; color: var(--text-dark);
+    flex-shrink:0; padding:10px 18px; border-radius:50px;
+    background: var(--card-bg); border:none; cursor:pointer; color: var(--text-primary);
     font-size:13px; font-weight:800; letter-spacing:.3px;
     box-shadow: var(--shadow-sm); transition: all .15s;
+    display:flex; align-items:center; gap:6px;
   }
-  .chip.active {
-    background: var(--black); color:#fff;
-  }
-  .chip .chip-count {
-    display:inline-block; margin-left:6px;
-    background: rgba(0,0,0,.08); padding:1px 7px;
-    border-radius:10px; font-size:10px; font-weight:900;
-  }
+  .chip.active { background: var(--dark-block); color:#fff; }
+  .chip .chip-count { display:inline-block; margin-left:6px; background: rgba(0,0,0,.08); padding:1px 7px; border-radius:10px; font-size:10px; font-weight:900; }
+  body.theme-dark .chip .chip-count { background: rgba(255,255,255,.1); }
   .chip.active .chip-count { background: rgba(255,255,255,.2); }
 
-  /* ==== INPUTS ==== */
   .input-group { margin-bottom:14px; }
-  .input-group label {
-    display:block; font-size:11px; font-weight:800; margin-bottom:8px;
-    color: var(--text-gray); text-transform:uppercase; letter-spacing:1.2px;
-  }
-  .input-group input,
-  .input-group select,
-  .input-group textarea {
+  .input-group label { display:block; font-size:11px; font-weight:800; margin-bottom:8px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1.2px; }
+  .input-group input, .input-group select, .input-group textarea {
     width:100%; padding:16px 18px; font-size:16px;
-    background: var(--white); border:none;
-    border-radius: var(--radius-sm); color: var(--text-dark);
+    background: var(--bg-main); border:none;
+    border-radius: 16px; color: var(--text-primary);
     transition: all .15s; font-family:inherit; font-weight:700;
     outline:none; box-shadow: var(--shadow-sm);
   }
-  .input-group input:focus,
-  .input-group select:focus {
-    box-shadow: 0 0 0 2px var(--mint), var(--shadow-sm);
-  }
-  .input-group input::placeholder { color: var(--text-gray); font-weight:600; }
+  body.theme-dark .input-group input,
+  body.theme-dark .input-group select,
+  body.theme-dark .input-group textarea { background: var(--bg-alt); }
+  .input-group input:focus, .input-group select:focus { box-shadow: 0 0 0 2px var(--accent), var(--shadow-sm); }
+  .input-group input::placeholder, .input-group textarea::placeholder { color: var(--text-tertiary); font-weight:600; }
   .input-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
   .input-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 
-  /* ==== LIST ITEMS ==== */
   .list-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:10px;
+    background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:10px;
     display:flex; align-items:center; gap:14px;
-    box-shadow: var(--shadow-sm);
-    cursor:pointer; transition: transform .15s;
+    box-shadow: var(--shadow-sm); cursor:pointer; transition: transform .15s;
   }
   .list-item:active { transform: scale(.98); }
-  .list-item .li-icon {
-    width:48px; height:48px; border-radius:14px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; flex-shrink:0;
-    background: var(--mint-soft);
-  }
+  .list-item .li-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; background: var(--accent-soft); }
   .list-item .li-icon.orange { background: #fff2e0; }
   .list-item .li-icon.purple { background: #f0edff; }
   .list-item .li-icon.blue { background: #e5efff; }
   .list-item .li-icon.red { background: #ffe8e8; }
-  .list-item .li-icon.dark { background: var(--black); color:#fff; }
+  .list-item .li-icon.dark { background: var(--dark-block); color:#fff; }
+  body.theme-dark .list-item .li-icon.orange { background: rgba(255,159,67,.15); }
+  body.theme-dark .list-item .li-icon.purple { background: rgba(162,155,254,.15); }
+  body.theme-dark .list-item .li-icon.blue { background: rgba(84,160,255,.15); }
+  body.theme-dark .list-item .li-icon.red { background: rgba(255,107,107,.15); }
   .list-item .li-info { flex:1; min-width:0; }
-  .list-item .li-title {
-    font-weight:900; font-size:15px; letter-spacing:-.2px;
-    text-transform:uppercase;
-  }
-  .list-item .li-sub {
-    font-size:12px; color: var(--text-gray); margin-top:3px;
-    font-weight:600;
-  }
-  .list-item .li-arrow { color: var(--text-gray); font-size:20px; font-weight:300; }
-  .list-item .li-delete {
-    background: #ffe8e8; border:none; color: var(--red);
-    width:36px; height:36px; border-radius:12px;
-    cursor:pointer; font-size:15px;
-    display:flex; align-items:center; justify-content:center;
-  }
+  .list-item .li-title { font-weight:900; font-size:15px; letter-spacing:-.2px; text-transform:uppercase; }
+  .list-item .li-sub { font-size:12px; color: var(--text-secondary); margin-top:3px; font-weight:600; }
+  .list-item .li-arrow { color: var(--text-secondary); font-size:20px; font-weight:300; }
+  .list-item .li-delete { background: #ffe8e8; border:none; color: var(--red); width:36px; height:36px; border-radius:12px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; }
+  body.theme-dark .list-item .li-delete { background: rgba(255,107,107,.15); }
 
-  .section-title {
-    font-size:13px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.5px; color: var(--text-gray);
-    margin:22px 4px 12px;
-  }
+  .section-title { font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; color: var(--text-secondary); margin:22px 4px 12px; }
 
-  /* ==== EMPTY ==== */
-  .empty {
-    text-align:center; padding:50px 20px;
-    background: var(--white); border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-  }
+  .empty { text-align:center; padding:50px 20px; background: var(--card-bg); border-radius: 22px; box-shadow: var(--shadow-sm); }
   .empty .emoji { font-size:52px; display:block; margin-bottom:14px; }
-  .empty .text { color: var(--text-gray); font-size:14px; font-weight:600; line-height:1.5; }
+  .empty .text { color: var(--text-secondary); font-size:14px; font-weight:600; line-height:1.5; }
 
-  /* ==== BOTTOM NAV ==== */
   .bottom-nav {
     position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
     width:calc(100% - 32px); max-width:490px;
-    background: var(--black); border-radius:50px;
-    padding:10px;
+    background: var(--dark-block); border-radius:50px; padding:10px;
     display:flex; align-items:center; justify-content:space-around;
     box-shadow: 0 12px 40px rgba(15,19,20,.35);
     z-index:100;
+    bottom: 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
   .bottom-nav .nav-btn {
     flex:1; background:none; border:none; cursor:pointer;
@@ -331,930 +277,384 @@
     display:flex; align-items:center; justify-content:center;
   }
   .bottom-nav .nav-btn.active {
-    color: var(--black);
-    background: var(--mint);
-    box-shadow: 0 4px 12px var(--mint-glow);
+    color: var(--dark-block);
+    background: var(--accent);
+    box-shadow: 0 4px 12px var(--accent-glow);
   }
   .bottom-nav .nav-btn.center {
-    color: var(--black); background: var(--white);
+    color: var(--dark-block); background: #fff;
     width:52px; height:52px; flex:0 0 52px;
     box-shadow: var(--shadow);
   }
   .bottom-nav .nav-btn.center:active { transform: scale(.92); }
 
-  /* ==== DATE NAV ==== */
-  .date-nav {
-    display:flex; align-items:center; justify-content:space-between;
-    background: var(--white); border-radius:50px;
-    padding:8px; margin-bottom:16px; box-shadow: var(--shadow-sm);
-  }
-  .date-nav-btn {
-    width:42px; height:42px; border-radius:50%;
-    background: var(--gray-1); border:none;
-    color: var(--text-dark); font-size:20px;
-    cursor:pointer; display:flex; align-items:center; justify-content:center;
-    font-weight:300;
-  }
-  .date-nav-btn:active { background: var(--mint); color:#fff; }
+  .date-nav { display:flex; align-items:center; justify-content:space-between; background: var(--card-bg); border-radius:50px; padding:8px; margin-bottom:16px; box-shadow: var(--shadow-sm); }
+  .date-nav-btn { width:42px; height:42px; border-radius:50%; background: var(--bg-main); border:none; color: var(--text-primary); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:300; }
+  body.theme-dark .date-nav-btn { background: var(--bg-alt); }
+  .date-nav-btn:active { background: var(--accent); color:#fff; }
   .date-nav-btn:disabled { opacity:.3; }
   .date-nav-center { flex:1; text-align:center; cursor:pointer; }
-  .date-nav-center .dow {
-    font-size:10px; color: var(--mint); text-transform:uppercase;
-    letter-spacing:1.5px; font-weight:900;
-  }
+  .date-nav-center .dow { font-size:10px; color: var(--accent); text-transform:uppercase; letter-spacing:1.5px; font-weight:900; }
   .date-nav-center .dstr { font-size:15px; font-weight:900; margin-top:2px; letter-spacing:-.3px; }
-  .date-nav-center .today-hint {
-    font-size:9px; color: var(--mint); margin-top:2px;
-    letter-spacing:1px; font-weight:800;
-  }
+  .date-nav-center .today-hint { font-size:9px; color: var(--accent); margin-top:2px; letter-spacing:1px; font-weight:800; }
 
-  /* ==== MACRO RINGS (упрощённые) ==== */
-  .macro-row {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
-    margin-bottom:14px;
-  }
-  .macro-mini {
-    background: var(--white); border-radius: var(--radius-xs);
-    padding:12px 6px; text-align:center;
-    box-shadow: var(--shadow-sm);
-  }
-  .macro-mini .mm-value {
-    font-size:15px; font-weight:900; letter-spacing:-.5px;
-  }
-  .macro-mini .mm-label {
-    font-size:9px; color: var(--text-gray); margin-top:4px;
-    text-transform:uppercase; letter-spacing:1px; font-weight:800;
-  }
-  .macro-mini.cal .mm-value { color: var(--mint); }
+  .macro-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+  .macro-mini { background: var(--card-bg); border-radius: 12px; padding:12px 6px; text-align:center; box-shadow: var(--shadow-sm); }
+  .macro-mini .mm-value { font-size:15px; font-weight:900; letter-spacing:-.5px; }
+  .macro-mini .mm-label { font-size:9px; color: var(--text-secondary); margin-top:4px; text-transform:uppercase; letter-spacing:1px; font-weight:800; }
+  .macro-mini.cal .mm-value { color: var(--accent); }
   .macro-mini.pro .mm-value { color: var(--orange); }
   .macro-mini.fat .mm-value { color: var(--purple); }
   .macro-mini.car .mm-value { color: var(--blue); }
-  .macro-mini .mm-bar {
-    height:4px; background: var(--gray-1); border-radius:2px;
-    margin-top:8px; overflow:hidden;
-  }
-  .macro-mini .mm-bar-fill {
-    height:100%; border-radius:2px; transition: width .6s;
-  }
-  .macro-mini.cal .mm-bar-fill { background: var(--mint); }
+  .macro-mini .mm-bar { height:4px; background: var(--border); border-radius:2px; margin-top:8px; overflow:hidden; }
+  .macro-mini .mm-bar-fill { height:100%; border-radius:2px; transition: width .6s; }
+  .macro-mini.cal .mm-bar-fill { background: var(--accent); }
   .macro-mini.pro .mm-bar-fill { background: var(--orange); }
   .macro-mini.fat .mm-bar-fill { background: var(--purple); }
   .macro-mini.car .mm-bar-fill { background: var(--blue); }
 
-  /* ==== WATER ==== */
-  .water-glasses {
-    display:flex; gap:5px; justify-content:space-between; margin:16px 0;
-  }
-  .water-glass {
-    flex:1; height:52px; border-radius: var(--radius-xs);
-    background: var(--gray-1);
-    display:flex; align-items:center; justify-content:center;
-    font-size:20px; transition: all .3s;
-  }
-  .water-glass.filled {
-    background: linear-gradient(180deg, #bfe6ff 0%, var(--blue) 100%);
-    color:#fff; transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(84,160,255,.4);
-  }
+  .water-glasses { display:flex; gap:5px; justify-content:space-between; margin:16px 0; }
+  .water-glass { flex:1; height:52px; border-radius: 12px; background: var(--bg-main); display:flex; align-items:center; justify-content:center; font-size:20px; transition: all .3s; }
+  body.theme-dark .water-glass { background: var(--bg-alt); }
+  .water-glass.filled { background: linear-gradient(180deg, #bfe6ff 0%, var(--blue) 100%); color:#fff; transform: scale(1.05); box-shadow: 0 4px 12px rgba(84,160,255,.4); }
   .water-controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  /* ==== CALENDAR ==== */
-  .calendar-header {
-    display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-    margin-bottom:10px;
-  }
-  .calendar-hd {
-    text-align:center; font-size:10px; color: var(--text-gray);
-    font-weight:900; text-transform:uppercase; letter-spacing:1px;
-    padding:4px;
-  }
-  .calendar-grid {
-    display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-    margin-bottom:16px;
-  }
+  .calendar-header { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:10px; }
+  .calendar-hd { text-align:center; font-size:10px; color: var(--text-secondary); font-weight:900; text-transform:uppercase; letter-spacing:1px; padding:4px; }
+  .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px; }
   .calendar-day {
-    aspect-ratio:1; border-radius: var(--radius-xs);
-    background: var(--white); border:2px solid transparent;
+    aspect-ratio:1; border-radius: 12px; background: var(--card-bg); border:2px solid transparent;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-size:13px; font-weight:800; position:relative;
-    box-shadow: var(--shadow-sm);
+    font-size:13px; font-weight:800; position:relative; box-shadow: var(--shadow-sm);
   }
   .calendar-day.empty-day { background: transparent; box-shadow:none; }
-  .calendar-day.has-workout {
-    background: var(--mint); color:#fff;
-    box-shadow: 0 4px 12px var(--mint-glow);
-  }
-  .calendar-day.today {
-    border-color: var(--black); border-width:2px;
-  }
-  .calendar-nav {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:16px;
-  }
-  .calendar-nav .cn-month {
-    font-size:18px; font-weight:900; text-transform:uppercase;
-    letter-spacing:-.3px;
-  }
-  .calendar-nav .cn-btn {
-    width:40px; height:40px; border-radius:50%;
-    background: var(--white); border:none; cursor:pointer;
-    font-size:18px; box-shadow: var(--shadow-sm);
-    display:flex; align-items:center; justify-content:center;
-  }
+  .calendar-day.has-workout { background: var(--accent); color:#fff; box-shadow: 0 4px 12px var(--accent-glow); }
+  .calendar-day.today { border-color: var(--text-primary); border-width:2px; }
+  .calendar-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .calendar-nav .cn-month { font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:-.3px; }
+  .calendar-nav .cn-btn { width:40px; height:40px; border-radius:50%; background: var(--card-bg); border:none; cursor:pointer; font-size:18px; box-shadow: var(--shadow-sm); display:flex; align-items:center; justify-content:center; color: var(--text-primary); }
 
-  /* ==== THEMES ==== */
-  .theme-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    margin-bottom:16px;
-  }
-  .theme-card {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:14px; cursor:pointer; text-align:center;
-    border:2px solid transparent; box-shadow: var(--shadow-sm);
-    transition: all .15s;
-  }
-  .theme-card.active {
-    border-color: var(--mint);
-    box-shadow: 0 0 0 4px var(--mint-soft);
-  }
-  .theme-preview {
-    height:60px; border-radius: var(--radius-xs);
-    margin-bottom:10px; position:relative; overflow:hidden;
-  }
+  .theme-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .theme-card { background: var(--card-bg); border-radius: 16px; padding:14px; cursor:pointer; text-align:center; border:2px solid transparent; box-shadow: var(--shadow-sm); transition: all .15s; }
+  .theme-card.active { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  body.theme-dark .theme-card.active { box-shadow: 0 0 0 4px rgba(0,217,163,.15); }
+  .theme-preview { height:60px; border-radius: 12px; margin-bottom:10px; position:relative; overflow:hidden; }
   .theme-preview.dark { background: linear-gradient(135deg, #0f1314, #24292b); }
   .theme-preview.light { background: linear-gradient(135deg, #f4f6f7, #e8ebed); }
-  .theme-preview.blue { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
-  .theme-preview.orange { background: linear-gradient(135deg, #d97706, #f59e0b); }
-  .theme-preview::after {
-    content:''; position:absolute; bottom:8px; left:8px; right:8px;
-    height:6px; border-radius:3px;
-  }
+  .theme-preview.blue { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+  .theme-preview.orange { background: linear-gradient(135deg, #ffedd5, #fdba74); }
+  .theme-preview::after { content:''; position:absolute; bottom:8px; left:8px; right:8px; height:6px; border-radius:3px; }
   .theme-preview.dark::after { background: #00d9a3; }
   .theme-preview.light::after { background: #00b88a; }
-  .theme-preview.blue::after { background: #54a0ff; }
-  .theme-preview.orange::after { background: #ff9f43; }
-  .theme-card .t-name {
-    font-size:12px; font-weight:900; text-transform:uppercase;
-    letter-spacing:.5px;
-  }
+  .theme-preview.blue::after { background: #3b82f6; }
+  .theme-preview.orange::after { background: #ff8c1a; }
+  .theme-card .t-name { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
 
-  /* ==== CHARTS ==== */
-  .chart-period-tabs {
-    display:flex; gap:4px; margin-bottom:14px;
-    background: var(--white); border-radius:50px; padding:4px;
-    box-shadow: var(--shadow-sm);
-  }
-  .chart-period-tab {
-    flex:1; padding:10px; border-radius:50px; text-align:center;
-    color: var(--text-gray); font-size:12px; font-weight:800;
-    cursor:pointer; text-transform:uppercase; letter-spacing:.5px;
-  }
-  .chart-period-tab.active {
-    background: var(--black); color:#fff;
-  }
-  .chart-card {
-    background: var(--white); border-radius: var(--radius);
-    padding:20px 12px 16px; margin-bottom:12px;
-    box-shadow: var(--shadow-sm);
-  }
-  .chart-title {
-    font-size:11px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.5px; color: var(--text-gray);
-    padding:0 8px 12px;
-  }
+  .chart-period-tabs { display:flex; gap:4px; margin-bottom:14px; background: var(--card-bg); border-radius:50px; padding:4px; box-shadow: var(--shadow-sm); }
+  .chart-period-tab { flex:1; padding:10px; border-radius:50px; text-align:center; color: var(--text-secondary); font-size:12px; font-weight:800; cursor:pointer; text-transform:uppercase; letter-spacing:.5px; }
+  .chart-period-tab.active { background: var(--dark-block); color:#fff; }
+  .chart-card { background: var(--card-bg); border-radius: 22px; padding:20px 12px 16px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
+  .chart-title { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; color: var(--text-secondary); padding:0 8px 12px; }
   .chart-svg { width:100%; display:block; }
 
-  /* ==== GALLERY ==== */
-  .gallery-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    margin-bottom:16px;
-  }
-  .photo-card {
-    background: var(--white); border-radius: var(--radius-sm);
-    overflow:hidden; cursor:pointer;
-    box-shadow: var(--shadow-sm); transition: transform .15s;
-  }
+  .gallery-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .photo-card { background: var(--card-bg); border-radius: 16px; overflow:hidden; cursor:pointer; box-shadow: var(--shadow-sm); transition: transform .15s; }
   .photo-card:active { transform: scale(.97); }
-  .photo-card .photo-wrap {
-    width:100%; aspect-ratio:3/4; background: var(--gray-1); overflow:hidden;
-  }
+  .photo-card .photo-wrap { width:100%; aspect-ratio:3/4; background: var(--bg-main); overflow:hidden; }
   .photo-card img { width:100%; height:100%; object-fit:cover; display:block; }
-  .photo-card .photo-date {
-    padding:10px 12px; display:flex; justify-content:space-between;
-    align-items:center;
-  }
-  .photo-card .photo-date .d { font-size:12px; font-weight:900; color: var(--mint); letter-spacing:.3px; }
-  .photo-card .photo-date .w { font-size:11px; color: var(--text-gray); font-weight:700; }
+  .photo-card .photo-date { padding:10px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .photo-card .photo-date .d { font-size:12px; font-weight:900; color: var(--accent); letter-spacing:.3px; }
+  .photo-card .photo-date .w { font-size:11px; color: var(--text-secondary); font-weight:700; }
 
-  .photo-viewer {
-    background: var(--white); border-radius: var(--radius);
-    padding:12px; margin-bottom:16px; box-shadow: var(--shadow-sm);
-    text-align:center;
-  }
-  .photo-viewer img {
-    width:100%; border-radius: var(--radius-sm); display:block;
-    max-height:70vh; object-fit:contain; background:#000;
-  }
-  .photo-viewer .pv-info {
-    padding:14px 4px 4px; display:flex; justify-content:space-between;
-    align-items:center;
-  }
-  .photo-viewer .pv-date { font-size:15px; font-weight:900; color: var(--mint); }
-  .photo-viewer .pv-weight { font-size:13px; color: var(--text-gray); font-weight:700; }
+  .photo-viewer { background: var(--card-bg); border-radius: 22px; padding:12px; margin-bottom:16px; box-shadow: var(--shadow-sm); text-align:center; }
+  .photo-viewer img { width:100%; border-radius: 16px; display:block; max-height:70vh; object-fit:contain; background:#000; }
+  .photo-viewer .pv-info { padding:14px 4px 4px; display:flex; justify-content:space-between; align-items:center; }
+  .photo-viewer .pv-date { font-size:15px; font-weight:900; color: var(--accent); }
+  .photo-viewer .pv-weight { font-size:13px; color: var(--text-secondary); font-weight:700; }
 
-  .compare-container {
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
-    margin-bottom:16px;
-  }
-  .compare-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    overflow:hidden; box-shadow: var(--shadow-sm);
-  }
+  .compare-container { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+  .compare-item { background: var(--card-bg); border-radius: 16px; overflow:hidden; box-shadow: var(--shadow-sm); }
   .compare-item img { width:100%; aspect-ratio:3/4; object-fit:cover; display:block; }
-  .compare-item .ci-label {
-    padding:10px; text-align:center;
-    font-size:10px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.2px;
-  }
+  .compare-item .ci-label { padding:10px; text-align:center; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1.2px; }
   .compare-item.before .ci-label { background: #ffe8e8; color: var(--red); }
-  .compare-item.after .ci-label { background: var(--mint-soft); color: var(--mint); }
+  .compare-item.after .ci-label { background: var(--accent-soft); color: var(--accent-dim); }
+  body.theme-dark .compare-item.before .ci-label { background: rgba(255,107,107,.15); }
 
-  .file-drop {
-    background: var(--white); border:2px dashed var(--gray-2);
-    border-radius: var(--radius); padding:32px 20px;
-    text-align:center; cursor:pointer; transition: all .15s;
-    margin-bottom:14px; box-shadow: var(--shadow-sm);
-  }
-  .file-drop.has-file { border-color: var(--mint); border-style:solid; }
+  .file-drop { background: var(--card-bg); border:2px dashed var(--border); border-radius: 22px; padding:32px 20px; text-align:center; cursor:pointer; transition: all .15s; margin-bottom:14px; box-shadow: var(--shadow-sm); }
+  .file-drop.has-file { border-color: var(--accent); border-style:solid; }
   .file-drop .fd-icon { font-size:52px; margin-bottom:10px; display:block; }
-  .file-drop .fd-text { color: var(--text-gray); font-size:13px; font-weight:700; }
+  .file-drop .fd-text { color: var(--text-secondary); font-size:13px; font-weight:700; }
   .file-drop input { display:none; }
-  .file-drop .preview {
-    width:100%; max-height:400px; border-radius: var(--radius-sm);
-    object-fit:cover; margin-top:14px;
-  }
+  .file-drop .preview { width:100%; max-height:400px; border-radius: 16px; object-fit:cover; margin-top:14px; }
 
-  /* ==== PROFILES ==== */
-  .profile-hero {
-    background: var(--black); border-radius: var(--radius);
-    padding:24px; margin-bottom:12px; color:#fff;
-    position:relative; overflow:hidden;
-  }
-  .profile-hero::before {
-    content:''; position:absolute; top:-50%; right:-30%;
-    width:220px; height:220px;
-    background: radial-gradient(circle, var(--mint-glow), transparent 70%);
-    border-radius:50%; filter: blur(30px);
-  }
-  .profile-hero .ph-avatar {
-    width:72px; height:72px; border-radius:50%;
-    background: var(--mint); color: var(--black);
-    display:flex; align-items:center; justify-content:center;
-    font-weight:900; font-size:28px; margin-bottom:14px;
-    position:relative; z-index:1;
-  }
-  .profile-hero .ph-name {
-    font-size:26px; font-weight:900; letter-spacing:-1px;
-    position:relative; z-index:1;
-  }
-  .profile-hero .ph-sub {
-    font-size:13px; opacity:.6; margin-top:4px;
-    position:relative; z-index:1; font-weight:600;
-  }
-  .profile-hero .ph-stats {
-    display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;
-    margin-top:20px; position:relative; z-index:1;
-  }
-  .profile-hero .ph-stat {
-    background: rgba(255,255,255,.08);
-    padding:12px; border-radius: var(--radius-xs); text-align:center;
-  }
-  .profile-hero .ph-stat .v {
-    font-size:20px; font-weight:900; color: var(--mint);
-    letter-spacing:-.5px;
-  }
-  .profile-hero .ph-stat .l {
-    font-size:9px; color: rgba(255,255,255,.5); margin-top:4px;
-    text-transform:uppercase; letter-spacing:1.2px; font-weight:800;
-  }
+  .profile-hero { background: var(--dark-block); border-radius: 22px; padding:24px; margin-bottom:12px; color:#fff; position:relative; overflow:hidden; }
+  .profile-hero::before { content:''; position:absolute; top:-50%; right:-30%; width:220px; height:220px; background: radial-gradient(circle, var(--accent-glow), transparent 70%); border-radius:50%; filter: blur(30px); }
+  .profile-hero .ph-avatar { width:72px; height:72px; border-radius:50%; background: var(--accent); color: var(--dark-block); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:28px; margin-bottom:14px; position:relative; z-index:1; }
+  .profile-hero .ph-name { font-size:26px; font-weight:900; letter-spacing:-1px; position:relative; z-index:1; }
+  .profile-hero .ph-sub { font-size:13px; opacity:.6; margin-top:4px; position:relative; z-index:1; font-weight:600; }
+  .profile-hero .ph-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px; position:relative; z-index:1; }
+  .profile-hero .ph-stat { background: rgba(255,255,255,.08); padding:12px; border-radius: 12px; text-align:center; }
+  .profile-hero .ph-stat .v { font-size:20px; font-weight:900; color: var(--accent); letter-spacing:-.5px; }
+  .profile-hero .ph-stat .l { font-size:9px; color: rgba(255,255,255,.5); margin-top:4px; text-transform:uppercase; letter-spacing:1.2px; font-weight:800; }
 
-  .bmi-big {
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
-    border-radius: var(--radius); padding:24px;
-    margin-bottom:12px; color:#fff;
-    box-shadow: var(--shadow-mint);
-    text-align:center;
-  }
-  .bmi-big .bb-label {
-    font-size:11px; text-transform:uppercase; letter-spacing:2px;
-    font-weight:900; opacity:.85;
-  }
-  .bmi-big .bb-value {
-    font-size:52px; font-weight:900; letter-spacing:-2px;
-    margin:8px 0 4px; line-height:1;
-  }
-  .bmi-big .bb-status {
-    display:inline-block; padding:6px 14px;
-    background: rgba(255,255,255,.25); border-radius:50px;
-    font-size:11px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.2px;
-  }
+  .bmi-big { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); border-radius: 22px; padding:24px; margin-bottom:12px; color:#fff; box-shadow: var(--shadow-accent); text-align:center; }
+  .bmi-big .bb-label { font-size:11px; text-transform:uppercase; letter-spacing:2px; font-weight:900; opacity:.85; }
+  .bmi-big .bb-value { font-size:52px; font-weight:900; letter-spacing:-2px; margin:8px 0 4px; line-height:1; }
+  .bmi-big .bb-status { display:inline-block; padding:6px 14px; background: rgba(255,255,255,.25); border-radius:50px; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:1.2px; }
 
-  /* ==== GOAL CARD ==== */
-  .goal-card {
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
-    border-radius: var(--radius); padding:20px; margin-bottom:12px;
-    color:#fff; box-shadow: var(--shadow-mint);
-  }
-  .goal-card .gc-head {
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:14px;
-  }
-  .goal-card .gc-label {
-    font-size:11px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.5px; opacity:.85;
-  }
+  .goal-card { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); border-radius: 22px; padding:20px; margin-bottom:12px; color:#fff; box-shadow: var(--shadow-accent); }
+  .goal-card .gc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .goal-card .gc-label { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; opacity:.85; }
   .goal-card .gc-target { font-size:24px; font-weight:900; letter-spacing:-.5px; }
-  .goal-card .gc-bar {
-    height:10px; background: rgba(255,255,255,.3);
-    border-radius:5px; overflow:hidden; margin-bottom:8px;
-  }
-  .goal-card .gc-fill {
-    height:100%; background:#fff; border-radius:5px;
-    transition: width .6s ease;
-  }
-  .goal-card .gc-info {
-    display:flex; justify-content:space-between;
-    font-size:11px; font-weight:700; opacity:.9;
-  }
+  .goal-card .gc-bar { height:10px; background: rgba(255,255,255,.3); border-radius:5px; overflow:hidden; margin-bottom:8px; }
+  .goal-card .gc-fill { height:100%; background:#fff; border-radius:5px; transition: width .6s ease; }
+  .goal-card .gc-info { display:flex; justify-content:space-between; font-size:11px; font-weight:700; opacity:.9; }
 
-  /* ==== RECORDS ==== */
-  .record-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:10px;
-    display:flex; justify-content:space-between; align-items:center;
-    box-shadow: var(--shadow-sm);
-    border-left:4px solid var(--yellow);
-  }
-  .record-item .rc-name {
-    font-weight:900; font-size:14px; text-transform:uppercase;
-  }
-  .record-item .rc-label {
-    font-size:11px; color: var(--text-gray); margin-top:4px; font-weight:700;
-  }
-  .record-item .rc-value {
-    font-size:22px; font-weight:900; color: var(--text-dark);
-    letter-spacing:-.5px;
-  }
-  .record-item .rc-value .unit {
-    font-size:11px; color: var(--text-gray); font-weight:700;
-  }
+  .record-item { background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; box-shadow: var(--shadow-sm); border-left:4px solid var(--yellow); }
+  .record-item .rc-name { font-weight:900; font-size:14px; text-transform:uppercase; }
+  .record-item .rc-label { font-size:11px; color: var(--text-secondary); margin-top:4px; font-weight:700; }
+  .record-item .rc-value { font-size:22px; font-weight:900; color: var(--text-primary); letter-spacing:-.5px; }
+  .record-item .rc-value .unit { font-size:11px; color: var(--text-secondary); font-weight:700; }
 
-  /* ==== STREAK ==== */
-  .streak-card {
-    background: var(--black); border-radius: var(--radius);
-    padding:24px; margin-bottom:16px; color:#fff;
-    text-align:center; position:relative; overflow:hidden;
-  }
-  .streak-card::before {
-    content:''; position:absolute; top:-50%; right:-30%;
-    width:220px; height:220px;
-    background: radial-gradient(circle, rgba(254,202,87,.4), transparent 70%);
-    border-radius:50%; filter: blur(30px);
-  }
-  .streak-card .sc-fire {
-    font-size:48px; display:block; margin-bottom:8px;
-    position:relative; z-index:1;
-  }
-  .streak-card .sc-value {
-    font-size:48px; font-weight:900; color: var(--yellow);
-    letter-spacing:-2px; line-height:1; position:relative; z-index:1;
-  }
-  .streak-card .sc-label {
-    font-size:11px; color: rgba(255,255,255,.5);
-    text-transform:uppercase; letter-spacing:2px;
-    font-weight:900; margin-top:8px; position:relative; z-index:1;
-  }
+  .streak-card { background: var(--dark-block); border-radius: 22px; padding:24px; margin-bottom:16px; color:#fff; text-align:center; position:relative; overflow:hidden; }
+  .streak-card::before { content:''; position:absolute; top:-50%; right:-30%; width:220px; height:220px; background: radial-gradient(circle, rgba(254,202,87,.4), transparent 70%); border-radius:50%; filter: blur(30px); }
+  .streak-card .sc-fire { font-size:48px; display:block; margin-bottom:8px; position:relative; z-index:1; }
+  .streak-card .sc-value { font-size:48px; font-weight:900; color: var(--yellow); letter-spacing:-2px; line-height:1; position:relative; z-index:1; }
+  .streak-card .sc-label { font-size:11px; color: rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:2px; font-weight:900; margin-top:8px; position:relative; z-index:1; }
 
-  /* ==== MUSCLE BARS ==== */
   .muscle-bar { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-  .muscle-bar .mb-label {
-    width:70px; font-size:11px; font-weight:900;
-    text-transform:uppercase; color: var(--text-dark); letter-spacing:.3px;
-  }
-  .muscle-bar .mb-track {
-    flex:1; height:26px; background: var(--white);
-    border-radius: var(--radius-xs); overflow:hidden;
-    position:relative; box-shadow: var(--shadow-sm);
-  }
-  .muscle-bar .mb-fill {
-    height:100%; border-radius: var(--radius-xs);
-    transition: width .6s ease;
-    background: linear-gradient(90deg, var(--mint), var(--mint-dim));
-  }
-  .muscle-bar .mb-value {
-    position:absolute; right:10px; top:50%; transform:translateY(-50%);
-    font-size:10px; font-weight:900; color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,.3);
-  }
+  .muscle-bar .mb-label { width:70px; font-size:11px; font-weight:900; text-transform:uppercase; color: var(--text-primary); letter-spacing:.3px; }
+  .muscle-bar .mb-track { flex:1; height:26px; background: var(--card-bg); border-radius: 12px; overflow:hidden; position:relative; box-shadow: var(--shadow-sm); }
+  .muscle-bar .mb-fill { height:100%; border-radius: 12px; transition: width .6s ease; background: linear-gradient(90deg, var(--accent), var(--accent-dim)); }
+  .muscle-bar .mb-value { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:10px; font-weight:900; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.3); }
 
-  /* ==== VOLUME ==== */
-  .volume-periods {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px;
-    margin-bottom:12px;
-  }
-  .volume-period {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; text-align:center; box-shadow: var(--shadow-sm);
-  }
-  .volume-period .vp-label {
-    font-size:10px; color: var(--text-gray); text-transform:uppercase;
-    letter-spacing:1.2px; font-weight:900;
-  }
-  .volume-period .vp-value {
-    font-size:22px; font-weight:900; color: var(--text-dark);
-    margin-top:6px; letter-spacing:-.8px;
-  }
-  .volume-period .vp-value .unit {
-    font-size:11px; color: var(--text-gray); font-weight:700;
-  }
+  .volume-periods { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .volume-period { background: var(--card-bg); border-radius: 16px; padding:16px; text-align:center; box-shadow: var(--shadow-sm); }
+  .volume-period .vp-label { font-size:10px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1.2px; font-weight:900; }
+  .volume-period .vp-value { font-size:22px; font-weight:900; color: var(--text-primary); margin-top:6px; letter-spacing:-.8px; }
+  .volume-period .vp-value .unit { font-size:11px; color: var(--text-secondary); font-weight:700; }
 
-  /* ==== STEPS ==== */
-  .steps-card {
-    background: var(--white); border-radius: var(--radius);
-    padding:20px; margin-bottom:12px; box-shadow: var(--shadow-sm);
-  }
-  .steps-card .sc-label {
-    font-size:11px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.5px; color: var(--text-gray);
-  }
-  .steps-card .sc-value {
-    font-size:42px; font-weight:900; letter-spacing:-2px;
-    margin-top:6px; line-height:1;
-  }
-  .steps-card .sc-goal {
-    font-size:12px; color: var(--text-gray); margin-top:6px; font-weight:700;
-  }
+  .steps-card { background: var(--card-bg); border-radius: 22px; padding:20px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
+  .steps-card .sc-label { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; color: var(--text-secondary); }
+  .steps-card .sc-value { font-size:42px; font-weight:900; letter-spacing:-2px; margin-top:6px; line-height:1; color: var(--text-primary); }
+  .steps-card .sc-goal { font-size:12px; color: var(--text-secondary); margin-top:6px; font-weight:700; }
 
-  /* ==== COMPARE WEEK ==== */
-  .compare-week {
-    display:grid; grid-template-columns:1fr auto 1fr;
-    gap:10px; align-items:center; margin-bottom:12px;
-  }
-  .compare-week .cw-side {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:14px; text-align:center; box-shadow: var(--shadow-sm);
-  }
-  .compare-week .cw-label {
-    font-size:10px; color: var(--text-gray); text-transform:uppercase;
-    letter-spacing:1.2px; font-weight:900;
-  }
-  .compare-week .cw-value {
-    font-size:20px; font-weight:900; margin-top:6px; letter-spacing:-.5px;
-  }
-  .compare-week .cw-sub {
-    font-size:10px; color: var(--text-gray); margin-top:2px; font-weight:700;
-  }
-  .compare-week .cw-arrow {
-    font-size:22px; color: var(--text-gray);
-  }
+  .compare-week { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin-bottom:12px; }
+  .compare-week .cw-side { background: var(--card-bg); border-radius: 16px; padding:14px; text-align:center; box-shadow: var(--shadow-sm); }
+  .compare-week .cw-label { font-size:10px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1.2px; font-weight:900; }
+  .compare-week .cw-value { font-size:20px; font-weight:900; margin-top:6px; letter-spacing:-.5px; color: var(--text-primary); }
+  .compare-week .cw-sub { font-size:10px; color: var(--text-secondary); margin-top:2px; font-weight:700; }
+  .compare-week .cw-arrow { font-size:22px; color: var(--text-secondary); }
 
-  /* ==== NOTIFICATIONS ==== */
-  .notif-banner {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:14px 16px; margin-bottom:10px;
-    display:flex; align-items:center; gap:12px;
-    box-shadow: var(--shadow-sm); cursor:pointer;
-    transition: transform .15s;
-  }
+  .notif-banner { background: var(--card-bg); border-radius: 16px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:12px; box-shadow: var(--shadow-sm); cursor:pointer; transition: transform .15s; }
   .notif-banner:active { transform: scale(.98); }
-  .notif-banner .nb-icon {
-    width:36px; height:36px; border-radius:12px;
-    background: var(--mint-soft); color: var(--mint);
-    display:flex; align-items:center; justify-content:center;
-    font-size:18px; flex-shrink:0;
-  }
-  .notif-banner .nb-text {
-    flex:1; font-size:12px; font-weight:700; line-height:1.4;
-  }
+  .notif-banner .nb-icon { width:36px; height:36px; border-radius:12px; background: var(--accent-soft); color: var(--accent); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .notif-banner .nb-text { flex:1; font-size:12px; font-weight:700; line-height:1.4; }
 
-  /* ==== TEMPLATES ==== */
-  .template-card {
-    background: var(--white); border-radius: var(--radius);
-    padding:18px; margin-bottom:12px; box-shadow: var(--shadow-sm);
-  }
+  .template-card { background: var(--card-bg); border-radius: 22px; padding:18px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
   .template-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
-  .template-icon {
-    width:52px; height:52px; border-radius:16px;
-    background: var(--black); color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    font-size:24px; flex-shrink:0;
-  }
+  .template-icon { width:52px; height:52px; border-radius:16px; background: var(--dark-block); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
   .template-header .t-info { flex:1; }
-  .template-header .t-name {
-    font-weight:900; font-size:16px; text-transform:uppercase;
-    letter-spacing:-.2px;
-  }
-  .template-header .t-count {
-    font-size:12px; color: var(--text-gray); margin-top:3px; font-weight:700;
-  }
-  .template-exercises {
-    display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;
-  }
-  .template-ex-tag {
-    padding:6px 12px; border-radius:50px;
-    background: var(--gray-1); font-size:11px; font-weight:800;
-    color: var(--text-dark);
-  }
-  .template-actions {
-    display:grid; grid-template-columns:1fr auto auto; gap:8px;
-  }
-  .t-action-btn {
-    padding:12px 14px; border-radius:50px; border:none;
-    background: var(--gray-1); color: var(--text-dark);
-    font-weight:900; font-size:12px; cursor:pointer;
-    text-transform:uppercase; letter-spacing:.5px;
-    display:flex; align-items:center; justify-content:center; gap:6px;
-  }
-  .t-action-btn.start {
-    background: var(--mint); color:#fff;
-    box-shadow: 0 4px 12px var(--mint-glow);
-  }
-  .t-action-btn.delete {
-    background: #ffe8e8; color: var(--red);
-  }
+  .template-header .t-name { font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:-.2px; }
+  .template-header .t-count { font-size:12px; color: var(--text-secondary); margin-top:3px; font-weight:700; }
+  .template-exercises { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .template-ex-tag { padding:6px 12px; border-radius:50px; background: var(--bg-main); font-size:11px; font-weight:800; color: var(--text-primary); }
+  body.theme-dark .template-ex-tag { background: var(--bg-alt); }
+  .template-actions { display:grid; grid-template-columns:1fr auto auto; gap:8px; }
+  .t-action-btn { padding:12px 14px; border-radius:50px; border:none; background: var(--bg-main); color: var(--text-primary); font-weight:900; font-size:12px; cursor:pointer; text-transform:uppercase; letter-spacing:.5px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  body.theme-dark .t-action-btn { background: var(--bg-alt); }
+  .t-action-btn.start { background: var(--accent); color:#fff; box-shadow: 0 4px 12px var(--accent-glow); }
+  .t-action-btn.delete { background: #ffe8e8; color: var(--red); }
+  body.theme-dark .t-action-btn.delete { background: rgba(255,107,107,.15); }
 
-  .draft-exercise {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:12px 16px; margin-bottom:8px;
-    display:flex; justify-content:space-between; align-items:center;
-    box-shadow: var(--shadow-sm);
-  }
+  .draft-exercise { background: var(--card-bg); border-radius: 16px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; box-shadow: var(--shadow-sm); }
   .draft-exercise .de-name { font-weight:800; font-size:14px; }
-  .draft-exercise .de-remove {
-    background: #ffe8e8; color: var(--red); border:none;
-    width:32px; height:32px; border-radius:10px;
-    cursor:pointer; font-weight:900; font-size:13px;
-  }
+  .draft-exercise .de-remove { background: #ffe8e8; color: var(--red); border:none; width:32px; height:32px; border-radius:10px; cursor:pointer; font-weight:900; font-size:13px; }
+  body.theme-dark .draft-exercise .de-remove { background: rgba(255,107,107,.15); }
 
-  /* ==== SESSION ==== */
-  .session-progress {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:16px; box-shadow: var(--shadow-sm);
-  }
-  .session-progress .sp-label {
-    font-size:10px; color: var(--text-gray); text-transform:uppercase;
-    letter-spacing:1.8px; font-weight:900;
-  }
-  .session-progress .sp-count {
-    font-size:22px; font-weight:900; color: var(--mint);
-    margin-top:4px; letter-spacing:-.5px;
-  }
-  .session-bar {
-    height:8px; background: var(--gray-1); border-radius:4px;
-    margin-top:12px; overflow:hidden;
-  }
-  .session-bar-fill {
-    height:100%; background: var(--mint); border-radius:4px;
-    transition: width .4s ease;
-  }
-  .session-ex-name {
-    background: var(--black); color:#fff;
-    border-radius: var(--radius); padding:24px;
-    text-align:center; margin-bottom:16px;
-  }
-  .session-ex-name .label {
-    font-size:10px; color: rgba(255,255,255,.5);
-    text-transform:uppercase; letter-spacing:2px; font-weight:900;
-  }
-  .session-ex-name .name {
-    font-size:24px; font-weight:900; margin-top:8px;
-    text-transform:uppercase; letter-spacing:-.5px;
-  }
-  .session-nav {
-    display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-top:14px;
-  }
-  .session-btn {
-    padding:16px; border-radius:50px; border:none;
-    cursor:pointer; font-weight:900; font-size:13px;
-    text-transform:uppercase; letter-spacing:.8px;
-  }
-  .session-btn.skip {
-    background: var(--white); color: var(--text-dark);
-    box-shadow: var(--shadow-sm);
-  }
-  .session-btn.next {
-    background: var(--mint); color:#fff;
-    box-shadow: var(--shadow-mint);
-  }
+  .session-progress { background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:16px; box-shadow: var(--shadow-sm); }
+  .session-progress .sp-label { font-size:10px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1.8px; font-weight:900; }
+  .session-progress .sp-count { font-size:22px; font-weight:900; color: var(--accent); margin-top:4px; letter-spacing:-.5px; }
+  .session-bar { height:8px; background: var(--bg-main); border-radius:4px; margin-top:12px; overflow:hidden; }
+  body.theme-dark .session-bar { background: var(--bg-alt); }
+  .session-bar-fill { height:100%; background: var(--accent); border-radius:4px; transition: width .4s ease; }
+  .session-ex-name { background: var(--dark-block); color:#fff; border-radius: 22px; padding:24px; text-align:center; margin-bottom:16px; }
+  .session-ex-name .label { font-size:10px; color: rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:2px; font-weight:900; }
+  .session-ex-name .name { font-size:24px; font-weight:900; margin-top:8px; text-transform:uppercase; letter-spacing:-.5px; }
+  .session-nav { display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-top:14px; }
+  .session-btn { padding:16px; border-radius:50px; border:none; cursor:pointer; font-weight:900; font-size:13px; text-transform:uppercase; letter-spacing:.8px; }
+  .session-btn.skip { background: var(--card-bg); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+  .session-btn.next { background: var(--accent); color:#fff; box-shadow: var(--shadow-accent); }
 
-  /* ==== WATER TRACKER ==== */
-  .water-tracker {
-    background: var(--white); border-radius: var(--radius);
-    padding:20px; margin-bottom:12px; box-shadow: var(--shadow-sm);
-  }
-  .water-tracker .wt-header {
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:16px;
-  }
-  .water-tracker .wt-title {
-    font-size:11px; font-weight:900; text-transform:uppercase;
-    letter-spacing:1.5px; color: var(--text-gray);
-  }
-  .water-tracker .wt-count {
-    font-size:24px; font-weight:900; color: var(--blue);
-    letter-spacing:-1px;
-  }
-  .water-tracker .wt-count .unit {
-    font-size:12px; color: var(--text-gray); font-weight:700;
-  }
+  .water-tracker { background: var(--card-bg); border-radius: 22px; padding:20px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
+  .water-tracker .wt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .water-tracker .wt-title { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; color: var(--text-secondary); }
+  .water-tracker .wt-count { font-size:24px; font-weight:900; color: var(--blue); letter-spacing:-1px; }
+  .water-tracker .wt-count .unit { font-size:12px; color: var(--text-secondary); font-weight:700; }
 
-  /* ==== RECIPE ==== */
-  .recipe-ingredient {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 14px; background: var(--white);
-    border-radius: var(--radius-xs); margin-bottom:6px;
-    gap:10px; box-shadow: var(--shadow-sm);
-  }
+  .recipe-ingredient { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background: var(--card-bg); border-radius: 12px; margin-bottom:6px; gap:10px; box-shadow: var(--shadow-sm); }
   .recipe-ingredient .ri-name { font-weight:800; font-size:13px; flex:1; }
-  .recipe-ingredient .ri-weight { font-size:12px; color: var(--mint); font-weight:900; }
-  .recipe-ingredient .ri-remove {
-    background: #ffe8e8; color: var(--red); border:none;
-    width:30px; height:30px; border-radius:10px;
-    cursor:pointer; font-weight:900; font-size:12px;
-  }
+  .recipe-ingredient .ri-weight { font-size:12px; color: var(--accent); font-weight:900; }
+  .recipe-ingredient .ri-remove { background: #ffe8e8; color: var(--red); border:none; width:30px; height:30px; border-radius:10px; cursor:pointer; font-weight:900; font-size:12px; }
+  body.theme-dark .recipe-ingredient .ri-remove { background: rgba(255,107,107,.15); }
 
-  /* ==== PRODUCT ITEMS ==== */
-  .product-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:8px;
-    cursor:pointer; display:flex; justify-content:space-between;
-    align-items:center; gap:12px; box-shadow: var(--shadow-sm);
-    transition: transform .15s;
-  }
+  .product-item { background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:12px; box-shadow: var(--shadow-sm); transition: transform .15s; }
   .product-item:active { transform: scale(.98); }
   .product-item.custom { border-left:4px solid var(--orange); }
   .product-item .p-info { flex:1; min-width:0; }
-  .product-item .p-name {
-    font-weight:900; font-size:15px; letter-spacing:-.2px;
-  }
-  .product-item .p-macros {
-    font-size:11px; color: var(--text-gray); margin-top:4px; font-weight:700;
-  }
+  .product-item .p-name { font-weight:900; font-size:15px; letter-spacing:-.2px; }
+  .product-item .p-macros { font-size:11px; color: var(--text-secondary); margin-top:4px; font-weight:700; }
   .product-item .p-macros .b { color: var(--orange); }
   .product-item .p-macros .f { color: var(--purple); }
   .product-item .p-macros .c { color: var(--blue); }
   .product-item .p-cal { text-align:right; flex-shrink:0; }
-  .product-item .p-cal .val {
-    font-size:22px; font-weight:900; color: var(--text-dark);
-    letter-spacing:-.8px;
-  }
-  .product-item .p-cal .lbl {
-    font-size:9px; color: var(--text-gray);
-    text-transform:uppercase; letter-spacing:1px; font-weight:800;
-  }
-  .custom-badge {
-    display:inline-block; padding:2px 8px; border-radius:50px;
-    background: #fff2e0; color: var(--orange);
-    font-size:9px; font-weight:900; letter-spacing:.5px;
-    margin-left:6px; vertical-align:middle;
-  }
+  .product-item .p-cal .val { font-size:22px; font-weight:900; color: var(--text-primary); letter-spacing:-.8px; }
+  .product-item .p-cal .lbl { font-size:9px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1px; font-weight:800; }
+  .custom-badge { display:inline-block; padding:2px 8px; border-radius:50px; background: #fff2e0; color: var(--orange); font-size:9px; font-weight:900; letter-spacing:.5px; margin-left:6px; vertical-align:middle; }
+  body.theme-dark .custom-badge { background: rgba(255,159,67,.15); }
 
-  .selected-product {
-    background: var(--mint-soft); border-radius: var(--radius-sm);
-    padding:14px 16px; margin-bottom:14px;
-    display:flex; justify-content:space-between; align-items:center; gap:12px;
-    border-left:4px solid var(--mint);
-  }
+  .selected-product { background: var(--accent-soft); border-radius: 16px; padding:14px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:12px; border-left:4px solid var(--accent); }
   .selected-product .sp-name { font-weight:900; font-size:14px; }
-  .selected-product .sp-info {
-    font-size:11px; color: var(--text-gray); margin-top:4px; font-weight:700;
-  }
-  .selected-product .sp-remove {
-    background: #fff; color: var(--red); border:none;
-    width:32px; height:32px; border-radius:50%;
-    cursor:pointer; font-weight:900; font-size:14px;
-    box-shadow: var(--shadow-sm);
-  }
+  .selected-product .sp-info { font-size:11px; color: var(--text-secondary); margin-top:4px; font-weight:700; }
+  .selected-product .sp-remove { background: var(--card-bg); color: var(--red); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-weight:900; font-size:14px; box-shadow: var(--shadow-sm); }
 
-  .product-summary {
-    background: var(--black); border-radius: var(--radius-sm);
-    padding:16px; margin:12px 0; color:#fff;
-  }
-  .product-summary .ps-title {
-    font-size:10px; color: rgba(255,255,255,.5);
-    text-transform:uppercase; letter-spacing:1.8px; font-weight:900;
-    margin-bottom:12px;
-  }
-  .product-summary .ps-grid {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
-  }
+  .product-summary { background: var(--dark-block); border-radius: 16px; padding:16px; margin:12px 0; color:#fff; }
+  .product-summary .ps-title { font-size:10px; color: rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:1.8px; font-weight:900; margin-bottom:12px; }
+  .product-summary .ps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .product-summary .ps-item { text-align:center; }
-  .product-summary .ps-item .v {
-    font-size:16px; font-weight:900; color: var(--mint);
-  }
+  .product-summary .ps-item .v { font-size:16px; font-weight:900; color: var(--accent); }
   .product-summary .ps-item .v.f { color: var(--purple); }
   .product-summary .ps-item .v.c { color: var(--blue); }
   .product-summary .ps-item .v.k { color: var(--yellow); }
-  .product-summary .ps-item .l {
-    font-size:9px; color: rgba(255,255,255,.5);
-    text-transform:uppercase; letter-spacing:1px;
-    font-weight:800; margin-top:4px;
-  }
+  .product-summary .ps-item .l { font-size:9px; color: rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-top:4px; }
 
-  /* ==== EXERCISE ITEM ==== */
-  .exercise-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:10px;
-    display:flex; align-items:center; gap:12px;
-    cursor:pointer; box-shadow: var(--shadow-sm);
-    transition: transform .15s;
-  }
+  .exercise-item { background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:10px; display:flex; align-items:center; gap:12px; cursor:pointer; box-shadow: var(--shadow-sm); transition: transform .15s; }
   .exercise-item:active { transform: scale(.98); }
-  .exercise-item.has-progress { border-left:4px solid var(--mint); }
+  .exercise-item.has-progress { border-left:4px solid var(--accent); }
   .exercise-item .info { flex:1; }
-  .exercise-item .name {
-    font-weight:900; font-size:15px; text-transform:uppercase;
-    letter-spacing:-.2px;
-  }
-  .exercise-item .meta {
-    font-size:12px; color: var(--text-gray); margin-top:5px;
-    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-    font-weight:600;
-  }
-  .badge {
-    display:inline-block; padding:3px 10px; border-radius:50px;
-    font-size:10px; font-weight:900; letter-spacing:.3px;
-    text-transform:uppercase;
-  }
-  .badge-up { background: var(--mint-soft); color: var(--mint-dim); }
+  .exercise-item .name { font-weight:900; font-size:15px; text-transform:uppercase; letter-spacing:-.2px; }
+  .exercise-item .meta { font-size:12px; color: var(--text-secondary); margin-top:5px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-weight:600; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:50px; font-size:10px; font-weight:900; letter-spacing:.3px; text-transform:uppercase; }
+  .badge-up { background: var(--accent-soft); color: var(--accent-dim); }
   .badge-same { background: #fff2e0; color: var(--orange); }
   .badge-down { background: #ffe8e8; color: var(--red); }
   .badge-pr { background: linear-gradient(135deg, #feca57, #ff9f43); color:#fff; }
+  body.theme-dark .badge-same { background: rgba(255,159,67,.15); }
+  body.theme-dark .badge-down { background: rgba(255,107,107,.15); }
 
-  /* ==== HISTORY ==== */
-  .history-item {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; margin-bottom:8px;
-    display:flex; justify-content:space-between; align-items:center;
-    box-shadow: var(--shadow-sm);
-  }
-  .history-values {
-    font-weight:900; font-size:17px; letter-spacing:-.3px;
-  }
-  .history-values .unit {
-    color: var(--text-gray); font-size:12px; font-weight:700;
-  }
-  .history-date {
-    color: var(--text-gray); font-size:11px; text-align:right;
-    font-weight:700;
-  }
-  .history-date .day-name {
-    display:block; font-weight:900; color: var(--mint);
-    font-size:11px; text-transform:uppercase; letter-spacing:1.2px;
-    margin-bottom:2px;
-  }
+  .history-item { background: var(--card-bg); border-radius: 16px; padding:16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; box-shadow: var(--shadow-sm); }
+  .history-values { font-weight:900; font-size:17px; letter-spacing:-.3px; }
+  .history-values .unit { color: var(--text-secondary); font-size:12px; font-weight:700; }
+  .history-date { color: var(--text-secondary); font-size:11px; text-align:right; font-weight:700; }
+  .history-date .day-name { display:block; font-weight:900; color: var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:2px; }
 
-  .note-box {
-    background: #f0edff; border-radius: var(--radius-xs);
-    padding:10px 14px; margin-top:10px;
-    font-size:12px; color: var(--text-dark); line-height:1.5;
-    font-weight:600;
-  }
-  .note-box .n-label {
-    font-size:10px; color: var(--purple);
-    text-transform:uppercase; letter-spacing:1.2px;
-    font-weight:900; margin-bottom:4px;
-  }
+  .note-box { background: #f0edff; border-radius: 12px; padding:10px 14px; margin-top:10px; font-size:12px; color: var(--text-primary); line-height:1.5; font-weight:600; }
+  body.theme-dark .note-box { background: rgba(162,155,254,.15); }
+  .note-box .n-label { font-size:10px; color: var(--purple); text-transform:uppercase; letter-spacing:1.2px; font-weight:900; margin-bottom:4px; }
 
-  /* ==== PROGRESS HERO ==== */
-  .progress-hero {
-    border-radius: var(--radius); padding:22px; margin-bottom:14px;
-    text-align:center;
-  }
-  .progress-hero.up {
-    background: linear-gradient(135deg, var(--mint) 0%, var(--mint-dim) 100%);
-    color:#fff; box-shadow: var(--shadow-mint);
-  }
-  .progress-hero.down {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-    color:#fff; box-shadow: 0 8px 24px rgba(255,107,107,.35);
-  }
-  .progress-hero.same {
-    background: linear-gradient(135deg, var(--orange) 0%, #e68831 100%);
-    color:#fff; box-shadow: 0 8px 24px rgba(255,159,67,.35);
-  }
-  .progress-label {
-    font-size:10px; text-transform:uppercase;
-    letter-spacing:2.5px; font-weight:900; opacity:.85;
-  }
-  .progress-value {
-    font-size:38px; font-weight:900; letter-spacing:-2px;
-    margin:6px 0 2px; line-height:1;
-  }
-  .progress-sub {
-    font-size:13px; opacity:.9; font-weight:700;
-  }
+  .progress-hero { border-radius: 22px; padding:22px; margin-bottom:14px; text-align:center; }
+  .progress-hero.up { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); color:#fff; box-shadow: var(--shadow-accent); }
+  .progress-hero.down { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color:#fff; box-shadow: 0 8px 24px rgba(255,107,107,.35); }
+  .progress-hero.same { background: linear-gradient(135deg, var(--orange) 0%, #e68831 100%); color:#fff; box-shadow: 0 8px 24px rgba(255,159,67,.35); }
+  .progress-label { font-size:10px; text-transform:uppercase; letter-spacing:2.5px; font-weight:900; opacity:.85; }
+  .progress-value { font-size:38px; font-weight:900; letter-spacing:-2px; margin:6px 0 2px; line-height:1; }
+  .progress-sub { font-size:13px; opacity:.9; font-weight:700; }
 
-  /* ==== STAT CARDS (для отчётов) ==== */
-  .stat-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;
-  }
-  .stat-card {
-    background: var(--white); border-radius: var(--radius-sm);
-    padding:16px; box-shadow: var(--shadow-sm);
-  }
-  .stat-card .label {
-    font-size:10px; color: var(--text-gray);
-    text-transform:uppercase; letter-spacing:1.2px; font-weight:900;
-  }
-  .stat-card .value {
-    font-size:24px; font-weight:900; margin-top:6px;
-    color: var(--text-dark); letter-spacing:-1px;
-  }
-  .stat-card .value.mint { color: var(--mint); }
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .stat-card { background: var(--card-bg); border-radius: 16px; padding:16px; box-shadow: var(--shadow-sm); }
+  .stat-card .label { font-size:10px; color: var(--text-secondary); text-transform:uppercase; letter-spacing:1.2px; font-weight:900; }
+  .stat-card .value { font-size:24px; font-weight:900; margin-top:6px; color: var(--text-primary); letter-spacing:-1px; }
+  .stat-card .value.mint { color: var(--accent); }
   .stat-card .value.orange { color: var(--orange); }
   .stat-card .value.purple { color: var(--purple); }
   .stat-card .value.blue { color: var(--blue); }
-  .stat-card .value .unit {
-    font-size:12px; color: var(--text-gray); font-weight:700;
-  }
+  .stat-card .value .unit { font-size:12px; color: var(--text-secondary); font-weight:700; }
 
-  /* ==== TIMER ==== */
+  /* ============ MODAL BOTTOM SHEET ============ */
+  .quick-modal-overlay {
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,.5); backdrop-filter: blur(8px);
+    z-index:2000; display:none; align-items:flex-end;
+    animation: fadeIn .2s;
+  }
+  .quick-modal-overlay.active { display:flex; }
+  .quick-modal {
+    width:100%; max-width:520px; margin:0 auto;
+    background: var(--card-bg);
+    border-radius: 28px 28px 0 0;
+    padding:24px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+    animation: slideUp .3s cubic-bezier(.4,0,.2,1);
+    position:relative;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .quick-modal .qm-handle {
+    width:48px; height:5px; border-radius:3px;
+    background: var(--text-tertiary); opacity:.4;
+    margin:0 auto 20px;
+  }
+  .quick-modal .qm-title {
+    font-size:20px; font-weight:900; text-transform:uppercase;
+    letter-spacing:-.5px; margin-bottom:20px; text-align:center;
+    color: var(--text-primary);
+  }
+  .quick-modal .qm-option {
+    display:flex; align-items:center; gap:14px;
+    background: var(--bg-main); border:none; cursor:pointer;
+    padding:16px; border-radius:16px; margin-bottom:10px;
+    width:100%; text-align:left;
+    transition: transform .15s, background .15s;
+  }
+  body.theme-dark .quick-modal .qm-option { background: var(--bg-alt); }
+  .quick-modal .qm-option:active { transform: scale(.98); background: var(--accent-soft); }
+  body.theme-dark .quick-modal .qm-option:active { background: rgba(0,217,163,.15); }
+  .quick-modal .qm-icon {
+    width:48px; height:48px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+  }
+  .quick-modal .qm-icon.mint { background: var(--accent-soft); }
+  body.theme-dark .quick-modal .qm-icon.mint { background: rgba(0,217,163,.15); }
+  .quick-modal .qm-icon.orange { background: #fff2e0; }
+  body.theme-dark .quick-modal .qm-icon.orange { background: rgba(255,159,67,.15); }
+  .quick-modal .qm-icon.blue { background: #e5efff; }
+  body.theme-dark .quick-modal .qm-icon.blue { background: rgba(84,160,255,.15); }
+  .quick-modal .qm-icon.purple { background: #f0edff; }
+  body.theme-dark .quick-modal .qm-icon.purple { background: rgba(162,155,254,.15); }
+  .quick-modal .qm-text { flex:1; }
+  .quick-modal .qm-opt-title { font-weight:900; font-size:15px; color: var(--text-primary); }
+  .quick-modal .qm-opt-sub { font-size:12px; color: var(--text-secondary); margin-top:3px; font-weight:600; }
+
+  /* ============ ТАЙМЕР ============ */
   .timer-overlay {
     position:fixed; top:0; left:0; right:0; bottom:0;
-    background: var(--black); z-index:1000;
-    display:none; align-items:center; justify-content:center;
-    padding:20px;
+    background: var(--dark-block); z-index:1000;
+    display:none; align-items:center; justify-content:center; padding:20px;
   }
   .timer-overlay.active { display:flex; }
   .timer-content { width:100%; max-width:400px; text-align:center; color:#fff; }
-  .timer-content .t-title {
-    font-size:12px; font-weight:900; color: var(--mint);
-    text-transform:uppercase; letter-spacing:3px; margin-bottom:6px;
-  }
-  .timer-content .t-subtitle {
-    font-size:13px; color: rgba(255,255,255,.5);
-    font-weight:700; margin-bottom:28px;
-  }
-  .timer-circle-wrap {
-    position:relative; width:240px; height:240px; margin:0 auto 28px;
-  }
+  .timer-content .t-title { font-size:12px; font-weight:900; color: var(--accent); text-transform:uppercase; letter-spacing:3px; margin-bottom:6px; }
+  .timer-content .t-subtitle { font-size:13px; color: rgba(255,255,255,.5); font-weight:700; margin-bottom:28px; }
+  .timer-circle-wrap { position:relative; width:240px; height:240px; margin:0 auto 28px; }
   .timer-circle-wrap svg { width:100%; height:100%; transform:rotate(-90deg); }
   .timer-circle-wrap .tc-bg { fill:none; stroke: rgba(255,255,255,.08); stroke-width:8; }
-  .timer-circle-wrap .tc-fg {
-    fill:none; stroke: var(--mint); stroke-width:8;
-    stroke-linecap:round;
-  }
+  .timer-circle-wrap .tc-fg { fill:none; stroke: var(--accent); stroke-width:8; stroke-linecap:round; }
   .timer-circle-wrap .tc-fg.paused { stroke: var(--orange); }
-  .timer-time {
-    position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    font-size:56px; font-weight:900; letter-spacing:-3px;
-    font-variant-numeric: tabular-nums;
-  }
-  .timer-time .sec-unit {
-    font-size:20px; color: rgba(255,255,255,.5);
-    margin-left:4px; font-weight:700;
-  }
-  .timer-presets {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
-    margin-bottom:20px;
-  }
-  .timer-preset {
-    padding:12px 4px; border-radius:50px;
-    background: rgba(255,255,255,.08); border:none;
-    color: rgba(255,255,255,.6); font-size:13px;
-    font-weight:900; cursor:pointer;
-  }
-  .timer-preset.active {
-    background: var(--mint); color: var(--black);
-    box-shadow: 0 4px 12px var(--mint-glow);
-  }
-  .timer-controls {
-    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;
-  }
-  .timer-ctrl-btn {
-    padding:16px; border-radius:50px; border:none;
-    background: rgba(255,255,255,.08); color:#fff;
-    font-weight:900; font-size:12px; cursor:pointer;
-    text-transform:uppercase; letter-spacing:1px;
-  }
+  .timer-time { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:56px; font-weight:900; letter-spacing:-3px; font-variant-numeric: tabular-nums; color:#fff; }
+  .timer-time .sec-unit { font-size:20px; color: rgba(255,255,255,.5); margin-left:4px; font-weight:700; }
+  .timer-presets { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+  .timer-preset { padding:12px 4px; border-radius:50px; background: rgba(255,255,255,.08); border:none; color: rgba(255,255,255,.6); font-size:13px; font-weight:900; cursor:pointer; }
+  .timer-preset.active { background: var(--accent); color: var(--dark-block); box-shadow: 0 4px 12px var(--accent-glow); }
+  .timer-controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .timer-ctrl-btn { padding:16px; border-radius:50px; border:none; background: rgba(255,255,255,.08); color:#fff; font-weight:900; font-size:12px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; }
   .timer-ctrl-btn.pause { background: rgba(255,159,67,.15); color: var(--orange); }
-  .timer-close-btn {
-    padding:14px; border-radius:50px; border:none;
-    background: transparent; color: rgba(255,255,255,.5);
-    font-weight:800; font-size:12px; cursor:pointer;
-    text-transform:uppercase; letter-spacing:1px; width:100%;
-  }
+  .timer-close-btn { padding:14px; border-radius:50px; border:none; background: transparent; color: rgba(255,255,255,.5); font-weight:800; font-size:12px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; width:100%; }
 
-  /* ==== FAB TIMER ==== */
   .floating-timer-btn {
-    position:fixed; bottom:110px; right:20px;
+    position:fixed; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); right:20px;
     width:60px; height:60px; border-radius:50%;
-    background: var(--mint); color:#fff;
+    background: var(--accent); color:#fff;
     font-size:26px; border:none; cursor:pointer;
-    box-shadow: 0 8px 24px var(--mint-glow);
+    box-shadow: 0 8px 24px var(--accent-glow);
     display:none; align-items:center; justify-content:center;
     z-index:100; transition: transform .15s;
   }
@@ -1263,68 +663,17 @@
   .floating-timer-btn::after {
     content: attr(data-time);
     position:absolute; top:-6px; right:-6px;
-    background: var(--black); border:2px solid var(--mint);
+    background: var(--dark-block); border:2px solid var(--accent);
     border-radius:50px; font-size:10px; font-weight:900;
-    color: var(--mint); padding:3px 8px;
-    min-width:34px;
+    color: var(--accent); padding:3px 8px; min-width:34px;
   }
-
-  /* ==== THEME OVERRIDES ==== */
-  body.theme-dark { background: var(--black); color: #fff; }
-  body.theme-dark .card,
-  body.theme-dark .stat-big,
-  body.theme-dark .list-item,
-  body.theme-dark .chart-card,
-  body.theme-dark .product-item,
-  body.theme-dark .exercise-item,
-  body.theme-dark .history-item,
-  body.theme-dark .record-item,
-  body.theme-dark .template-card,
-  body.theme-dark .water-tracker,
-  body.theme-dark .stat-card,
-  body.theme-dark .volume-period,
-  body.theme-dark .compare-week .cw-side,
-  body.theme-dark .notif-banner,
-  body.theme-dark .steps-card {
-    background: var(--dark); color:#fff;
-  }
-  body.theme-dark .screen-header h1,
-  body.theme-dark .stat-big .sb-value,
-  body.theme-dark .volume-period .vp-value,
-  body.theme-dark .history-values,
-  body.theme-dark .exercise-item .name,
-  body.theme-dark .list-item .li-title,
-  body.theme-dark .product-item .p-name,
-  body.theme-dark .product-item .p-cal .val {
-    color:#fff;
-  }
-  body.theme-dark .back-btn { background: var(--dark); color:#fff; }
-  body.theme-dark .screen-header .icon-btn { background: var(--dark); }
-  body.theme-dark .input-group input,
-  body.theme-dark .input-group select,
-  body.theme-dark .input-group textarea {
-    background: var(--dark); color:#fff;
-  }
-  body.theme-dark .date-nav,
-  body.theme-dark .chart-period-tabs,
-  body.theme-dark .calendar-day,
-  body.theme-dark .chip,
-  body.theme-dark .calendar-nav .cn-btn,
-  body.theme-dark .theme-card { background: var(--dark); color:#fff; }
-  body.theme-dark .calendar-day.today { border-color: var(--mint); }
-  body.theme-dark .chip.active { background: var(--mint); color: var(--black); }
-  body.theme-dark .chart-period-tab.active { background: var(--mint); color: var(--black); }
-  body.theme-dark .muscle-bar .mb-track { background: var(--dark); }
-  body.theme-dark .empty { background: var(--dark); }
-  body.theme-dark .profile-hero { background: var(--dark); }
-  body.theme-dark .bmi-big { color:#fff; }
 </style>
 </head>
 <body>
 
 <div class="container">
 
-  <!-- ========== ОНБОРДИНГ ========== -->
+  <!-- ОНБОРДИНГ -->
   <div id="screen-onboarding" class="screen">
     <div class="screen-header">
       <div class="sh-left"><h1>Fit Expert</h1></div>
@@ -1355,7 +704,7 @@
     </div>
   </div>
 
-  <!-- ========== ГЛАВНЫЙ ========== -->
+  <!-- ГЛАВНЫЙ -->
   <div id="screen-home" class="screen">
     <div class="screen-header">
       <div class="sh-left">
@@ -1366,7 +715,7 @@
     </div>
     <div id="notifArea"></div>
     <div class="card-photo" onclick="showScreen('screen-progress')">
-      <div class="cp-img" style="background: linear-gradient(135deg, #00d9a3 0%, #00b88a 100%); height:200px; display:flex; align-items:center; justify-content:center; font-size:80px;">💪</div>
+      <div class="cp-img" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); height:200px; display:flex; align-items:center; justify-content:center; font-size:80px;">💪</div>
       <div class="cp-overlay">
         <div class="cp-tag">🔥 Streak: <span id="statStreak">0</span> дн</div>
         <div class="cp-bottom">
@@ -1377,82 +726,40 @@
     </div>
     <div class="stats-grid">
       <div class="stat-big" onclick="showScreen('screen-profile')">
-        <div class="sb-top">
-          <div class="sb-label">Вес</div>
-          <div class="sb-icon mint">⚖️</div>
-        </div>
+        <div class="sb-top"><div class="sb-label">Вес</div><div class="sb-icon mint">⚖️</div></div>
         <div class="sb-value" id="statWeight">—<span class="unit">кг</span></div>
         <div class="sb-target" id="statWeightGoal">Цель: —</div>
       </div>
       <div class="stat-big" onclick="showScreen('screen-progress')">
-        <div class="sb-top">
-          <div class="sb-label">Шаги</div>
-          <div class="sb-icon purple">👟</div>
-        </div>
+        <div class="sb-top"><div class="sb-label">Шаги</div><div class="sb-icon purple">👟</div></div>
         <div class="sb-value" id="statSteps">0</div>
         <div class="sb-target">Цель: 10 000</div>
       </div>
       <div class="stat-big" onclick="showScreen('screen-water')">
-        <div class="sb-top">
-          <div class="sb-label">Вода</div>
-          <div class="sb-icon blue">💧</div>
-        </div>
+        <div class="sb-top"><div class="sb-label">Вода</div><div class="sb-icon blue">💧</div></div>
         <div class="sb-value" id="statWater">0<span class="unit">/8</span></div>
         <div class="sb-target">Стаканов</div>
       </div>
       <div class="stat-big" onclick="showScreen('screen-workouts')">
-        <div class="sb-top">
-          <div class="sb-label">Подходы</div>
-          <div class="sb-icon orange">💪</div>
-        </div>
+        <div class="sb-top"><div class="sb-label">Подходы</div><div class="sb-icon orange">💪</div></div>
         <div class="sb-value" id="statWorkouts">0</div>
         <div class="sb-target">Всего</div>
       </div>
     </div>
     <div class="section-title">Меню</div>
-    <div class="list-item" onclick="showScreen('screen-food')">
-      <div class="li-icon orange">🍎</div>
-      <div class="li-info"><div class="li-title">Питание</div><div class="li-sub">Календарь, БЖУ, продукты</div></div>
-      <div class="li-arrow">›</div>
-    </div>
-    <div class="list-item" onclick="showScreen('screen-recipes')">
-      <div class="li-icon mint">🍱</div>
-      <div class="li-info"><div class="li-title">Рецепты</div><div class="li-sub">Свои блюда из продуктов</div></div>
-      <div class="li-arrow">›</div>
-    </div>
-    <div class="list-item" onclick="showScreen('screen-templates')">
-      <div class="li-icon purple">📋</div>
-      <div class="li-info"><div class="li-title">Шаблоны</div><div class="li-sub">Пуш, Пулл, Ноги</div></div>
-      <div class="li-arrow">›</div>
-    </div>
-    <div class="list-item" onclick="showScreen('screen-calendar')">
-      <div class="li-icon blue">📅</div>
-      <div class="li-info"><div class="li-title">Календарь</div><div class="li-sub">История тренировок</div></div>
-      <div class="li-arrow">›</div>
-    </div>
-    <div class="list-item" onclick="showScreen('screen-records')">
-      <div class="li-icon red">🏆</div>
-      <div class="li-info"><div class="li-title">Рекорды</div><div class="li-sub">Личные достижения</div></div>
-      <div class="li-arrow">›</div>
-    </div>
-    <div class="list-item" onclick="showScreen('screen-gallery')">
-      <div class="li-icon mint">📸</div>
-      <div class="li-info"><div class="li-title">Галерея</div><div class="li-sub">Фото до / после</div></div>
-      <div class="li-arrow">›</div>
-    </div>
+    <div class="list-item" onclick="showScreen('screen-food')"><div class="li-icon orange">🍎</div><div class="li-info"><div class="li-title">Питание</div><div class="li-sub">Календарь, БЖУ, продукты</div></div><div class="li-arrow">›</div></div>
+    <div class="list-item" onclick="showScreen('screen-recipes')"><div class="li-icon mint">🍱</div><div class="li-info"><div class="li-title">Рецепты</div><div class="li-sub">Свои блюда из продуктов</div></div><div class="li-arrow">›</div></div>
+    <div class="list-item" onclick="showScreen('screen-templates')"><div class="li-icon purple">📋</div><div class="li-info"><div class="li-title">Шаблоны</div><div class="li-sub">Пуш, Пулл, Ноги</div></div><div class="li-arrow">›</div></div>
+    <div class="list-item" onclick="showScreen('screen-calendar')"><div class="li-icon blue">📅</div><div class="li-info"><div class="li-title">Календарь</div><div class="li-sub">История тренировок</div></div><div class="li-arrow">›</div></div>
+    <div class="list-item" onclick="showScreen('screen-records')"><div class="li-icon red">🏆</div><div class="li-info"><div class="li-title">Рекорды</div><div class="li-sub">Личные достижения</div></div><div class="li-arrow">›</div></div>
+    <div class="list-item" onclick="showScreen('screen-gallery')"><div class="li-icon mint">📸</div><div class="li-info"><div class="li-title">Галерея</div><div class="li-sub">Фото до / после</div></div><div class="li-arrow">›</div></div>
   </div>
 
-  <!-- ========== ВОДА ========== -->
+  <!-- ВОДА -->
   <div id="screen-water" class="screen">
-    <div class="screen-header">
-      <div class="sh-left"><h1>Вода 💧</h1></div>
-      <button class="icon-btn back-btn-inline" onclick="showScreen('screen-home')">✕</button>
-    </div>
+    <div class="screen-header"><div class="sh-left"><h1>Вода 💧</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="water-tracker">
-      <div class="wt-header">
-        <div class="wt-title">Выпито сегодня</div>
-        <div class="wt-count" id="waterCount">0 <span class="unit">/ 8</span></div>
-      </div>
+      <div class="wt-header"><div class="wt-title">Выпито сегодня</div><div class="wt-count" id="waterCount">0 <span class="unit">/ 8</span></div></div>
       <div class="water-glasses" id="waterGlasses"></div>
       <div class="water-controls">
         <button class="btn btn-secondary" onclick="changeWater(-1)" style="margin-top:0;">− Убрать</button>
@@ -1460,25 +767,16 @@
       </div>
     </div>
     <div class="stats-grid">
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Сегодня</div><div class="sb-icon blue">💧</div></div>
-        <div class="sb-value" id="waterToday">0<span class="unit">ст</span></div>
-      </div>
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Среднее 7д</div><div class="sb-icon mint">📊</div></div>
-        <div class="sb-value" id="waterAvg">0<span class="unit">ст</span></div>
-      </div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Сегодня</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="waterToday">0<span class="unit">ст</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Сред. 7д</div><div class="sb-icon mint">📊</div></div><div class="sb-value" id="waterAvg">0<span class="unit">ст</span></div></div>
     </div>
     <div class="section-title">История</div>
     <div id="waterHistory"></div>
   </div>
 
-  <!-- ========== ПИТАНИЕ ========== -->
+  <!-- ПИТАНИЕ -->
   <div id="screen-food" class="screen">
-    <div class="screen-header">
-      <div class="sh-left"><h1>Дневник</h1></div>
-      <button class="icon-btn" onclick="showScreen('screen-home')">✕</button>
-    </div>
+    <div class="screen-header"><div class="sh-left"><h1>Дневник</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <button class="btn btn-dark" onclick="showScreen('screen-nutrition-chart')" style="margin-top:0;margin-bottom:8px;padding:14px;font-size:12px;">📊 График калорий</button>
     <button class="btn btn-secondary" onclick="showScreen('screen-bju-report')" style="margin-top:0;margin-bottom:8px;padding:14px;font-size:12px;">📋 Отчёт БЖУ</button>
     <button class="btn btn-secondary" onclick="copyYesterday()" style="margin-top:0;margin-bottom:16px;padding:14px;font-size:12px;">📋 Скопировать вчера</button>
@@ -1492,14 +790,8 @@
       <button class="date-nav-btn" id="nextDayBtn" onclick="shiftDate(1)">›</button>
     </div>
     <div class="stats-grid">
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Съедено</div><div class="sb-icon orange">🍎</div></div>
-        <div class="sb-value" id="totalCalories">0<span class="unit">ккал</span></div>
-      </div>
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Норма</div><div class="sb-icon mint">🎯</div></div>
-        <div class="sb-value" id="targetCalories">—<span class="unit">ккал</span></div>
-      </div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Съедено</div><div class="sb-icon orange">🍎</div></div><div class="sb-value" id="totalCalories">0<span class="unit">ккал</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Норма</div><div class="sb-icon mint">🎯</div></div><div class="sb-value" id="targetCalories">—<span class="unit">ккал</span></div></div>
     </div>
     <div class="macro-row">
       <div class="macro-mini cal"><div class="mm-value" id="ringCalVal">0%</div><div class="mm-label">Ккал</div><div class="mm-bar"><div class="mm-bar-fill" id="ringCal" style="width:0%"></div></div></div>
@@ -1512,7 +804,7 @@
     <button class="btn" onclick="showScreen('screen-food-add')">+ Добавить приём</button>
   </div>
 
-  <!-- ========== ОТЧЁТ БЖУ ========== -->
+  <!-- ОТЧЁТ БЖУ -->
   <div id="screen-bju-report" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Отчёт</h1></div><button class="icon-btn" onclick="showScreen('screen-food')">✕</button></div>
     <div class="chart-period-tabs">
@@ -1523,7 +815,7 @@
     <div id="bjuReportContent"></div>
   </div>
 
-  <!-- ========== ГРАФИК ПИТАНИЯ ========== -->
+  <!-- ГРАФИК ПИТАНИЯ -->
   <div id="screen-nutrition-chart" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>График</h1></div><button class="icon-btn" onclick="showScreen('screen-food')">✕</button></div>
     <div class="chart-period-tabs">
@@ -1532,9 +824,10 @@
       <div class="chart-period-tab" onclick="setChartPeriod(30,this)">30 дней</div>
     </div>
     <div id="nutritionChartContainer"></div>
+    <div id="nutritionAverage"></div>
   </div>
 
-  <!-- ========== ДОБАВЛЕНИЕ ЕДЫ ========== -->
+  <!-- ДОБАВЛЕНИЕ ЕДЫ -->
   <div id="screen-food-add" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Новый<br>приём</h1></div><button class="icon-btn" onclick="showScreen('screen-food')">✕</button></div>
     <button class="btn btn-secondary" onclick="openProductPicker()" style="margin-top:0;margin-bottom:8px;padding:14px;font-size:12px;">🥗 Из базы продуктов</button>
@@ -1554,10 +847,10 @@
     </div>
   </div>
 
-  <!-- ========== БАЗА ПРОДУКТОВ ========== -->
+  <!-- БАЗА ПРОДУКТОВ -->
   <div id="screen-products" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Продукты</h1></div><button class="icon-btn" onclick="closeProductsBack()">✕</button></div>
-    <input id="prodSearch" class="input-group" style="padding:16px 18px; font-size:15px; font-weight:700; background:#fff; border:none; border-radius:16px; box-shadow:0 2px 8px rgba(15,19,20,.04); width:100%; outline:none; margin-bottom:14px;" placeholder="🔍 Поиск..." oninput="renderProducts()">
+    <input id="prodSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--card-bg); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-primary);" placeholder="🔍 Поиск..." oninput="renderProducts()">
     <div id="prodTabs" class="chips"></div>
     <div id="prodList"></div>
     <button class="btn btn-dark" onclick="showScreen('screen-product-custom')" style="margin-top:16px;">+ Свой продукт</button>
@@ -1596,7 +889,7 @@
     </div>
   </div>
 
-  <!-- ========== РЕЦЕПТЫ ========== -->
+  <!-- РЕЦЕПТЫ -->
   <div id="screen-recipes" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Рецепты</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div id="recipesList"></div>
@@ -1620,7 +913,7 @@
     <div id="recipePickerList"></div>
   </div>
 
-  <!-- ========== КАЛЕНДАРЬ ========== -->
+  <!-- КАЛЕНДАРЬ -->
   <div id="screen-calendar" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Календарь</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="streak-card">
@@ -1641,7 +934,7 @@
     <div id="calendarWorkouts"></div>
   </div>
 
-  <!-- ========== ПРОГРЕСС ========== -->
+  <!-- ПРОГРЕСС -->
   <div id="screen-progress" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Прогресс</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="section-title">Поднятый вес</div>
@@ -1652,14 +945,8 @@
       <div class="volume-period"><div class="vp-label">Год</div><div class="vp-value" id="volYear">0<span class="unit">кг</span></div></div>
     </div>
     <div class="stats-grid">
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Всего</div><div class="sb-icon mint">💪</div></div>
-        <div class="sb-value" id="volAll">0<span class="unit">кг</span></div>
-      </div>
-      <div class="stat-big">
-        <div class="sb-top"><div class="sb-label">Подходов</div><div class="sb-icon purple">📊</div></div>
-        <div class="sb-value" id="pgTotalApproaches">0</div>
-      </div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Всего</div><div class="sb-icon mint">💪</div></div><div class="sb-value" id="volAll">0<span class="unit">кг</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Подходов</div><div class="sb-icon purple">📊</div></div><div class="sb-value" id="pgTotalApproaches">0</div></div>
     </div>
     <div class="section-title">Сравнение недель</div>
     <div id="weekCompareContent"></div>
@@ -1671,7 +958,7 @@
       <div class="sc-value" id="stepsValue">0</div>
       <div class="sc-goal">Цель: 10 000 шагов · <span id="stepsPercent">0%</span></div>
       <div class="input-row-2" style="margin-top:14px;">
-        <input id="stepsInput" type="number" placeholder="Введи шаги" style="padding:14px; background:var(--gray-1); border:none; border-radius:14px; font-size:15px; font-weight:700; font-family:inherit; outline:none;">
+        <input id="stepsInput" type="number" placeholder="Введи шаги" style="padding:14px; background:var(--bg-main); border:none; border-radius:14px; font-size:15px; font-weight:700; font-family:inherit; outline:none; color:var(--text-primary);">
         <button class="btn" onclick="saveSteps()" style="margin-top:0; padding:14px; font-size:12px;">Сохранить</button>
       </div>
     </div>
@@ -1679,29 +966,21 @@
     <div id="progressExercises"></div>
   </div>
 
-  <!-- ========== РЕКОРДЫ ========== -->
+  <!-- РЕКОРДЫ -->
   <div id="screen-records" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Рекорды</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div id="recordsList"></div>
   </div>
 
-  <!-- ========== НАСТРОЙКИ ========== -->
+  <!-- НАСТРОЙКИ -->
   <div id="screen-settings" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Настройки</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="section-title">Тема</div>
     <div class="theme-grid">
-      <div class="theme-card active" id="themeCard-dark" onclick="setTheme('dark')">
-        <div class="theme-preview dark"></div><div class="t-name">Neon Dark</div>
-      </div>
-      <div class="theme-card" id="themeCard-light" onclick="setTheme('light')">
-        <div class="theme-preview light"></div><div class="t-name">Light</div>
-      </div>
-      <div class="theme-card" id="themeCard-blue" onclick="setTheme('blue')">
-        <div class="theme-preview blue"></div><div class="t-name">Blue</div>
-      </div>
-      <div class="theme-card" id="themeCard-orange" onclick="setTheme('orange')">
-        <div class="theme-preview orange"></div><div class="t-name">Sunset</div>
-      </div>
+      <div class="theme-card" id="themeCard-light" onclick="setTheme('light')"><div class="theme-preview light"></div><div class="t-name">Light</div></div>
+      <div class="theme-card" id="themeCard-dark" onclick="setTheme('dark')"><div class="theme-preview dark"></div><div class="t-name">Neon Dark</div></div>
+      <div class="theme-card" id="themeCard-blue" onclick="setTheme('blue')"><div class="theme-preview blue"></div><div class="t-name">Blue</div></div>
+      <div class="theme-card" id="themeCard-orange" onclick="setTheme('orange')"><div class="theme-preview orange"></div><div class="t-name">Sunset</div></div>
     </div>
     <div class="section-title">Таймер отдыха</div>
     <div class="card">
@@ -1720,14 +999,12 @@
   <div id="screen-import" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Импорт</h1></div><button class="icon-btn" onclick="showScreen('screen-settings')">✕</button></div>
     <div class="card">
-      <div class="input-group"><label>Вставь JSON</label>
-        <textarea id="importText" rows="8" placeholder='{"profile":...}'></textarea>
-      </div>
+      <div class="input-group"><label>Вставь JSON</label><textarea id="importText" rows="8" placeholder='{"profile":...}'></textarea></div>
       <button class="btn" onclick="importData()" style="margin-top:8px;">Загрузить</button>
     </div>
   </div>
 
-  <!-- ========== ТРЕНИРОВКИ ========== -->
+  <!-- ТРЕНИРОВКИ -->
   <div id="screen-workouts" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Тренировки</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="section-title">Упражнения</div>
@@ -1752,7 +1029,7 @@
 
   <div id="screen-library" class="screen">
     <div class="screen-header"><div class="sh-left"><h1 id="libraryTitle">Библиотека</h1></div><button class="icon-btn" onclick="closeLibrary()">✕</button></div>
-    <input id="libSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:#fff; border:none; border-radius:16px; box-shadow:0 2px 8px rgba(15,19,20,.04); width:100%; outline:none; margin-bottom:14px;" placeholder="🔍 Поиск..." oninput="renderLibrary()">
+    <input id="libSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--card-bg); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-primary);" placeholder="🔍 Поиск..." oninput="renderLibrary()">
     <div id="libTabs" class="chips"></div>
     <div id="libList"></div>
   </div>
@@ -1768,7 +1045,7 @@
 
   <div id="screen-add-approach" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Новый<br>подход</h1></div><button class="icon-btn" onclick="showScreen('screen-history')">✕</button></div>
-    <p class="subtitle" id="approachExName" style="font-size:13px; color:var(--text-gray); font-weight:700; margin-bottom:14px;"></p>
+    <p id="approachExName" style="font-size:13px; color:var(--text-secondary); font-weight:700; margin-bottom:14px;"></p>
     <div class="card">
       <div class="input-group"><label>Дата</label><input id="apDate" type="date"></div>
       <div class="input-row-2">
@@ -1781,7 +1058,7 @@
     </div>
   </div>
 
-  <!-- ========== ШАБЛОНЫ ========== -->
+  <!-- ШАБЛОНЫ -->
   <div id="screen-templates" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Шаблоны</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div id="templatesList"></div>
@@ -1826,7 +1103,7 @@
     </div>
   </div>
 
-  <!-- ========== ГАЛЕРЕЯ ========== -->
+  <!-- ГАЛЕРЕЯ -->
   <div id="screen-gallery" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Галерея</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <button class="btn btn-dark" onclick="showScreen('screen-add-photo')" style="margin-top:0;margin-bottom:18px;">📸 Добавить фото</button>
@@ -1860,7 +1137,7 @@
     <div id="compareStats"></div>
   </div>
 
-  <!-- ========== ПРОФИЛЬ ========== -->
+  <!-- ПРОФИЛЬ -->
   <div id="screen-profile" class="screen">
     <div class="screen-header"><div class="sh-left"><h1>Профиль</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
     <div class="profile-hero">
@@ -1880,16 +1157,16 @@
     </div>
     <div id="goalProgress"></div>
     <div class="card">
-      <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--gray-1);">
-        <span style="color:var(--text-gray); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Пол</span>
+      <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text-secondary); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Пол</span>
         <span style="font-weight:900; font-size:15px;" id="profGender">—</span>
       </div>
-      <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--gray-1);">
-        <span style="color:var(--text-gray); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Цель</span>
+      <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+        <span style="color:var(--text-secondary); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Цель</span>
         <span style="font-weight:900; font-size:15px;" id="profGoal">—</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:12px 0;">
-        <span style="color:var(--text-gray); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Целевой вес</span>
+        <span style="color:var(--text-secondary); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px;">Целевой вес</span>
         <span style="font-weight:900; font-size:15px;" id="profTargetWeight">—</span>
       </div>
     </div>
@@ -1919,16 +1196,57 @@
 
 </div>
 
-<!-- ========== BOTTOM NAV ========== -->
+<!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottomNav" style="display:none;">
   <button class="nav-btn" data-screen="screen-home" onclick="navTo('screen-home')">🏠</button>
   <button class="nav-btn" data-screen="screen-food" onclick="navTo('screen-food')">📓</button>
-  <button class="nav-btn center" onclick="quickAdd()">+</button>
+  <button class="nav-btn center" onclick="openQuickMenu()">+</button>
   <button class="nav-btn" data-screen="screen-workouts" onclick="navTo('screen-workouts')">🏋️</button>
   <button class="nav-btn" data-screen="screen-profile" onclick="navTo('screen-profile')">👤</button>
 </div>
 
-<!-- ========== ТАЙМЕР ========== -->
+<!-- QUICK ADD MODAL -->
+<div class="quick-modal-overlay" id="quickModal" onclick="if(event.target===this)closeQuickMenu()">
+  <div class="quick-modal">
+    <div class="qm-handle"></div>
+    <div class="qm-title">Что добавить?</div>
+    <button class="qm-option" onclick="quickAdd('food')">
+      <div class="qm-icon orange">🍎</div>
+      <div class="qm-text">
+        <div class="qm-opt-title">Приём пищи</div>
+        <div class="qm-opt-sub">Записать еду и БЖУ</div>
+      </div>
+      <div class="li-arrow">›</div>
+    </button>
+    <button class="qm-option" onclick="quickAdd('workout')">
+      <div class="qm-icon mint">💪</div>
+      <div class="qm-text">
+        <div class="qm-opt-title">Упражнение</div>
+        <div class="qm-opt-sub">Записать подход</div>
+      </div>
+      <div class="li-arrow">›</div>
+    </button>
+    <button class="qm-option" onclick="quickAdd('water')">
+      <div class="qm-icon blue">💧</div>
+      <div class="qm-text">
+        <div class="qm-opt-title">Стакан воды</div>
+        <div class="qm-opt-sub">+1 к дневному счётчику</div>
+      </div>
+      <div class="li-arrow">›</div>
+    </button>
+    <button class="qm-option" onclick="quickAdd('weight')">
+      <div class="qm-icon purple">⚖️</div>
+      <div class="qm-text">
+        <div class="qm-opt-title">Вес тела</div>
+        <div class="qm-opt-sub">Обновить вес в профиле</div>
+      </div>
+      <div class="li-arrow">›</div>
+    </button>
+    <button class="btn btn-secondary" onclick="closeQuickMenu()" style="margin-top:12px;">Отмена</button>
+  </div>
+</div>
+
+<!-- TIMER -->
 <div class="timer-overlay" id="timerOverlay">
   <div class="timer-content">
     <div class="t-title">Отдых</div>
@@ -1971,7 +1289,7 @@ const EXERCISE_LIBRARY=[
   {name:'Скручивания',group:'Пресс'},{name:'Планка',group:'Пресс'},{name:'Подъём ног в висе',group:'Пресс'},{name:'Скручивания на блоке',group:'Пресс'},{name:'Велосипед',group:'Пресс'},{name:'Русский твист',group:'Пресс'},
   {name:'Бег на дорожке',group:'Кардио'},{name:'Ходьба в горку',group:'Кардио'},{name:'Велотренажёр',group:'Кардио'},{name:'Эллиптический тренажёр',group:'Кардио'},{name:'Гребной тренажёр',group:'Кардио'},{name:'Скакалка',group:'Кардио'}
 ];
-const EX_GROUPS_META=[{name:'Все',icon:'🏋️'},{name:'Грудь',icon:'🫁'},{name:'Спина',icon:'🔙'},{name:'Ноги',icon:'🦵'},{name:'Плечи',icon:'💪'},{name:'Руки',icon:'💪'},{name:'Пресс',icon:'🔥'},{name:'Кардио',icon:'🏃'}];
+const EX_GROUPS_META=[{name:'Все',icon:'🏋️'},{name:'Грудь',icon:'🫁'},{name:'Спина',icon:'🔙'},{name:'Ноги',icon:'🦵'},{name:'Плечи',icon:'💪'},{name:'Руки',icon:'🦾'},{name:'Пресс',icon:'🔥'},{name:'Кардио',icon:'🏃'}];
 let selectedExGroup='Все';
 
 const FOOD_LIBRARY=[
@@ -2033,9 +1351,7 @@ function calcDailyTarget(){
 }
 
 function init(){
-  if(user){
-    document.getElementById('avatar').textContent=(user.first_name?.[0]||'?').toUpperCase();
-  }
+  if(user)document.getElementById('avatar').textContent=(user.first_name?.[0]||'?').toUpperCase();
   const settings=loadSettings();
   currentTheme=settings.theme||'light';
   applyTheme(currentTheme);
@@ -2057,17 +1373,14 @@ function showScreen(id){
   const el=document.getElementById(id);
   if(el)el.classList.add('active');
   window.scrollTo(0,0);
-  // bottom nav visibility
   const nav=document.getElementById('bottomNav');
-  if(id==='screen-onboarding'){nav.style.display='none';}
-  else{nav.style.display='flex';}
-  // update active nav
+  if(id==='screen-onboarding')nav.style.display='none';
+  else nav.style.display='flex';
   document.querySelectorAll('.bottom-nav .nav-btn').forEach(b=>b.classList.remove('active'));
   if(screenToNav[id]!==undefined){
     const btns=document.querySelectorAll('.bottom-nav .nav-btn');
     if(btns[screenToNav[id]])btns[screenToNav[id]].classList.add('active');
   }
-  // render
   if(id==='screen-workouts')renderExercises();
   if(id==='screen-history')renderHistory();
   if(id==='screen-home')renderHome();
@@ -2094,22 +1407,36 @@ function showScreen(id){
     if(ex)document.getElementById('approachExName').textContent=ex.name;
   }
 }
-
 function navTo(id){showScreen(id)}
-function quickAdd(){
-  // Quick menu — открываем добавление приёма пищи
-  const menu=confirm('Что добавить?\nOK — приём пищи\nОтмена — тренировка');
-  if(menu)showScreen('screen-food-add');
-  else showScreen('screen-add');
+
+function openQuickMenu(){document.getElementById('quickModal').classList.add('active')}
+function closeQuickMenu(){document.getElementById('quickModal').classList.remove('active')}
+function quickAdd(type){
+  closeQuickMenu();
+  if(type==='food')showScreen('screen-food-add');
+  else if(type==='workout')showScreen('screen-add');
+  else if(type==='water'){changeWater(1);showScreen('screen-water')}
+  else if(type==='weight'){
+    const p=loadProfile();
+    if(!p){alert('Сначала заполни профиль');return}
+    const v=prompt('Текущий вес (кг):',p.weight);
+    if(!v)return;
+    const w=parseFloat(v);
+    if(!w||w<20)return alert('Некорректный вес');
+    p.weight=w;saveProfileData(p);
+    alert('Вес обновлён: '+w+' кг');
+    showScreen('screen-profile');
+  }
 }
 
 function applyTheme(theme){
-  document.body.classList.remove('theme-dark');
+  document.body.classList.remove('theme-light','theme-dark','theme-blue','theme-orange');
   if(theme==='dark')document.body.classList.add('theme-dark');
+  else if(theme==='blue')document.body.classList.add('theme-blue');
+  else if(theme==='orange')document.body.classList.add('theme-orange');
 }
 function setTheme(theme){
-  currentTheme=theme;
-  applyTheme(theme);
+  currentTheme=theme;applyTheme(theme);
   const s=loadSettings();s.theme=theme;saveSettings(s);
   renderSettings();
 }
@@ -2123,13 +1450,9 @@ function saveSetting(key,value){const s=loadSettings();s[key]=value;saveSettings
 
 function renderHome(){
   const p=loadProfile();
-  if(p){
-    document.getElementById('statWeight').innerHTML=p.weight+'<span class="unit">кг</span>';
-    document.getElementById('statWeightGoal').textContent=p.targetWeight?'Цель: '+p.targetWeight+' кг':'Цель не задана';
-  }
+  if(p){document.getElementById('statWeight').innerHTML=p.weight+'<span class="unit">кг</span>';document.getElementById('statWeightGoal').textContent=p.targetWeight?'Цель: '+p.targetWeight+' кг':'Цель не задана';}
   document.getElementById('statStreak').textContent=calcStreak();
-  const water=loadWater();
-  const w=water[todayISO()]||0;
+  const water=loadWater();const w=water[todayISO()]||0;
   document.getElementById('statWater').innerHTML=w+'<span class="unit">/8</span>';
   const steps=loadSteps();
   document.getElementById('statSteps').textContent=(steps[todayISO()]||0).toLocaleString('ru-RU');
@@ -2138,7 +1461,6 @@ function renderHome(){
   document.getElementById('statWorkouts').textContent=total;
   renderNotifications();
 }
-
 function renderNotifications(){
   const area=document.getElementById('notifArea');
   const today=todayISO();
@@ -2147,8 +1469,10 @@ function renderNotifications(){
   if(meals.length===0)notifications.push({icon:'🍎',text:'Ты ещё не записал приёмы пищи',target:'screen-food'});
   const water=loadWater()[today]||0;
   if(water<8)notifications.push({icon:'💧',text:`Выпито ${water} из 8 стаканов воды`,target:'screen-water'});
+  const steps=loadSteps()[today]||0;
+  if(steps===0)notifications.push({icon:'👟',text:'Не указал шаги за сегодня',target:'screen-progress'});
   if(notifications.length===0){area.innerHTML='';return}
-  area.innerHTML=notifications.slice(0,2).map(n=>`<div class="notif-banner" onclick="showScreen('${n.target}')"><div class="nb-icon">${n.icon}</div><div class="nb-text">${n.text}</div></div>`).join('');
+  area.innerHTML=notifications.slice(0,3).map(n=>`<div class="notif-banner" onclick="showScreen('${n.target}')"><div class="nb-icon">${n.icon}</div><div class="nb-text">${n.text}</div></div>`).join('');
 }
 
 function saveProfile(){
@@ -2166,7 +1490,6 @@ function saveProfile(){
   document.getElementById('bottomNav').style.display='flex';
   showScreen('screen-home');renderHome();
 }
-
 function saveProfileEdit(){
   const p=loadProfile();if(!p)return;
   const gender=document.getElementById('editGender').value;
@@ -2180,7 +1503,6 @@ function saveProfileEdit(){
   alert('Профиль обновлён! ✅');
   showScreen('screen-profile');
 }
-
 function renderProfile(){
   const p=loadProfile();if(!p)return;
   document.getElementById('profWeight').textContent=p.weight;
@@ -2207,8 +1529,9 @@ function renderProfile(){
   if(p.targetWeight){
     const start=p.weight;const target=p.targetWeight;
     const diff=target-start;
-    const pct=Math.min(100,Math.abs(diff)/Math.abs(diff)*30+30);
-    goalDiv.innerHTML=`<div class="goal-card"><div class="gc-head"><div><div class="gc-label">Цель по весу</div><div style="font-size:13px;font-weight:700;margin-top:4px;opacity:.9;">${start} кг → ${target} кг</div></div><div class="gc-target">${target}</div></div><div class="gc-bar"><div class="gc-fill" style="width:${pct}%"></div></div><div class="gc-info"><span>Прогресс: ${pct.toFixed(0)}%</span><span>Разница: ${Math.abs(diff).toFixed(1)} кг</span></div></div>`;
+    const pct=Math.min(100,Math.max(10,Math.abs(diff)/Math.abs(diff)*Math.min(100,Math.abs(p.weight-target)/Math.abs(start-target||1)*100)||15));
+    const actualPct=Math.min(100,Math.abs(0)/Math.abs(diff)*100+30);
+    goalDiv.innerHTML=`<div class="goal-card"><div class="gc-head"><div><div class="gc-label">Цель по весу</div><div style="font-size:13px;font-weight:700;margin-top:4px;opacity:.9;">${start} кг → ${target} кг</div></div><div class="gc-target">${target}</div></div><div class="gc-bar"><div class="gc-fill" style="width:${actualPct}%"></div></div><div class="gc-info"><span>Разница: ${Math.abs(diff).toFixed(1)} кг</span><span>Осталось: ${Math.abs(diff).toFixed(1)} кг</span></div></div>`;
   }else goalDiv.innerHTML='';
   document.getElementById('editGender').value=p.gender;
   document.getElementById('editAge').value=p.age;
@@ -2219,12 +1542,9 @@ function renderProfile(){
 }
 
 function renderWater(){
-  const water=loadWater();
-  const today=todayISO();
-  const count=water[today]||0;
+  const water=loadWater();const today=todayISO();const count=water[today]||0;
   document.getElementById('waterCount').innerHTML=count+' <span class="unit">/ 8</span>';
-  const glasses=document.getElementById('waterGlasses');
-  let html='';
+  const glasses=document.getElementById('waterGlasses');let html='';
   for(let i=0;i<8;i++){html+=`<div class="water-glass ${i<count?'filled':''}">${i<count?'💧':'○'}</div>`}
   glasses.innerHTML=html;
   document.getElementById('waterToday').innerHTML=count+'<span class="unit">ст</span>';
@@ -2240,7 +1560,6 @@ function changeWater(delta){const water=loadWater();const today=todayISO();let c
 
 function shiftDate(delta){const d=new Date(currentFoodDate);d.setDate(d.getDate()+delta);currentFoodDate=d.toISOString().slice(0,10);renderFood()}
 function goToday(){currentFoodDate=todayISO();renderFood()}
-
 function renderFood(){
   const f=formatDate(currentFoodDate);
   document.getElementById('foodDow').textContent=f.day;
@@ -2265,14 +1584,8 @@ function renderFood(){
   list.innerHTML=[...meals].sort((a,b)=>b.id-a.id).map(m=>`
     <div class="list-item">
       <div class="li-icon ${typeColors[m.type]||'mint'}">${typeIcons[m.type]||'🍽'}</div>
-      <div class="li-info">
-        <div class="li-title">${m.name}</div>
-        <div class="li-sub">Б ${m.protein.toFixed(1)} · Ж ${m.fats.toFixed(1)} · У ${m.carbs.toFixed(1)}</div>
-      </div>
-      <div style="text-align:right; flex-shrink:0;">
-        <div style="font-weight:900; font-size:16px; color:var(--mint);">${Math.round(m.calories)}</div>
-        <div style="font-size:10px; color:var(--text-gray); font-weight:700;">ккал</div>
-      </div>
+      <div class="li-info"><div class="li-title">${m.name}</div><div class="li-sub">Б ${m.protein.toFixed(1)} · Ж ${m.fats.toFixed(1)} · У ${m.carbs.toFixed(1)}</div></div>
+      <div style="text-align:right; flex-shrink:0;"><div style="font-weight:900; font-size:16px; color:var(--accent);">${Math.round(m.calories)}</div><div style="font-size:10px; color:var(--text-secondary); font-weight:700;">ккал</div></div>
       <button class="li-delete" onclick="deleteMeal(${m.id})">🗑</button>
     </div>`).join('');
 }
@@ -2283,7 +1596,6 @@ function updateMacro(barId,valId,value,target){
   val.textContent=Math.round((value/(target||1))*100)+'%';
   if(value===0)val.textContent='0%';
 }
-
 function copyYesterday(){
   const yest=new Date(currentFoodDate);yest.setDate(yest.getDate()-1);
   const yIso=yest.toISOString().slice(0,10);
@@ -2316,9 +1628,15 @@ function deleteMeal(id){if(!confirm('Удалить?'))return;saveMeals(loadMeal
 
 function setBjuPeriod(days,el){currentBjuPeriod=days;document.querySelectorAll('#screen-bju-report .chart-period-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderBjuReport()}
 function renderBjuReport(){
-  const meals=loadMeals();
+  const meals=loadMeals();const target=calcDailyTarget();
   const days=[];
-  for(let i=currentBjuPeriod-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);const dm=meals.filter(m=>m.date===iso);const types={breakfast:{c:0,p:0,f:0,k:0},lunch:{c:0,p:0,f:0,k:0},dinner:{c:0,p:0,f:0,k:0},snack:{c:0,p:0,f:0,k:0}};dm.forEach(m=>{const t=types[m.type]||types.snack;t.c+=m.calories||0;t.p+=m.protein||0;t.f+=m.fats||0;t.k+=m.carbs||0});days.push({iso,types,total:Object.values(types).reduce((a,t)=>({c:a.c+t.c,p:a.p+t.p,f:a.f+t.f,k:a.k+t.k}),{c:0,p:0,f:0,k:0})})}
+  for(let i=currentBjuPeriod-1;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);
+    const dm=meals.filter(m=>m.date===iso);
+    const types={breakfast:{c:0,p:0,f:0,k:0},lunch:{c:0,p:0,f:0,k:0},dinner:{c:0,p:0,f:0,k:0},snack:{c:0,p:0,f:0,k:0}};
+    dm.forEach(m=>{const t=types[m.type]||types.snack;t.c+=m.calories||0;t.p+=m.protein||0;t.f+=m.fats||0;t.k+=m.carbs||0});
+    days.push({iso,types,total:Object.values(types).reduce((a,t)=>({c:a.c+t.c,p:a.p+t.p,f:a.f+t.f,k:a.k+t.k}),{c:0,p:0,f:0,k:0})});
+  }
   const nonEmpty=days.filter(d=>d.total.c>0);
   const avg=nonEmpty.length?{c:nonEmpty.reduce((s,d)=>s+d.total.c,0)/nonEmpty.length,p:nonEmpty.reduce((s,d)=>s+d.total.p,0)/nonEmpty.length,f:nonEmpty.reduce((s,d)=>s+d.total.f,0)/nonEmpty.length,k:nonEmpty.reduce((s,d)=>s+d.total.k,0)/nonEmpty.length}:{c:0,p:0,f:0,k:0};
   const typeNames={breakfast:'🌅 Завтрак',lunch:'☀️ Обед',dinner:'🌙 Ужин',snack:'🍿 Перекус'};
@@ -2329,17 +1647,34 @@ function renderBjuReport(){
     <div class="stat-big"><div class="sb-top"><div class="sb-label">Белки</div><div class="sb-icon orange">🥩</div></div><div class="sb-value">${Math.round(avg.p)}<span class="unit">г</span></div></div>
     <div class="stat-big"><div class="sb-top"><div class="sb-label">Жиры</div><div class="sb-icon purple">🥑</div></div><div class="sb-value">${Math.round(avg.f)}<span class="unit">г</span></div></div>
     <div class="stat-big"><div class="sb-top"><div class="sb-label">Углеводы</div><div class="sb-icon blue">🍞</div></div><div class="sb-value">${Math.round(avg.k)}<span class="unit">г</span></div></div>
-  </div>
-  <div class="section-title">По приёмам</div>`;
+  </div>`;
+  // % от нормы
+  if(target){
+    const pctCal=Math.round((avg.c/target.calories)*100);
+    const pctPro=Math.round((avg.p/target.protein)*100);
+    const pctFat=Math.round((avg.f/target.fats)*100);
+    const pctCar=Math.round((avg.k/target.carbs)*100);
+    const color=(p)=>{if(p>=90&&p<=110)return 'var(--accent)';if(p>110)return 'var(--red)';return 'var(--orange)';};
+    html+=`<div class="section-title">% от нормы</div>
+      <div class="card" style="padding:20px 16px;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center;">
+          <div><div style="font-size:22px;font-weight:900;color:${color(pctCal)};">${pctCal}%</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:4px;">Ккал</div></div>
+          <div><div style="font-size:22px;font-weight:900;color:${color(pctPro)};">${pctPro}%</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:4px;">Белки</div></div>
+          <div><div style="font-size:22px;font-weight:900;color:${color(pctFat)};">${pctFat}%</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:4px;">Жиры</div></div>
+          <div><div style="font-size:22px;font-weight:900;color:${color(pctCar)};">${pctCar}%</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:4px;">Углев</div></div>
+        </div>
+      </div>`;
+  }
+  html+=`<div class="section-title">По приёмам</div>`;
   Object.keys(typeNames).forEach(k=>{
     const c=nonEmpty.length||1;
     const t={c:nonEmpty.reduce((s,d)=>s+d.types[k].c,0)/c,p:nonEmpty.reduce((s,d)=>s+d.types[k].p,0)/c,f:nonEmpty.reduce((s,d)=>s+d.types[k].f,0)/c,k:nonEmpty.reduce((s,d)=>s+d.types[k].k,0)/c};
     html+=`<div class="card"><div style="font-weight:900;font-size:13px;text-transform:uppercase;margin-bottom:12px;">${typeNames[k]}</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center;">
-        <div><div style="font-size:16px;font-weight:900;color:var(--mint);">${Math.round(t.c)}</div><div style="font-size:9px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">ккал</div></div>
-        <div><div style="font-size:16px;font-weight:900;color:var(--orange);">${t.p.toFixed(1)}</div><div style="font-size:9px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">белки</div></div>
-        <div><div style="font-size:16px;font-weight:900;color:var(--purple);">${t.f.toFixed(1)}</div><div style="font-size:9px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">жиры</div></div>
-        <div><div style="font-size:16px;font-weight:900;color:var(--blue);">${t.k.toFixed(1)}</div><div style="font-size:9px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">углев</div></div>
+        <div><div style="font-size:16px;font-weight:900;color:var(--accent);">${Math.round(t.c)}</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">ккал</div></div>
+        <div><div style="font-size:16px;font-weight:900;color:var(--orange);">${t.p.toFixed(1)}</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">белки</div></div>
+        <div><div style="font-size:16px;font-weight:900;color:var(--purple);">${t.f.toFixed(1)}</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">жиры</div></div>
+        <div><div style="font-size:16px;font-weight:900;color:var(--blue);">${t.k.toFixed(1)}</div><div style="font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-top:3px;">углев</div></div>
       </div></div>`;
   });
   content.innerHTML=html;
@@ -2348,8 +1683,22 @@ function renderBjuReport(){
 function setChartPeriod(days,el){currentChartPeriod=days;document.querySelectorAll('#screen-nutrition-chart .chart-period-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderNutritionChart()}
 function renderNutritionChart(){
   const container=document.getElementById('nutritionChartContainer');
+  const avgDiv=document.getElementById('nutritionAverage');
   const days=[];const target=calcDailyTarget();const meals=loadMeals();
-  for(let i=currentChartPeriod-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);const dm=meals.filter(m=>m.date===iso);const sum={cal:0};dm.forEach(m=>{sum.cal+=m.calories||0});days.push({date:iso,dayShort:DAYS_SHORT[d.getDay()],dayNum:d.getDate(),cal:sum.cal})}
+  for(let i=currentChartPeriod-1;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);
+    const dm=meals.filter(m=>m.date===iso);
+    const sum={cal:0,pro:0,fat:0,car:0};
+    dm.forEach(m=>{sum.cal+=m.calories||0;sum.pro+=m.protein||0;sum.fat+=m.fats||0;sum.car+=m.carbs||0});
+    days.push({date:iso,dayShort:DAYS_SHORT[d.getDay()],dayNum:d.getDate(),...sum});
+  }
+  const nonEmpty=days.filter(d=>d.cal>0);
+  const avg={
+    cal:nonEmpty.length?Math.round(nonEmpty.reduce((s,d)=>s+d.cal,0)/nonEmpty.length):0,
+    pro:nonEmpty.length?Math.round(nonEmpty.reduce((s,d)=>s+d.pro,0)/nonEmpty.length):0,
+    fat:nonEmpty.length?Math.round(nonEmpty.reduce((s,d)=>s+d.fat,0)/nonEmpty.length):0,
+    car:nonEmpty.length?Math.round(nonEmpty.reduce((s,d)=>s+d.car,0)/nonEmpty.length):0
+  };
   const maxVal=Math.max(...days.map(d=>d.cal),target?.calories||0)*1.1||100;
   const W=480,H=220,padL=42,padR=16,padT=20,padB=40;
   const chartW=W-padL-padR,chartH=H-padT-padB;
@@ -2369,6 +1718,23 @@ function renderNutritionChart(){
   let grid='';
   for(let i=0;i<=4;i++){const y=padT+(i/4)*chartH;const val=maxVal-(i/4)*maxVal;grid+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#f4f6f7" stroke-width="1"/>`;grid+=`<text x="${padL-6}" y="${y+3}" font-size="10" fill="#7a8085" text-anchor="end" font-weight="800">${Math.round(val)}</text>`;}
   container.innerHTML=`<div class="chart-card"><svg class="chart-svg" viewBox="0 0 ${W} ${H}">${grid}${targetLine}${bars}${labels}</svg></div>`;
+  // Карточка "Сегодня vs Норма" + средние
+  const today=days[days.length-1];
+  const diff=today.cal-(target?.calories||0);
+  const sign=diff>0?'+':'';
+  const colorDiff=Math.abs(diff)<(target?.calories||1)*.1?'var(--accent)':diff>0?'var(--red)':'var(--orange)';
+  avgDiv.innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Сегодня</div><div class="sb-icon mint">📅</div></div><div class="sb-value">${Math.round(today.cal)}<span class="unit">ккал</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Отклонение</div><div class="sb-icon orange">📊</div></div><div class="sb-value" style="color:${colorDiff};">${sign}${Math.round(diff)}<span class="unit">ккал</span></div></div>
+    </div>
+    <div class="section-title">Средние за период</div>
+    <div class="stats-grid">
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Калории</div><div class="sb-icon mint">🔥</div></div><div class="sb-value">${avg.cal}<span class="unit">ккал</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Белки</div><div class="sb-icon orange">🥩</div></div><div class="sb-value">${avg.pro}<span class="unit">г</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Жиры</div><div class="sb-icon purple">🥑</div></div><div class="sb-value">${avg.fat}<span class="unit">г</span></div></div>
+      <div class="stat-big"><div class="sb-top"><div class="sb-label">Углеводы</div><div class="sb-icon blue">🍞</div></div><div class="sb-value">${avg.car}<span class="unit">г</span></div></div>
+    </div>`;
 }
 
 function renderProducts(){
@@ -2386,14 +1752,11 @@ function renderProducts(){
 function selectProdGroup(g){selectedProdGroup=g;renderProducts()}
 function openProductPicker(){selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products')}
 function closeProductsBack(){if(recipePickerTarget==='recipe'){recipePickerTarget=null;showScreen('screen-recipe-create')}else showScreen('screen-food-add')}
-
 function openPortion(name){
   const p=allProducts().find(x=>x.name===name);if(!p)return;
   portionProductData=p;
-  document.getElementById('portionProductInfo').innerHTML=`<div class="card"><div style="font-weight:900;font-size:17px;">${p.name}</div><div style="font-size:12px;color:var(--text-gray);margin-top:4px;font-weight:700;">На 100 г: ${p.cal} ккал · Б ${p.p} · Ж ${p.f} · У ${p.c}</div></div>`;
-  document.getElementById('portionWeight').value=100;
-  updatePortionPreview();
-  showScreen('screen-portion');
+  document.getElementById('portionProductInfo').innerHTML=`<div class="card"><div style="font-weight:900;font-size:17px;">${p.name}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px;font-weight:700;">На 100 г: ${p.cal} ккал · Б ${p.p} · Ж ${p.f} · У ${p.c}</div></div>`;
+  document.getElementById('portionWeight').value=100;updatePortionPreview();showScreen('screen-portion');
 }
 function updatePortionPreview(){if(!portionProductData)return;const w=parseFloat(document.getElementById('portionWeight').value)||0;const k=w/100;document.getElementById('pvCal').textContent=Math.round(portionProductData.cal*k);document.getElementById('pvPro').textContent=(portionProductData.p*k).toFixed(1);document.getElementById('pvFat').textContent=(portionProductData.f*k).toFixed(1);document.getElementById('pvCar').textContent=(portionProductData.c*k).toFixed(1)}
 function applyPortion(){
@@ -2429,8 +1792,7 @@ function saveCustomProduct(){
 }
 
 function renderRecipes(){
-  const recipes=loadRecipes();
-  const list=document.getElementById('recipesList');
+  const recipes=loadRecipes();const list=document.getElementById('recipesList');
   if(recipes.length===0){list.innerHTML=`<div class="empty"><span class="emoji">🍱</span><div class="text">Пока нет рецептов</div></div>`;return}
   list.innerHTML=recipes.map(r=>{const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal}),{cal:0});return`<div class="template-card"><div class="template-header"><div class="template-icon">🍱</div><div class="t-info"><div class="t-name">${r.name}</div><div class="t-count">${r.ingredients.length} ингредиентов · ${total.cal} ккал</div></div></div><div class="template-exercises">${r.ingredients.slice(0,3).map(i=>`<div class="template-ex-tag">${i.name} ${i.weight}г</div>`).join('')}${r.ingredients.length>3?`<div class="template-ex-tag">+${r.ingredients.length-3}</div>`:''}</div><div class="template-actions"><button class="t-action-btn start" onclick="pickRecipe(${r.id})">🍽 Добавить</button><button class="t-action-btn delete" onclick="deleteRecipe(${r.id})">🗑</button></div></div>`}).join('');
 }
@@ -2447,14 +1809,14 @@ function pickRecipe(id){const r=loadRecipes().find(x=>x.id===id);if(!r)return;co
 
 function renderLibrary(){
   const tabsDiv=document.getElementById('libTabs');
-  tabsDiv.innerHTML=EX_GROUPS_META.map(g=>{const cnt=g.name==='Все'?EXERCISE_LIBRARY.length:EXERCISE_LIBRARY.filter(x=>x.group===g.name).length;return`<div class="chip ${g.name===selectedExGroup?'active':''}" onclick="selectExGroup('${g.name}')">${g.icon} ${g.name}<span class="chip-count">${cnt}</span></div>`}).join('');
+  tabsDiv.innerHTML=EX_GROUPS_META.map(g=>{const cnt=g.name==='Все'?EXERCISE_LIBRARY.length:EXERCISE_LIBRARY.filter(x=>x.group===g.name).length;return`<div class="chip ${g.name===selectedExGroup?'active':''}" onclick="selectExGroup('${g.name}')"><span>${g.icon}</span><span>${g.name}</span><span class="chip-count">${cnt}</span></div>`}).join('');
   const search=(document.getElementById('libSearch').value||'').toLowerCase();
   let items=EXERCISE_LIBRARY;
   if(selectedExGroup!=='Все')items=items.filter(e=>e.group===selectedExGroup);
   if(search)items=items.filter(e=>e.name.toLowerCase().includes(search));
   const listDiv=document.getElementById('libList');
   if(items.length===0){listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено</div></div>';return}
-  listDiv.innerHTML=items.map(e=>`<div class="product-item" onclick="pickExercise('${e.name.replace(/'/g,"\\'")}')"><div class="p-info"><div class="p-name">${e.name}</div><div class="p-macros" style="color:var(--mint);font-weight:900;text-transform:uppercase;letter-spacing:1.2px;">${e.group}</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>`).join('');
+  listDiv.innerHTML=items.map(e=>`<div class="product-item" onclick="pickExercise('${e.name.replace(/'/g,"\\'")}')"><div class="p-info"><div class="p-name">${e.name}</div><div class="p-macros" style="color:var(--accent);font-weight:900;text-transform:uppercase;letter-spacing:1.2px;">${e.group}</div></div><div style="color:var(--accent);font-size:26px;font-weight:300;">+</div></div>`).join('');
 }
 function selectExGroup(g){selectedExGroup=g;renderLibrary()}
 function openLibrary(){libraryMode='exercise';document.getElementById('libraryTitle').textContent='Библиотека';selectedExGroup='Все';document.getElementById('libSearch').value='';showScreen('screen-library')}
@@ -2463,8 +1825,7 @@ function closeLibrary(){if(libraryMode==='template')showScreen('screen-template-
 function pickExercise(name){if(libraryMode==='template'){templateDraft.exercises.push(name);showScreen('screen-template-create')}else{document.getElementById('exName').value=name;showScreen('screen-add')}}
 
 function renderTemplates(){
-  const templates=loadTemplates();
-  const list=document.getElementById('templatesList');
+  const templates=loadTemplates();const list=document.getElementById('templatesList');
   if(templates.length===0){list.innerHTML=`<div class="empty"><span class="emoji">📋</span><div class="text">Пока нет шаблонов</div></div>`;return}
   list.innerHTML=templates.map(t=>`<div class="template-card"><div class="template-header"><div class="template-icon">${t.icon}</div><div class="t-info"><div class="t-name">${t.name}</div><div class="t-count">${t.exercises.length} упражнений</div></div></div><div class="template-exercises">${t.exercises.slice(0,3).map(e=>`<div class="template-ex-tag">${e}</div>`).join('')}${t.exercises.length>3?`<div class="template-ex-tag">+${t.exercises.length-3}</div>`:''}</div><div class="template-actions"><button class="t-action-btn start" onclick="startSession(${t.id})">▶ Старт</button><button class="t-action-btn" onclick="editTemplate(${t.id})">✏️</button><button class="t-action-btn delete" onclick="deleteTemplate(${t.id})">🗑</button></div></div>`).join('');
 }
@@ -2500,7 +1861,7 @@ function renderCalendar(){
   const monthExercises=exercises.filter(ex=>ex.history.some(h=>h.date.startsWith(monthPrefix)));
   const listDiv=document.getElementById('calendarWorkouts');
   if(monthExercises.length===0){listDiv.innerHTML=`<div class="empty" style="padding:24px;font-size:13px;"><div class="text">В этом месяце не было тренировок</div></div>`;return}
-  listDiv.innerHTML=monthExercises.map(ex=>{const monthHistory=ex.history.filter(h=>h.date.startsWith(monthPrefix));const totalVol=monthHistory.reduce((s,h)=>s+h.weight*h.reps,0);return`<div class="history-item"><div class="history-values">${ex.name}</div><div style="font-size:11px;color:var(--text-gray);text-align:right;font-weight:700;">${monthHistory.length} подх · ${Math.round(totalVol)}кг</div></div>`}).join('');
+  listDiv.innerHTML=monthExercises.map(ex=>{const monthHistory=ex.history.filter(h=>h.date.startsWith(monthPrefix));const totalVol=monthHistory.reduce((s,h)=>s+h.weight*h.reps,0);return`<div class="history-item"><div class="history-values">${ex.name}</div><div style="font-size:11px;color:var(--text-secondary);text-align:right;font-weight:700;">${monthHistory.length} подх · ${Math.round(totalVol)}кг</div></div>`}).join('');
 }
 function shiftCalendarMonth(delta){calendarDate.setMonth(calendarDate.getMonth()+delta);renderCalendar()}
 function calcStreak(){const exercises=loadExercises();const workoutDays=new Set();exercises.forEach(ex=>ex.history.forEach(h=>workoutDays.add(h.date)));let streak=0;const today=new Date();for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);if(workoutDays.has(iso))streak++;else if(i>0)break}return streak}
@@ -2526,7 +1887,6 @@ function renderProgress(){
   renderProgressExercises(exercises);
 }
 function saveSteps(){const val=parseInt(document.getElementById('stepsInput').value);if(!val||val<0)return alert('Введите число');const steps=loadSteps();steps[todayISO()]=val;saveStepsData(steps);document.getElementById('stepsInput').value='';renderProgress();renderHome()}
-
 function renderWeekCompare(exercises,weekAgo,now){
   const thisWeekStart=new Date(now);thisWeekStart.setDate(thisWeekStart.getDate()-6);
   const lastWeekStart=new Date(now);lastWeekStart.setDate(lastWeekStart.getDate()-13);
@@ -2534,11 +1894,8 @@ function renderWeekCompare(exercises,weekAgo,now){
   const inRange=(dateStr,start,end)=>{const d=new Date(dateStr);return d>=start&&d<=end};
   let tw={vol:0,app:0},lw={vol:0,app:0};
   exercises.forEach(ex=>ex.history.forEach(h=>{const vol=h.weight*h.reps;if(inRange(h.date,thisWeekStart,now)){tw.vol+=vol;tw.app++}if(inRange(h.date,lastWeekStart,lastWeekEnd)){lw.vol+=vol;lw.app++}}));
-  const volDelta=lw.vol?((tw.vol-lw.vol)/lw.vol*100):0;
-  const appDelta=lw.app?((tw.app-lw.app)/lw.app*100):0;
   document.getElementById('weekCompareContent').innerHTML=`<div class="compare-week"><div class="cw-side"><div class="cw-label">Прошлая</div><div class="cw-value">${Math.round(lw.vol).toLocaleString('ru-RU')}</div><div class="cw-sub">${lw.app} подх.</div></div><div class="cw-arrow">→</div><div class="cw-side"><div class="cw-label">Эта</div><div class="cw-value">${Math.round(tw.vol).toLocaleString('ru-RU')}</div><div class="cw-sub">${tw.app} подх.</div></div></div>`;
 }
-
 function renderMuscleVolume(exercises){
   const groups={'Грудь':0,'Спина':0,'Ноги':0,'Плечи':0,'Руки':0,'Пресс':0,'Кардио':0,'Другое':0};
   exercises.forEach(ex=>{const lib=EXERCISE_LIBRARY.find(e=>e.name.toLowerCase()===ex.name.toLowerCase());const grp=lib?lib.group:'Другое';ex.history.forEach(h=>{groups[grp]+=h.weight*h.reps})});
@@ -2548,21 +1905,17 @@ function renderMuscleVolume(exercises){
   const sorted=Object.entries(groups).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   document.getElementById('muscleVolumeContent').innerHTML=sorted.map(([name,val])=>{const pct=(val/total*100);const c=colors[name]||'#888';return`<div class="muscle-bar"><div class="mb-label">${name}</div><div class="mb-track"><div class="mb-fill" style="width:${pct}%;background:linear-gradient(90deg,${c},${c}cc)"></div><div class="mb-value">${Math.round(val).toLocaleString('ru-RU')}кг · ${pct.toFixed(0)}%</div></div></div>`}).join('');
 }
-
 function renderProgressExercises(exercises){
   const list=document.getElementById('progressExercises');
   if(exercises.length===0){list.innerHTML=`<div class="empty"><span class="emoji">📊</span><div class="text">Нет данных</div></div>`;return}
-  list.innerHTML=exercises.map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const first=sorted[0],last=sorted[sorted.length-1];const diff=last.weight-first.weight;const sign=diff>0?'+':'';const color=diff>0?'var(--mint)':diff<0?'var(--red)':'var(--orange)';return`<div class="exercise-item" onclick="openHistory(${ex.id})"><div class="info"><div class="name">${ex.name}</div><div class="meta">${last.weight}кг × ${last.reps} · <span style="color:${color};font-weight:900;">${sign}${diff.toFixed(1)} кг</span></div></div><div class="li-arrow">›</div></div>`}).join('');
+  list.innerHTML=exercises.map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const first=sorted[0],last=sorted[sorted.length-1];const diff=last.weight-first.weight;const sign=diff>0?'+':'';const color=diff>0?'var(--accent)':diff<0?'var(--red)':'var(--orange)';return`<div class="exercise-item" onclick="openHistory(${ex.id})"><div class="info"><div class="name">${ex.name}</div><div class="meta">${last.weight}кг × ${last.reps} · <span style="color:${color};font-weight:900;">${sign}${diff.toFixed(1)} кг</span></div></div><div class="li-arrow">›</div></div>`}).join('');
 }
-
 function renderRecords(){
-  const exercises=loadExercises();
-  const list=document.getElementById('recordsList');
+  const exercises=loadExercises();const list=document.getElementById('recordsList');
   if(exercises.length===0){list.innerHTML=`<div class="empty"><span class="emoji">🏆</span><div class="text">Нет рекордов</div></div>`;return}
   const records=exercises.map(ex=>{const maxW=Math.max(...ex.history.map(h=>h.weight));const maxReps=Math.max(...ex.history.map(h=>h.reps));let best1RM=0;ex.history.forEach(h=>{const orm=h.weight*(1+h.reps/30);if(orm>best1RM)best1RM=orm});return{name:ex.name,maxW,maxReps,best1RM:Math.round(best1RM)}}).sort((a,b)=>b.best1RM-a.best1RM);
   list.innerHTML=records.map(r=>`<div class="record-item"><div><div class="rc-name">${r.name}</div><div class="rc-label">макс: ${r.maxW}кг × ${r.maxReps}</div></div><div style="text-align:right;"><div class="rc-value">~${r.best1RM}<span class="unit">кг</span></div><div class="rc-label">1RM</div></div></div>`).join('');
 }
-
 function buildChart(history){
   if(history.length<2)return'';
   const W=460,H=180,padL=40,padR=20,padT=18,padB=28;
@@ -2575,16 +1928,15 @@ function buildChart(history){
   let pathD=`M ${points[0].x} ${points[0].y}`;
   for(let i=0;i<points.length-1;i++){const p0=points[i===0?0:i-1],p1=points[i],p2=points[i+1],p3=points[i+2]||p2;pathD+=` C ${p1.x+(p2.x-p0.x)/6} ${p1.y+(p2.y-p0.y)/6}, ${p2.x-(p3.x-p1.x)/6} ${p2.y-(p3.y-p1.y)/6}, ${p2.x} ${p2.y}`}
   let gridLines='';
-  for(let i=0;i<=3;i++){const y=padT+(i/3)*chartH;const val=yMax-(i/3)*(yMax-yMin);gridLines+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#f4f6f7" stroke-width="1"/>`;gridLines+=`<text x="${padL-6}" y="${y+4}" font-size="9" fill="#7a8085" text-anchor="end" font-weight="800">${val.toFixed(0)}</text>`}
+  for(let i=0;i<=3;i++){const y=padT+(i/3)*chartH;const val=yMax-(i/3)*(yMax-yMin);gridLines+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(122,128,133,.15)" stroke-width="1"/>`;gridLines+=`<text x="${padL-6}" y="${y+4}" font-size="9" fill="#7a8085" text-anchor="end" font-weight="800">${val.toFixed(0)}</text>`}
   let dateLabels='';const stepL=Math.max(1,Math.ceil(points.length/4));
   points.forEach((p,i)=>{if(i%stepL===0||i===points.length-1){const d=new Date(p.date);dateLabels+=`<text x="${p.x}" y="${H-8}" font-size="9" fill="#7a8085" text-anchor="middle" font-weight="800">${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}</text>`}});
-  const dots=points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#fff" stroke="#00d9a3" stroke-width="2.5"/>`).join('');
-  return`<div class="chart-card" style="padding:14px 8px 12px;"><svg class="chart-svg" viewBox="0 0 ${W} ${H}">${gridLines}<path d="${pathD}" fill="none" stroke="#00d9a3" stroke-width="2.5" stroke-linecap="round"/>${dots}${dateLabels}</svg></div>`;
+  const dots=points.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="2.5"/>`).join('');
+  return`<div class="chart-card" style="padding:14px 8px 12px;"><svg class="chart-svg" viewBox="0 0 ${W} ${H}">${gridLines}<path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>${dots}${dateLabels}</svg></div>`;
 }
 
 function renderExercises(){
-  const list=document.getElementById('exercisesList');
-  const data=loadExercises();
+  const list=document.getElementById('exercisesList');const data=loadExercises();
   if(data.length===0){list.innerHTML=`<div class="empty"><span class="emoji">🏋️</span><div class="text">Нет упражнений<br>Добавь первое!</div></div>`;return}
   list.innerHTML=data.map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const last=sorted[sorted.length-1],first=sorted[0];let badge='';if(sorted.length>1){const diff=last.weight-first.weight;if(diff>0)badge=`<span class="badge badge-up">▲ +${diff}</span>`;else if(diff<0)badge=`<span class="badge badge-down">▼ ${diff}</span>`;else badge=`<span class="badge badge-same">= 0</span>`}return`<div class="exercise-item ${sorted.length>1?'has-progress':''}" onclick="openHistory(${ex.id})"><div class="info"><div class="name">${ex.name}</div><div class="meta">${last.weight}кг × ${last.reps}${badge}</div></div><button class="li-delete" onclick="deleteExercise(${ex.id});event.stopPropagation();">🗑</button></div>`}).join('');
 }
@@ -2660,9 +2012,9 @@ function compressImage(file,maxSize=800,quality=0.7){return new Promise((resolve
 function onPhotoSelected(event){const file=event.target.files[0];if(!file)return;compressImage(file).then(dataUrl=>{pendingPhotoData=dataUrl;const preview=document.getElementById('photoPreview');preview.src=dataUrl;preview.style.display='block';document.getElementById('fileDrop').classList.add('has-file');document.getElementById('fileDropText').textContent='Нажми, чтобы заменить'}).catch(()=>alert('Ошибка'))}
 function savePhoto(){if(!pendingPhotoData)return alert('Выберите фото');const date=document.getElementById('photoDate').value||todayISO();const weight=parseFloat(document.getElementById('photoWeight').value)||null;const note=document.getElementById('photoNote').value.trim();const photos=loadPhotos();photos.push({id:Date.now(),date,weight,note,data:pendingPhotoData});savePhotos(photos);pendingPhotoData=null;document.getElementById('photoPreview').style.display='none';document.getElementById('fileDrop').classList.remove('has-file');document.getElementById('fileDropText').textContent='Нажми для выбора';document.getElementById('photoWeight').value='';document.getElementById('photoNote').value='';showScreen('screen-gallery')}
 function renderGallery(){const photos=loadPhotos().sort((a,b)=>new Date(b.date)-new Date(a.date));const container=document.getElementById('galleryContent');if(photos.length===0){container.innerHTML=`<div class="empty"><span class="emoji">📸</span><div class="text">Пока нет фото</div></div>`;return}let html='';if(photos.length>=2)html+=`<button class="btn btn-secondary" onclick="openCompare()" style="margin-bottom:16px;padding:14px;font-size:12px;">🔄 Сравнить до/после</button>`;html+='<div class="gallery-grid">';photos.forEach(p=>{const f=formatDate(p.date);html+=`<div class="photo-card" onclick="openPhotoView(${p.id})"><div class="photo-wrap"><img src="${p.data}"></div><div class="photo-date"><span class="d">${f.short}</span>${p.weight?`<span class="w">${p.weight}кг</span>`:''}</div></div>`});html+='</div>';container.innerHTML=html}
-function openPhotoView(id){const photo=loadPhotos().find(p=>p.id===id);if(!photo)return;selectedPhotoId=id;const f=formatDate(photo.date);document.getElementById('photoViewContent').innerHTML=`<div class="photo-viewer"><img src="${photo.data}"><div class="pv-info"><div><div class="pv-date">${f.short}</div><div style="font-size:11px;color:var(--text-gray);">${f.day}</div></div>${photo.weight?`<div class="pv-weight">${photo.weight} кг</div>`:''}</div>${photo.note?`<div style="padding:12px 4px 0;text-align:left;color:var(--text-gray);font-size:13px;">📝 ${photo.note}</div>`:''}</div><button class="btn btn-danger" onclick="deletePhoto(${id})">🗑 Удалить</button>`;showScreen('screen-photo-view')}
+function openPhotoView(id){const photo=loadPhotos().find(p=>p.id===id);if(!photo)return;selectedPhotoId=id;const f=formatDate(photo.date);document.getElementById('photoViewContent').innerHTML=`<div class="photo-viewer"><img src="${photo.data}"><div class="pv-info"><div><div class="pv-date">${f.short}</div><div style="font-size:11px;color:var(--text-secondary);">${f.day}</div></div>${photo.weight?`<div class="pv-weight">${photo.weight} кг</div>`:''}</div>${photo.note?`<div style="padding:12px 4px 0;text-align:left;color:var(--text-secondary);font-size:13px;">📝 ${photo.note}</div>`:''}</div><button class="btn btn-danger" onclick="deletePhoto(${id})">🗑 Удалить</button>`;showScreen('screen-photo-view')}
 function deletePhoto(id){if(!confirm('Удалить?'))return;savePhotos(loadPhotos().filter(p=>p.id!==id));showScreen('screen-gallery')}
-function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-new Date(b.date));if(photos.length<2)return;const first=photos[0],last=photos[photos.length-1];const f1=formatDate(first.date),f2=formatDate(last.date);document.getElementById('compareContent').innerHTML=`<div class="compare-container"><div class="compare-item before"><img src="${first.data}"><div class="ci-label">ДО · ${f1.short}</div></div><div class="compare-item after"><img src="${last.data}"><div class="ci-label">ПОСЛЕ · ${f2.short}</div></div></div>`;let statsHtml='';if(first.weight&&last.weight){const diff=last.weight-first.weight;const sign=diff>0?'+':'';const days=Math.round((new Date(last.date)-new Date(first.date))/86400000);statsHtml=`<div class="progress-hero ${diff<0?'up':diff>0?'down':'same'}"><div class="progress-label">Изменение веса</div><div class="progress-value">${sign}${diff.toFixed(1)} кг</div><div class="progress-sub">за ${days} дн.</div></div>`}else statsHtml=`<div style="text-align:center;color:var(--text-gray);font-size:13px;padding:20px;">Укажи вес в фото</div>`;document.getElementById('compareStats').innerHTML=statsHtml;showScreen('screen-compare')}
+function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-new Date(b.date));if(photos.length<2)return;const first=photos[0],last=photos[photos.length-1];const f1=formatDate(first.date),f2=formatDate(last.date);document.getElementById('compareContent').innerHTML=`<div class="compare-container"><div class="compare-item before"><img src="${first.data}"><div class="ci-label">ДО · ${f1.short}</div></div><div class="compare-item after"><img src="${last.data}"><div class="ci-label">ПОСЛЕ · ${f2.short}</div></div></div>`;let statsHtml='';if(first.weight&&last.weight){const diff=last.weight-first.weight;const sign=diff>0?'+':'';const days=Math.round((new Date(last.date)-new Date(first.date))/86400000);statsHtml=`<div class="progress-hero ${diff<0?'up':diff>0?'down':'same'}"><div class="progress-label">Изменение веса</div><div class="progress-value">${sign}${diff.toFixed(1)} кг</div><div class="progress-sub">за ${days} дн.</div></div>`}else statsHtml=`<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:20px;">Укажи вес в фото</div>`;document.getElementById('compareStats').innerHTML=statsHtml;showScreen('screen-compare')}
 
 function exportData(){const data={};[PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY].forEach(k=>{data[k]=localStorage.getItem(k)});const json=JSON.stringify(data);const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='fit-expert-backup.json';a.click();URL.revokeObjectURL(url);alert('Файл сохранён')}
 function importData(){const txt=document.getElementById('importText').value.trim();if(!txt)return alert('Вставь JSON');try{const data=JSON.parse(txt);Object.keys(data).forEach(k=>{if(data[k])localStorage.setItem(k,data[k])});alert('Загружено! Обновление...');setTimeout(()=>location.reload(),800)}catch(e){alert('Ошибка: '+e.message)}}
