@@ -1096,6 +1096,61 @@ function onProductSearchInput(){
     renderProducts();
 }
   
+async function searchExternalProducts(query){
+    if(!query||query.length<2)return;
+    const listDiv=document.getElementById('prodList');
+    listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в базе магазинов...</div></div>';
+    try{
+        const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
+        const data=await res.json();
+        const products=(data.products||[]).filter(p=>p.product_name&&p.nutriments&&p.nutriments['energy-kcal_100g']);
+        if(products.length===0){
+            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название.</div></div>';
+            return;
+        }
+        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
+        +products.map(p=>{
+            const n=p.nutriments;
+            const cal=Math.round(n['energy-kcal_100g']||0);
+            const prot=parseFloat((n.proteins_100g||0).toFixed(1));
+            const fat=parseFloat((n.fat_100g||0).toFixed(1));
+            const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
+            const brand=p.brands?p.brands.split(',')[0]:'';
+            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
+                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
+                +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
+                +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
+        }).join('');
+    }catch(e){
+        listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
+    }
+}
+
+function addExternalProduct(name,cal,prot,fat,carb,brand){
+    const products=loadCustomProducts();
+    const fullName=brand?name+' ('+brand+')':name;
+    if(products.find(x=>x.name.toLowerCase()===fullName.toLowerCase())){
+        alert('Продукт уже есть в базе');
+        return;
+    }
+    products.push({name:fullName,cat:'Прочее',cal:cal,p:prot,f:fat,c:carb});
+    saveCustomProducts(products);
+    alert('✅ Добавлено: '+fullName+'\nТеперь можно выбрать из базы.');
+    renderProducts();
+}
+
+function onProductSearchInput(){
+    const q=document.getElementById('prodSearch').value.trim();
+    if(q.length>=3){
+        const localCount=allProducts().filter(p=>p.name.toLowerCase().includes(q.toLowerCase())).length;
+        if(localCount<3){
+            searchExternalProducts(q);
+            return;
+        }
+    }
+    renderProducts();
+}
 function allProducts(){return[...FOOD_LIBRARY,...loadCustomProducts()]}
 function todayISO(){const d=new Date();const tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10)}
 
