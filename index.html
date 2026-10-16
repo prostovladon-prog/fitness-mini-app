@@ -1047,15 +1047,24 @@ async function searchExternalProducts(query){
     try{
         const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
         const data=await res.json();
-        const products=(data.products||[]).filter(p=>p.product_name&&p.nutriments&&p.nutriments['energy-kcal_100g']);
+        // Более умный фильтр: принимаем продукт, если есть название И хоть какие-то данные о калориях
+        const products=(data.products||[]).filter(p=>{
+            if(!p.product_name||!p.nutriments)return false;
+            const n=p.nutriments;
+            // Есть калории в ккал, ИЛИ в кДж, ИЛИ есть хотя бы БЖУ
+            return n['energy-kcal_100g']||n['energy_100g']||n['proteins_100g']||n['carbohydrates_100g']||n['fat_100g'];
+        });
         if(products.length===0){
-            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название.</div></div>';
+            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">В магазинах ничего не найдено.<br>Попробуй другое название или добавь свой продукт.</div></div>';
             return;
         }
         listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
         +products.map(p=>{
             const n=p.nutriments;
-            const cal=Math.round(n['energy-kcal_100g']||0);
+            // Калории: берём ккал если есть, иначе переводим из кДж
+            let cal=0;
+            if(n['energy-kcal_100g'])cal=Math.round(n['energy-kcal_100g']);
+            else if(n['energy_100g'])cal=Math.round(n['energy_100g']/4.184);
             const prot=parseFloat((n.proteins_100g||0).toFixed(1));
             const fat=parseFloat((n.fat_100g||0).toFixed(1));
             const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
