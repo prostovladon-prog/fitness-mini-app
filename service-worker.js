@@ -1,4 +1,4 @@
-const CACHE = 'atom-v1';
+const CACHE = 'atom-v5';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {
