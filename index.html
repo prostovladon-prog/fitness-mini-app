@@ -1040,18 +1040,48 @@ function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)
 function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}
 function loadSteps(){try{return JSON.parse(localStorage.getItem(STEPS_KEY))||{}}catch{return{}}}
 function saveStepsData(d){localStorage.setItem(STEPS_KEY,JSON.stringify(d))}
-async function searchExternalProducts(query){
-    if(!query||query.length<2)return;
+async function searchExternalProducts(query, hasLocalResults){
     const listDiv=document.getElementById('prodList');
-    listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в базе магазинов...</div></div>';
+    if(!hasLocalResults){
+        listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в магазинах...</div></div>';
+    }
     try{
         const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
         const data=await res.json();
-        const products=(data.products||[]).filter(p=>p.product_name&&p.nutriments&&p.nutriments['energy-kcal_100g']);
+        const products=(data.products||[]).filter(p=>{
+            if(!p.product_name||!p.nutriments)return false;
+            const n=p.nutriments;
+            return n['energy-kcal_100g']||n['energy_100g']||n['proteins_100g']||n['carbohydrates_100g']||n['fat_100g'];
+        });
         if(products.length===0){
-            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название.</div></div>';
+            if(!hasLocalResults){
+                listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название или добавь свой продукт.</div></div>';
+            }
             return;
         }
+        // Показываем внешние результаты
+        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
+        +products.map(p=>{
+            const n=p.nutriments;
+            let cal=0;
+            if(n['energy-kcal_100g'])cal=Math.round(n['energy-kcal_100g']);
+            else if(n['energy_100g'])cal=Math.round(n['energy_100g']/4.184);
+            const prot=parseFloat((n.proteins_100g||0).toFixed(1));
+            const fat=parseFloat((n.fat_100g||0).toFixed(1));
+            const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
+            const brand=p.brands?p.brands.split(',')[0]:'';
+            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
+                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
+                +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
+                +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
+        }).join('');
+    }catch(e){
+        if(!hasLocalResults){
+            listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
+        }
+    }
+}
         listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
         +products.map(p=>{
             const n=p.nutriments;
@@ -1084,16 +1114,110 @@ function addExternalProduct(name,cal,prot,fat,carb,brand){
     renderProducts();
 }
 
-function onProductSearchInput(){
-    const q=document.getElementById('prodSearch').value.trim();
-    if(q.length>=3){
-        const localCount=allProducts().filter(p=>p.name.toLowerCase().includes(q.toLowerCase())).length;
-        if(localCount<3){
-            searchExternalProducts(q);
-            return;
+// ===== УМНЫЙ ПОИСК =====
+function levenshtein(a, b) {
+    a = a.toLowerCase(); b = b.toLowerCase();
+    if (a === b) return 0;
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            const cost = a[j-1] === b[i-1] ? 0 : 1;
+            matrix[i][j] = Math.min(
+                matrix[i-1][j] + 1,
+                matrix[i][j-1] + 1,
+                matrix[i-1][j-1] + cost
+            );
         }
     }
-    renderProducts();
+    return matrix[b.length][a.length];
+}
+
+function smartLocalSearch(query) {
+    const q = query.toLowerCase();
+    const all = allProducts();
+    const scored = [];
+    all.forEach(p => {
+        const name = p.name.toLowerCase();
+        let score = 0;
+        // Точное вхождение — самый высокий приоритет
+        if (name.includes(q)) {
+            score = 100 - Math.abs(name.length - q.length);
+        } else {
+            // Fuzzy: ищем по каждому слову в названии
+            const words = name.split(/[\s,()]+/);
+            let bestWordScore = 0;
+            words.forEach(w => {
+                if (!w) return;
+                if (w.startsWith(q)) {
+                    bestWordScore = Math.max(bestWordScore, 80 - Math.abs(w.length - q.length));
+                } else if (q.length >= 3) {
+                    const dist = levenshtein(w, q);
+                    const maxDist = q.length <= 4 ? 1 : 2;
+                    if (dist <= maxDist) {
+                        bestWordScore = Math.max(bestWordScore, 60 - dist * 15);
+                    }
+                }
+            });
+            score = bestWordScore;
+        }
+        if (score > 0) scored.push({ p, score });
+    });
+    return scored.sort((a, b) => b.score - a.score).map(x => x.p);
+}
+
+let _searchTimer = null;
+let _lastExternalQuery = '';
+
+function onProductSearchInput() {
+    const q = document.getElementById('prodSearch').value.trim();
+    
+    // 1. Мгновенный локальный fuzzy-поиск
+    if (q.length === 0) {
+        renderProducts();
+        return;
+    }
+    
+    const localResults = smartLocalSearch(q);
+    
+    // Показываем локальные результаты сразу
+    if (localResults.length > 0) {
+        renderLocalResults(localResults, q);
+    } else if (q.length < 2) {
+        renderProducts();
+        return;
+    } else {
+        // Локально ничего — показываем «ищем...»
+        document.getElementById('prodList').innerHTML =
+            '<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в базе магазинов...</div></div>';
+    }
+    
+    // 2. Внешний поиск с debounce (200мс)
+    if (_searchTimer) clearTimeout(_searchTimer);
+    if (q.length < 3) return;
+    if (q === _lastExternalQuery) return;
+    
+    _searchTimer = setTimeout(() => {
+        _lastExternalQuery = q;
+        searchExternalProducts(q, localResults.length > 0);
+    }, 200);
+}
+
+function renderLocalResults(products, query) {
+    const listDiv = document.getElementById('prodList');
+    const customNames = new Set(loadCustomProducts().map(p => p.name));
+    listDiv.innerHTML =
+        '<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в базе (' + products.length + ')</div>'
+        + products.slice(0, 30).map(e => {
+            const isCustom = customNames.has(e.name);
+            return '<div class="product-item' + (isCustom ? ' custom' : '') + '" onclick="openPortion(\'' + e.name.replace(/'/g, "\\'") + '\')">'
+                + '<div class="p-info"><div class="p-name">' + e.name + (isCustom ? '<span class="custom-badge">СВОЙ</span>' : '') + '</div>'
+                + '<div class="p-macros">Б <span class="b">' + e.p + '</span> · Ж <span class="f">' + e.f + '</span> · У <span class="c">' + e.c + '</span></div></div>'
+                + '<div class="p-cal"><div class="val">' + e.cal + '</div><div class="lbl">ккал</div></div></div>';
+        }).join('');
 }
   
 function allProducts(){return[...FOOD_LIBRARY,...loadCustomProducts()]}
