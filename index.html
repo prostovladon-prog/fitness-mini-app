@@ -49,15 +49,16 @@
     --shadow-mint: 0 8px 24px rgba(255,140,26,.35);
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body { height:100%; }
+  html { height:100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     background: var(--gray-1); color: var(--text-dark); min-height:100vh;
-    padding-bottom: calc(140px + var(--safe-bottom));
+    height:auto;
+    padding-bottom: calc(180px + var(--safe-bottom));
     padding-left: var(--safe-left); padding-right: var(--safe-right); padding-top: var(--safe-top);
     transition: background .3s, color .3s; overscroll-behavior: none;
   }
-  .container { max-width:520px; margin:0 auto; padding:20px 16px 20px; }
+  .container { max-width:520px; margin:0 auto; padding:20px 16px 60px; }
   .screen { display:none; animation:fadeIn .3s ease; }
   .screen.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
