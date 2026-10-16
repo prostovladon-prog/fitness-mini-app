@@ -642,11 +642,14 @@
 <!-- ПРОДУКТЫ -->
 <div id="screen-products" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Продукты</h1></div><button class="icon-btn" onclick="closeProductsBack()">✕</button></div>
-  <input id="prodSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--white); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-dark);" placeholder="🔍 Поиск в базе и магазинах..." oninput="onProductSearchInput()">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+  <input id="prodSearch" style="flex:1;padding:16px 18px;font-size:15px;font-weight:700;background:var(--white);border:none;border-radius:16px;box-shadow:var(--shadow-sm);outline:none;color:var(--text-dark);min-width:0;" placeholder="🔍 Поиск..." oninput="onProductSearchInput()">
+  <button onclick="openBarcodeScanner()" style="width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:var(--shadow-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;">📷</button>
+</div>
   <div id="prodTabs" class="chips"></div>
   <div id="prodList"></div>
-  <button class="btn" onclick="openBarcodeScanner()" style="margin-top:14px;background:linear-gradient(135deg,#3b82f6,#06b6d4);">📷 Сканировать штрих-код</button>
-  <button class="btn btn-dark" onclick="showScreen('screen-product-custom')" style="margin-top:16px;">+ Свой продукт</button>
+  <div style="height:80px;"></div>
+<button onclick="showScreen('screen-product-custom')" style="position:fixed;bottom:calc(90px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:490px;padding:16px;background:var(--black);color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:1px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:99;">+ Свой продукт</button>
 </div>
 
 <div id="screen-product-custom" class="screen">
