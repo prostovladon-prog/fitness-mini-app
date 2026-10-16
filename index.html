@@ -516,6 +516,7 @@
   <div class="list-item" onclick="showScreen('screen-calendar')"><div class="li-icon blue">📅</div><div class="li-info"><div class="li-title">Календарь</div><div class="li-sub">История тренировок</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-records')"><div class="li-icon red">🏆</div><div class="li-info"><div class="li-title">Рекорды</div><div class="li-sub">Личные достижения</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-gallery')"><div class="li-icon mint">📸</div><div class="li-info"><div class="li-title">Галерея</div><div class="li-sub">Фото до / после</div></div><div class="li-arrow">›</div></div>
+  <div class="list-item" onclick="openInstallModal()"><div class="li-icon mint">📱</div><div class="li-info"><div class="li-title">Установить приложение</div><div class="li-sub">Добавить на главный экран</div></div><div class="li-arrow">›</div></div>
 </div>
 
 <!-- ПРОГРАММЫ -->
@@ -693,6 +694,66 @@
   <div id="recipePickerList"></div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО УСТАНОВКИ -->
+<div id="installModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:3000;align-items:flex-end;justify-content:center;">
+  <div style="width:100%;max-width:520px;background:var(--white);border-radius:28px 28px 0 0;padding:24px 20px calc(28px + var(--safe-bottom));max-height:90vh;overflow-y:auto;">
+    <div style="width:48px;height:5px;border-radius:3px;background:var(--text-gray);opacity:.4;margin:0 auto 20px;"></div>
+    <h2 style="font-size:22px;font-weight:900;text-transform:uppercase;text-align:center;margin-bottom:8px;">Установить ATOM</h2>
+    <p style="text-align:center;color:var(--text-gray);font-size:13px;font-weight:600;margin-bottom:24px;">Приложение откроется как отдельный значок</p>
+
+    <div id="installIos" style="display:none;">
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">1</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Открой приложение в <b>Safari</b> (не в Telegram)</div>
+        </div>
+      </div>
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">2</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Нажми кнопку <b>«Поделиться»</b> (квадрат со стрелкой вверх) внизу экрана</div>
+        </div>
+      </div>
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">3</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Прокрути вниз → <b>«На экран "Домой"</b> → Добавить</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="installAndroid" style="display:none;">
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">1</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Открой приложение в <b>Chrome</b> (не в Telegram)</div>
+        </div>
+      </div>
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">2</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Нажми меню <b>⋮</b> справа сверху</div>
+        </div>
+      </div>
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--mint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;">3</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;">Выбери <b>«Установить приложение»</b> или <b>«Добавить на главный экран»</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="installDesktop" style="display:none;">
+      <div style="background:var(--gray-1);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:14px;font-weight:600;line-height:1.5;">Ты на компьютере. Открой приложение на телефоне, чтобы установить на главный экран.</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="openInExternalBrowser()" style="margin-top:16px;">🌐 Открыть в браузере</button>
+    <button class="btn btn-secondary" onclick="closeInstallModal()" style="padding:14px;font-size:13px;">Закрыть</button>
+  </div>
+</div>
+  
 <!-- КАЛЕНДАРЬ -->
 <div id="screen-calendar" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Календарь</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
@@ -2184,6 +2245,45 @@ async function sendAIMessage(){
     }catch(e){
         loading.textContent='Ошибка соединения. Проверь интернет.';
     }
+}
+
+// ============ УСТАНОВКА НА ГЛАВНЫЙ ЭКРАН ============
+const APP_URL = 'https://prostovladon-prog.github.io/fitness-mini-app/';
+
+function openInstallModal(){
+  const modal = document.getElementById('installModal');
+  modal.style.display = 'flex';
+  
+  const platform = tg.platform || 'unknown';
+  document.getElementById('installIos').style.display = 'none';
+  document.getElementById('installAndroid').style.display = 'none';
+  document.getElementById('installDesktop').style.display = 'none';
+  
+  if(platform === 'ios' || platform === 'macos'){
+    document.getElementById('installIos').style.display = 'block';
+  } else if(platform === 'android'){
+    document.getElementById('installAndroid').style.display = 'block';
+  } else {
+    document.getElementById('installDesktop').style.display = 'block';
+  }
+}
+
+function closeInstallModal(){
+  document.getElementById('installModal').style.display = 'none';
+}
+
+function openInExternalBrowser(){
+  try {
+    // Telegram открывает ссылку во внешнем браузере
+    if(tg.openLink){
+      tg.openLink(APP_URL);
+    } else {
+      window.open(APP_URL, '_blank');
+    }
+    closeInstallModal();
+  } catch(e){
+    alert('Открой ссылку вручную:\n' + APP_URL);
+  }
 }
   
 init();
