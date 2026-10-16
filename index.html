@@ -1251,9 +1251,15 @@ const profile=loadProfile()||{};
 profile.userName=name;
 if(pendingAvatarData)profile.avatar=pendingAvatarData;
 saveProfileData(profile);
+// Если пола нет — идём в онбординг
+if(!profile.gender){
+  showScreen('screen-onboarding');
+  return;
+}
+// Иначе на главный
 document.getElementById('bottomNav').style.display='flex';
-if(profile.gender){showScreen('screen-home');renderHome();}
-else showScreen('screen-onboarding');
+showScreen('screen-home');
+renderHome();
 }
 function renderUserNameAndAvatar(){
 const p=loadProfile();
@@ -1454,7 +1460,19 @@ el.textContent=completedDays[key]?'✓':'';
 // ============ INIT И NAV ============
 function init(){
 const profile0=loadProfile();
-if(profile0&&!profile0.userName){showScreen('screen-name-setup');document.getElementById('bottomNav').style.display='none';return;}
+// Проверка 1: есть ли имя
+if(!profile0||!profile0.userName){
+  showScreen('screen-name-setup');
+  document.getElementById('bottomNav').style.display='none';
+  return;
+}
+// Проверка 2: есть ли пол (онбординг пройден)
+if(!profile0.gender){
+  showScreen('screen-onboarding');
+  document.getElementById('bottomNav').style.display='none';
+  return;
+}
+// Всё есть — на главный
 const settings=loadSettings();
 currentTheme=settings.theme||'light';
 applyTheme(currentTheme);
@@ -1464,8 +1482,10 @@ document.getElementById('mealDate').value=currentFoodDate;
 document.getElementById('photoDate').value=todayISO();
 document.getElementById('settingAutoTimer').value=settings.autoTimer||'on';
 document.getElementById('settingTimerDefault').value=settings.timerDefault||'90';
-if(!profile0){showScreen('screen-onboarding');document.getElementById('bottomNav').style.display='none';}
-else{showScreen('screen-home');renderHome();document.getElementById('bottomNav').style.display='flex';renderUserNameAndAvatar();}
+showScreen('screen-home');
+renderHome();
+document.getElementById('bottomNav').style.display='flex';
+renderUserNameAndAvatar();
 }
 const screenToNav={'screen-home':0,'screen-food':1,'screen-workouts':3,'screen-profile':4};
 function showScreen(id){
@@ -1569,7 +1589,9 @@ if(!height||height<100)return alert('Введите рост');
 const existing=loadProfile()||{};
 saveProfileData({gender,age,weight,height,goal,targetWeight,userName:existing.userName,avatar:existing.avatar,selectedProgramId:existing.selectedProgramId});
 document.getElementById('bottomNav').style.display='flex';
-showScreen('screen-home');renderHome();
+showScreen('screen-home');
+renderHome();
+renderUserNameAndAvatar();
 }
 function saveProfileEdit(){
 const p=loadProfile();if(!p)return;
