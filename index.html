@@ -1104,7 +1104,8 @@ if(profName)profName.textContent=name;
 
 // ============ ПРОГРАММЫ ============
 const WORKOUT_PROGRAMS=[
-{id:'ppl_mass',icon:'💪',title:'Набор массы (Пуш-Пулл-Ноги)',subtitle:'4 дня в неделю · Средний уровень',
+// === МУЖСКИЕ ===
+{id:'ppl_mass',icon:'💪',title:'Набор массы (Пуш-Пулл-Ноги)',subtitle:'4 дня в неделю · Средний уровень',gender:'male',
 description:'Классический сплит для роста мышц. Каждая группа 2 раза в неделю. Базовые упражнения и прогрессия весов.',
 tags:['4 дня/нед','Гипертрофия','6 месяцев'],
 schedule:[
@@ -1116,7 +1117,69 @@ schedule:[
 {day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
 {day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
 ]},
-{id:'upper_lower',icon:'⚖️',title:'Сила и тонус (Верх / Низ)',subtitle:'4 дня в неделю · Начинающий',
+{id:'strength_5x5',icon:'🏋️',title:'Сила 5×5 (базовая)',subtitle:'3 дня в неделю · Опытный',gender:'male',
+description:'Программа силовой направленности. Тяжёлые базовые упражнения 5 подходов по 5 повторений. Рост силы и массы.',
+tags:['3 дня/нед','Сила','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'Тренировка A',type:'workout',exercises:[{name:'Приседания со штангой',sets:'5 × 5',rest:'180с'},{name:'Жим штанги лёжа',sets:'5 × 5',rest:'180с'},{name:'Тяга штанги в наклоне',sets:'5 × 5',rest:'180с'},{name:'Планка',sets:'3 × 60с',rest:'60с'}]},
+{day:'Вторник',title:'Отдых',type:'rest',exercises:[]},
+{day:'Среда',title:'Тренировка B',type:'workout',exercises:[{name:'Приседания со штангой',sets:'5 × 5',rest:'180с'},{name:'Жим штанги стоя',sets:'5 × 5',rest:'180с'},{name:'Становая тяга',sets:'1 × 5',rest:'240с'},{name:'Подтягивания',sets:'3 × 8-12',rest:'90с'}]},
+{day:'Четверг',title:'Отдых',type:'rest',exercises:[]},
+{day:'Пятница',title:'Тренировка C',type:'workout',exercises:[{name:'Приседания со штангой',sets:'5 × 5',rest:'180с'},{name:'Жим штанги лёжа',sets:'5 × 5',rest:'180с'},{name:'Тяга штанги в наклоне',sets:'5 × 5',rest:'180с'},{name:'Подъём штанги на бицепс',sets:'3 × 8',rest:'90с'}]},
+{day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+{id:'crossfit',icon:'🔥',title:'Кроссфит / Функционал',subtitle:'4 дня в неделю · Продвинутый',gender:'male',
+description:'Интенсивные круговые тренировки. Развитие выносливости, силы и взрывной мощности. Много кардио и функциональных движений.',
+tags:['4 дня/нед','Выносливость','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'WOD 1 — Сила + Кардио',type:'workout',exercises:[{name:'Приседания со штангой',sets:'5 × 5',rest:'120с'},{name:'Отжимания узким хватом',sets:'4 × 15',rest:'60с'},{name:'Берпи',sets:'4 × 10',rest:'45с'},{name:'Скакалка',sets:'5 × 60с',rest:'30с'}]},
+{day:'Вторник',title:'WOD 2 — Гребля + Пресс',type:'workout',exercises:[{name:'Гребной тренажёр',sets:'5 × 500м',rest:'90с'},{name:'Подъём ног в висе',sets:'4 × 12',rest:'60с'},{name:'Русский твист',sets:'4 × 20',rest:'45с'}]},
+{day:'Среда',title:'Отдых',type:'rest',exercises:[]},
+{day:'Четверг',title:'WOD 3 — Становая + Взрыв',type:'workout',exercises:[{name:'Становая тяга',sets:'5 × 5',rest:'150с'},{name:'Прыжки на тумбу',sets:'4 × 12',rest:'60с'},{name:'Тяга гантели одной рукой',sets:'4 × 10',rest:'60с'},{name:'Планка',sets:'3 × 90с',rest:'60с'}]},
+{day:'Пятница',title:'WOD 4 — Жим + Подтягивания',type:'workout',exercises:[{name:'Жим штанги стоя',sets:'5 × 5',rest:'120с'},{name:'Подтягивания',sets:'5 × 10',rest:'90с'},{name:'Брусья на грудь',sets:'4 × 12',rest:'60с'},{name:'Скакалка',sets:'6 × 60с',rest:'30с'}]},
+{day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+// === ЖЕНСКИЕ ===
+{id:'booty_legs',icon:'🍑',title:'Ягодицы и ноги',subtitle:'3 дня в неделю · Фокус на низ',gender:'female',
+description:'Программа для тонуса ягодиц, бёдер и ног. Акцент на изолирующих и формирующих упражнениях.',
+tags:['3 дня/нед','Ягодицы','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'Низ A — Ягодицы',type:'workout',exercises:[{name:'Приседания со штангой',sets:'4 × 10-12',rest:'90с'},{name:'Румынская тяга',sets:'3 × 10-12',rest:'90с'},{name:'Болгарские выпады',sets:'3 × 12-15',rest:'75с'},{name:'Сгибание ног в тренажёре',sets:'3 × 12-15',rest:'60с'},{name:'Подъёмы на носки стоя',sets:'4 × 15-20',rest:'45с'}]},
+{day:'Вторник',title:'Отдых',type:'rest',exercises:[]},
+{day:'Среда',title:'Верх + Пресс',type:'workout',exercises:[{name:'Жим гантелей лёжа',sets:'3 × 10-12',rest:'75с'},{name:'Тяга верхнего блока',sets:'3 × 10-12',rest:'75с'},{name:'Разводка гантелей лёжа',sets:'3 × 12-15',rest:'60с'},{name:'Скручивания на блоке',sets:'3 × 15-20',rest:'45с'},{name:'Планка',sets:'3 × 60с',rest:'45с'}]},
+{day:'Четверг',title:'Отдых',type:'rest',exercises:[]},
+{day:'Пятница',title:'Низ B — Бёдра',type:'workout',exercises:[{name:'Жим ногами',sets:'4 × 12-15',rest:'75с'},{name:'Выпады с гантелями',sets:'3 × 12-15',rest:'75с'},{name:'Разгибание ног в тренажёре',sets:'3 × 15',rest:'60с'},{name:'Подъёмы на носки стоя',sets:'4 × 20',rest:'45с'},{name:'Скручивания',sets:'3 × 20',rest:'45с'}]},
+{day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+{id:'tonus',icon:'✨',title:'Тонус и фитнес',subtitle:'3 дня в неделю · Поддержание формы',gender:'female',
+description:'Умеренные тренировки для поддержания тонуса и формы. Без тяжёлых весов, акцент на технике и объёме.',
+tags:['3 дня/нед','Тонус','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'Всё тело A',type:'workout',exercises:[{name:'Приседания с гантелями',sets:'3 × 12',rest:'60с'},{name:'Отжимания от пола',sets:'3 × 10-15',rest:'60с'},{name:'Тяга гантели одной рукой',sets:'3 × 12',rest:'60с'},{name:'Махи гантелями в стороны',sets:'3 × 15',rest:'45с'},{name:'Скручивания',sets:'3 × 20',rest:'45с'}]},
+{day:'Вторник',title:'Отдых',type:'rest',exercises:[]},
+{day:'Среда',title:'Кардио + Пресс',type:'workout',exercises:[{name:'Бег на дорожке',sets:'30 мин',rest:'—'},{name:'Велосипед',sets:'3 × 20',rest:'45с'},{name:'Планка',sets:'3 × 45-60с',rest:'45с'},{name:'Русский твист',sets:'3 × 20',rest:'45с'}]},
+{day:'Четверг',title:'Отдых',type:'rest',exercises:[]},
+{day:'Пятница',title:'Всё тело B',type:'workout',exercises:[{name:'Выпады с гантелями',sets:'3 × 12',rest:'60с'},{name:'Жим гантелей лёжа',sets:'3 × 12',rest:'60с'},{name:'Тяга верхнего блока',sets:'3 × 12',rest:'60с'},{name:'Разводка гантелей лёжа',sets:'3 × 15',rest:'45с'},{name:'Велосипед',sets:'3 × 20',rest:'45с'}]},
+{day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+{id:'cutting_woman',icon:'🔥',title:'Сушка тела',subtitle:'4 дня в неделю · Жиросжигание',gender:'female',
+description:'Программа для сжигания жира и прорисовки рельефа. Много повторений, короткий отдых, добавлено кардио.',
+tags:['4 дня/нед','Сушка','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'Низ + Кардио',type:'workout',exercises:[{name:'Приседания со штангой',sets:'4 × 15-20',rest:'60с'},{name:'Жим ногами',sets:'3 × 15',rest:'60с'},{name:'Разгибание ног в тренажёре',sets:'3 × 20',rest:'45с'},{name:'Кардио (бег/вело)',sets:'20 мин',rest:'—'}]},
+{day:'Вторник',title:'Верх + Пресс',type:'workout',exercises:[{name:'Жим гантелей лёжа',sets:'4 × 15',rest:'60с'},{name:'Тяга верхнего блока',sets:'4 × 15',rest:'60с'},{name:'Разводка гантелей лёжа',sets:'3 × 15',rest:'45с'},{name:'Скручивания',sets:'4 × 25',rest:'30с'},{name:'Планка',sets:'3 × 60с',rest:'30с'}]},
+{day:'Среда',title:'Отдых',type:'rest',exercises:[]},
+{day:'Четверг',title:'Ноги + Ягодицы',type:'workout',exercises:[{name:'Выпады с гантелями',sets:'4 × 15',rest:'60с'},{name:'Румынская тяга',sets:'3 × 15',rest:'60с'},{name:'Сгибание ног в тренажёре',sets:'3 × 20',rest:'45с'},{name:'Кардио (бег/вело)',sets:'20 мин',rest:'—'}]},
+{day:'Пятница',title:'Отдых',type:'rest',exercises:[]},
+{day:'Суббота',title:'Фулбоди + Кардио',type:'workout',exercises:[{name:'Приседания с гантелями',sets:'3 × 15',rest:'60с'},{name:'Отжимания',sets:'3 × 15',rest:'45с'},{name:'Тяга гантели одной рукой',sets:'3 × 15',rest:'45с'},{name:'Велосипед',sets:'3 × 20',rest:'45с'},{name:'Бег на дорожке',sets:'15 мин',rest:'—'}]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+// === УНИВЕРСАЛЬНЫЕ ===
+{id:'upper_lower',icon:'⚖️',title:'Сила и тонус (Верх / Низ)',subtitle:'4 дня в неделю · Начинающий',gender:'unisex',
 description:'Простой и эффективный план. Развивает силу и улучшает форму тела без перегрузки.',
 tags:['4 дня/нед','Сила','6 месяцев'],
 schedule:[
@@ -1128,7 +1191,7 @@ schedule:[
 {day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
 {day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
 ]},
-{id:'fullbody',icon:'🔥',title:'Фулбоди для начинающих',subtitle:'3 дня в неделю · Новичок',
+{id:'fullbody',icon:'🔥',title:'Фулбоди для начинающих',subtitle:'3 дня в неделю · Новичок',gender:'unisex',
 description:'Тренировка всего тела 3 раза в неделю. Идеально для первого года в зале. Быстрый прогресс.',
 tags:['3 дня/нед','Новичок','6 месяцев'],
 schedule:[
@@ -1137,6 +1200,18 @@ schedule:[
 {day:'Среда',title:'Всё тело B',type:'workout',exercises:[{name:'Румынская тяга',sets:'3 × 8-12',rest:'90с'},{name:'Жим гантелей на наклонной',sets:'3 × 8-12',rest:'90с'},{name:'Тяга верхнего блока',sets:'3 × 10-12',rest:'75с'},{name:'Махи гантелями в стороны',sets:'3 × 12-15',rest:'45с'},{name:'Французский жим лёжа',sets:'3 × 10-12',rest:'60с'},{name:'Планка',sets:'3 × 40-60с',rest:'45с'}]},
 {day:'Четверг',title:'Отдых',type:'rest',exercises:[]},
 {day:'Пятница',title:'Всё тело C',type:'workout',exercises:[{name:'Жим ногами',sets:'3 × 10-12',rest:'90с'},{name:'Отжимания на брусьях',sets:'3 × 8-12',rest:'75с'},{name:'Тяга гантели одной рукой',sets:'3 × 10-12',rest:'60с'},{name:'Разводка гантелей лёжа',sets:'3 × 10-12',rest:'60с'},{name:'Молотковые сгибания',sets:'3 × 10-12',rest:'45с'},{name:'Подъёмы на носки стоя',sets:'4 × 15-20',rest:'30с'}]},
+{day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
+{day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
+]},
+{id:'home',icon:'🏠',title:'Домашние тренировки',subtitle:'3 дня в неделю · Без зала',gender:'unisex',
+description:'Программа без оборудования. Только вес тела и минимальный инвентарь (гантели, если есть).',
+tags:['3 дня/нед','Дома','6 месяцев'],
+schedule:[
+{day:'Понедельник',title:'Всё тело A',type:'workout',exercises:[{name:'Отжимания от пола',sets:'4 × 10-20',rest:'60с'},{name:'Приседания без веса',sets:'4 × 20',rest:'60с'},{name:'Выпады с гантелями',sets:'3 × 12',rest:'60с'},{name:'Планка',sets:'3 × 45-60с',rest:'45с'},{name:'Скручивания',sets:'3 × 20',rest:'45с'}]},
+{day:'Вторник',title:'Отдых',type:'rest',exercises:[]},
+{day:'Среда',title:'Всё тело B',type:'workout',exercises:[{name:'Отжимания узким хватом',sets:'4 × 10-15',rest:'60с'},{name:'Приседания с прыжком',sets:'4 × 15',rest:'60с'},{name:'Ягодичный мост',sets:'4 × 20',rest:'45с'},{name:'Велосипед',sets:'3 × 20',rest:'45с'},{name:'Планка',sets:'3 × 60с',rest:'45с'}]},
+{day:'Четверг',title:'Отдых',type:'rest',exercises:[]},
+{day:'Пятница',title:'Всё тело C',type:'workout',exercises:[{name:'Отжимания от пола',sets:'4 × 15-20',rest:'60с'},{name:'Болгарские выпады',sets:'3 × 12',rest:'60с'},{name:'Подъём ног в висе',sets:'3 × 15',rest:'45с'},{name:'Русский твист',sets:'3 × 20',rest:'45с'},{name:'Планка',sets:'3 × 60с',rest:'45с'}]},
 {day:'Суббота',title:'Отдых',type:'rest',exercises:[]},
 {day:'Воскресенье',title:'Отдых',type:'rest',exercises:[]}
 ]}
@@ -1148,8 +1223,10 @@ function renderPrograms(){
 const list=document.getElementById('programsList');if(!list)return;
 const prof=loadProfile();
 selectedProgramId=prof?.selectedProgramId||null;
+const userGender=prof?.gender||'male';
 completedDays=loadProgramProgress();
-list.innerHTML=WORKOUT_PROGRAMS.map(p=>{
+const filteredPrograms=WORKOUT_PROGRAMS.filter(p=>p.gender==='unisex'||p.gender===userGender);
+list.innerHTML=filteredPrograms.map(p=>{
 const isSelected=p.id===selectedProgramId;
 return '<div class="program-card'+(isSelected?' active':'')+'">'
 +'<div class="pc-header"><div class="pc-icon">'+p.icon+'</div><div class="pc-info"><div class="pc-title">'+p.title+'</div><div class="pc-sub">'+p.subtitle+'</div></div></div>'
@@ -1653,7 +1730,7 @@ function saveTemplate(){const name=document.getElementById('tplName').value.trim
 function deleteTemplate(id){if(!confirm('Удалить?'))return;saveTemplates(loadTemplates().filter(t=>t.id!==id));renderTemplates();}
 
 // ============ SESSION ============
-function startSession(templateId){const t=loadTemplates().find(x=>x.id===templateId);if(!t)return;sessionData={templateName:t.name,exercises:t.exercises.map(name=>({name,weight:null,reps:null,skipped:false})),index:0};document.getElementById('sessionTemplateName').textContent=t.name;document.getElementById('sessionDate').value=todayISO();showScreen('screen-workout-session');}
+function startSession(templateId){const t=loadTemplates().find(x=>x.id===templateId);if(!t)return;sessionData={templateName:t.name,exercises:t.exercises.map(name=>({name,weight:null,reps:null,skipped:false})),index:0};document.getElementById('sessionDate').value=todayISO();showScreen('screen-workout-session');}
 function renderSession(){if(!sessionData)return;const ex=sessionData.exercises[sessionData.index];document.getElementById('sessionCount').textContent=(sessionData.index+1)+' / '+sessionData.exercises.length;document.getElementById('sessionExerciseName').textContent=ex.name;document.getElementById('sessionBarFill').style.width=((sessionData.index)/sessionData.exercises.length*100)+'%';document.getElementById('sessionWeight').value=ex.weight||'';document.getElementById('sessionReps').value=ex.reps||'';document.getElementById('sessionNextBtn').textContent=sessionData.index===sessionData.exercises.length-1?'Завершить ✓':'Далее →';}
 function skipSessionExercise(){sessionData.exercises[sessionData.index].skipped=true;advanceSession();}
 function nextSessionExercise(){if(!sessionData)return;const w=parseFloat(document.getElementById('sessionWeight').value);const r=parseInt(document.getElementById('sessionReps').value);const ex=sessionData.exercises[sessionData.index];if(!w||!r){if(!confirm('Пропустить?'))return;ex.skipped=true;}else{ex.weight=w;ex.reps=r;ex.skipped=false;}advanceSession();}
