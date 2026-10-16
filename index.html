@@ -12,6 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
 <title>ATOM</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
@@ -535,6 +536,14 @@
     <button onclick="sendAIMessage()" style="width:52px;height:52px;border-radius:50%;background:var(--mint);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:var(--shadow-mint);flex-shrink:0;">→</button>
   </div>
 </div>
+
+<!-- СКАНЕР ШТРИХ-КОДОВ -->
+<div id="screen-barcode" class="screen">
+  <div class="screen-header"><div class="sh-left"><h1>Сканер</h1></div><button class="icon-btn" onclick="closeBarcodeScanner()">✕</button></div>
+  <p style="color:var(--text-gray);font-size:13px;font-weight:600;margin-bottom:16px;">Наведи камеру на штрих-код продукта</p>
+  <div id="barcodeReader" style="width:100%;border-radius:22px;overflow:hidden;background:#000;min-height:300px;"></div>
+  <div id="barcodeStatus" style="text-align:center;padding:20px;font-size:14px;font-weight:700;color:var(--text-gray);">Инициализация камеры...</div>
+</div>
   
 <!-- ДЕТАЛИ ПРОГРАММЫ -->
 <div id="screen-program-detail" class="screen">
@@ -636,6 +645,7 @@
   <input id="prodSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--white); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-dark);" placeholder="🔍 Поиск в базе и магазинах..." oninput="onProductSearchInput()">
   <div id="prodTabs" class="chips"></div>
   <div id="prodList"></div>
+  <button class="btn" onclick="openBarcodeScanner()" style="margin-top:14px;background:linear-gradient(135deg,#3b82f6,#06b6d4);">📷 Сканировать штрих-код</button>
   <button class="btn btn-dark" onclick="showScreen('screen-product-custom')" style="margin-top:16px;">+ Свой продукт</button>
 </div>
 
@@ -2284,6 +2294,124 @@ function openInExternalBrowser(){
   } catch(e){
     alert('Открой ссылку вручную:\n' + APP_URL);
   }
+}
+
+// ============ СКАНЕР ШТРИХ-КОДОВ ============
+let html5QrCode = null;
+let scannerRunning = false;
+
+async function openBarcodeScanner(){
+  showScreen('screen-barcode');
+  const status = document.getElementById('barcodeStatus');
+  status.textContent = 'Инициализация камеры...';
+  
+  // Проверка поддержки камеры
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    status.textContent = '⚠️ Камера недоступна. Открой приложение в браузере или разреши доступ.';
+    return;
+  }
+  
+  try {
+    html5QrCode = new Html5Qrcode("barcodeReader");
+    const config = {
+      fps: 10,
+      qrbox: { width: 280, height: 150 },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.ITF
+      ]
+    };
+    
+    await html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      onBarcodeDetected,
+      (error) => {} // игнорируем промежуточные ошибки
+    );
+    
+    scannerRunning = true;
+    status.textContent = '📷 Наведи камеру на штрих-код...';
+  } catch(err) {
+    console.error('Ошибка камеры:', err);
+    status.textContent = '⚠️ Не удалось открыть камеру. Разреши доступ в настройках.';
+  }
+}
+
+async function onBarcodeDetected(decodedText, decodedResult){
+  if(!scannerRunning) return;
+  scannerRunning = false;
+  
+  const status = document.getElementById('barcodeStatus');
+  status.textContent = '🔍 Ищу продукт: ' + decodedText;
+  
+  // Вибрация
+  if(navigator.vibrate) navigator.vibrate(200);
+  if(tg.HapticFeedback){ try{tg.HapticFeedback.notificationOccurred('success');}catch(e){} }
+  
+  // Останавливаем сканер
+  try { await html5QrCode.stop(); } catch(e){}
+  
+  // Ищем в базе
+  try {
+    const res = await fetch(WORKER_URL + '/food-search?q=' + encodeURIComponent(decodedText));
+    const data = await res.json();
+    
+    if(data.products && data.products.length > 0){
+      const p = data.products[0];
+      const n = p.nutriments || {};
+      const cal = Math.round(n['energy-kcal_100g'] || 0);
+      const prot = parseFloat((n['proteins_100g'] || 0).toFixed(1));
+      const fat = parseFloat((n['fat_100g'] || 0).toFixed(1));
+      const carb = parseFloat((n['carbohydrates_100g'] || 0).toFixed(1));
+      const brand = p.brands ? p.brands.split(',')[0] : '';
+      
+      // Показываем результат
+      status.innerHTML = `
+        <div style="background:var(--mint-soft);border-radius:16px;padding:16px;margin-top:12px;text-align:left;">
+          <div style="font-weight:900;font-size:16px;margin-bottom:4px;">${p.product_name}</div>
+          <div style="font-size:12px;color:var(--text-gray);margin-bottom:8px;">${brand}</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+            <div><div style="font-weight:900;color:var(--mint);">${cal}</div><div style="font-size:9px;color:var(--text-gray);">ккал</div></div>
+            <div><div style="font-weight:900;color:var(--orange);">${prot}</div><div style="font-size:9px;color:var(--text-gray);">Б</div></div>
+            <div><div style="font-weight:900;color:var(--purple);">${fat}</div><div style="font-size:9px;color:var(--text-gray);">Ж</div></div>
+            <div><div style="font-weight:900;color:var(--blue);">${carb}</div><div style="font-size:9px;color:var(--text-gray);">У</div></div>
+          </div>
+          <button class="btn" onclick="useScannedProduct('${p.product_name.replace(/'/g,"\\'")}',${cal},${prot},${fat},${carb},'${brand.replace(/'/g,"\\'")}')" style="margin-top:14px;">Использовать</button>
+        </div>
+      `;
+    } else {
+      status.innerHTML = `⚠️ Продукт со штрих-кодом <b>${decodedText}</b> не найден в базе.<br><br>
+        <button class="btn btn-secondary" onclick="openBarcodeScanner()" style="padding:12px;font-size:12px;">Сканировать заново</button>`;
+    }
+  } catch(e){
+    status.textContent = '⚠️ Ошибка поиска: ' + e.message;
+  }
+}
+
+function useScannedProduct(name, cal, prot, fat, carb, brand){
+  const fullName = brand ? name + ' (' + brand + ')' : name;
+  // Сохраняем в личную базу
+  const products = loadCustomProducts();
+  if(!products.find(x => x.name.toLowerCase() === fullName.toLowerCase())){
+    products.push({ name: fullName, cat: 'Прочее', cal, p: prot, f: fat, c: carb });
+    saveCustomProducts(products);
+  }
+  // Открываем экран порции
+  closeBarcodeScanner();
+  openPortion(fullName);
+}
+
+function closeBarcodeScanner(){
+  if(html5QrCode && scannerRunning){
+    html5QrCode.stop().catch(() => {});
+    scannerRunning = false;
+  }
+  showScreen('screen-products');
 }
   
 init();
