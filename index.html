@@ -511,6 +511,7 @@
   <div class="list-item" onclick="showScreen('screen-food')"><div class="li-icon orange">🍎</div><div class="li-info"><div class="li-title">Питание</div><div class="li-sub">Календарь, БЖУ, продукты</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-recipes')"><div class="li-icon mint">🍱</div><div class="li-info"><div class="li-title">Рецепты</div><div class="li-sub">Свои блюда из продуктов</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-templates')"><div class="li-icon purple">📋</div><div class="li-info"><div class="li-title">Шаблоны</div><div class="li-sub">Пуш, Пулл, Ноги</div></div><div class="li-arrow">›</div></div>
+  <div class="list-item" onclick="showScreen('screen-ai')"><div class="li-icon purple">🤖</div><div class="li-info"><div class="li-title">AI Тренер</div><div class="li-sub">Задай любой вопрос</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-programs')"><div class="li-icon blue">🏋️</div><div class="li-info"><div class="li-title">Программы</div><div class="li-sub">Готовые планы на 6 месяцев</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-calendar')"><div class="li-icon blue">📅</div><div class="li-info"><div class="li-title">Календарь</div><div class="li-sub">История тренировок</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-records')"><div class="li-icon red">🏆</div><div class="li-info"><div class="li-title">Рекорды</div><div class="li-sub">Личные достижения</div></div><div class="li-arrow">›</div></div>
@@ -524,6 +525,16 @@
   <div id="programsList"></div>
 </div>
 
+<!-- AI ТРЕНЕР -->
+<div id="screen-ai" class="screen">
+  <div class="screen-header"><div class="sh-left"><h1>AI Тренер</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
+  <div id="aiMessages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;min-height:300px;"></div>
+  <div style="display:flex;gap:8px;position:sticky;bottom:16px;">
+    <input id="aiInput" style="flex:1;padding:16px;background:var(--white);border:none;border-radius:50px;font-size:15px;font-weight:600;font-family:inherit;outline:none;color:var(--text-dark);box-shadow:var(--shadow-sm);" placeholder="Спроси тренера..." onkeypress="if(event.key==='Enter')sendAIMessage()">
+    <button onclick="sendAIMessage()" style="width:52px;height:52px;border-radius:50%;background:var(--mint);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:var(--shadow-mint);flex-shrink:0;">→</button>
+  </div>
+</div>
+  
 <!-- ДЕТАЛИ ПРОГРАММЫ -->
 <div id="screen-program-detail" class="screen">
   <div class="screen-header"><div class="sh-left"><h1 id="programDetailTitle">План</h1></div><button class="icon-btn" onclick="showScreen('screen-programs')">✕</button></div>
@@ -621,7 +632,7 @@
 <!-- ПРОДУКТЫ -->
 <div id="screen-products" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Продукты</h1></div><button class="icon-btn" onclick="closeProductsBack()">✕</button></div>
-  <input id="prodSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--white); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-dark);" placeholder="🔍 Поиск..." oninput="renderProducts()">
+  <input id="prodSearch" style="padding:16px 18px; font-size:15px; font-weight:700; background:var(--white); border:none; border-radius:16px; box-shadow:var(--shadow-sm); width:100%; outline:none; margin-bottom:14px; color:var(--text-dark);" placeholder="🔍 Поиск в базе и магазинах..." oninput="onProductSearchInput()">
   <div id="prodTabs" class="chips"></div>
   <div id="prodList"></div>
   <button class="btn btn-dark" onclick="showScreen('screen-product-custom')" style="margin-top:16px;">+ Свой продукт</button>
@@ -827,6 +838,8 @@
   <div class="section-title">Упражнения</div>
   <div id="templateDraftList"></div>
   <button class="btn btn-secondary" onclick="openLibraryForTemplate()" style="padding:14px;font-size:12px;">+ Из библиотеки</button>
+<button class="btn btn-secondary" onclick="addCustomExerciseToTemplate()" style="padding:14px;font-size:12px;margin-top:8px;">✏️ Своё упражнение</button>
+  <button class="btn btn-secondary" onclick="addCustomExerciseToTemplate()" style="padding:14px;font-size:12px;margin-top:8px;">✏️ Своё упражнение</button>
   <button class="btn" onclick="saveTemplate()" style="margin-top:14px;">Сохранить</button>
 </div>
 
@@ -970,6 +983,7 @@ const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 const user = tg.initDataUnsafe?.user;
 
+const WORKER_URL='https://atom-proxy.prostovladon.workers.dev';  
 const PROFILE_KEY='fitness_profile',EXERCISES_KEY='fitness_exercises_v2',MEALS_KEY='fitness_meals';
 const CUSTOM_PRODUCTS_KEY='fitness_custom_products',PHOTOS_KEY='fitness_photos',TEMPLATES_KEY='fitness_templates';
 const WATER_KEY='fitness_water',RECIPES_KEY='fitness_recipes',SETTINGS_KEY='fitness_settings',STEPS_KEY='fitness_steps';
@@ -1003,6 +1017,8 @@ let currentChartPeriod=7,currentBjuPeriod=7,selectedPhotoId=null,pendingPhotoDat
 let libraryMode='exercise',templateDraft={id:null,name:'',icon:'💪',exercises:[]},sessionData=null;
 let recipeDraft={id:null,name:'',ingredients:[]},recipePickerTarget=null,calendarDate=new Date();
 let currentTheme='light';
+let aiMessages=[];
+let aiHistory=[];
 
 function loadProfile(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY))||null}catch{return null}}
 function saveProfileData(p){localStorage.setItem(PROFILE_KEY,JSON.stringify(p))}
@@ -1024,6 +1040,62 @@ function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)
 function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}
 function loadSteps(){try{return JSON.parse(localStorage.getItem(STEPS_KEY))||{}}catch{return{}}}
 function saveStepsData(d){localStorage.setItem(STEPS_KEY,JSON.stringify(d))}
+async function searchExternalProducts(query){
+    if(!query||query.length<2)return;
+    const listDiv=document.getElementById('prodList');
+    listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в базе магазинов...</div></div>';
+    try{
+        const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
+        const data=await res.json();
+        const products=(data.products||[]).filter(p=>p.product_name&&p.nutriments&&p.nutriments['energy-kcal_100g']);
+        if(products.length===0){
+            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название.</div></div>';
+            return;
+        }
+        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
+        +products.map(p=>{
+            const n=p.nutriments;
+            const cal=Math.round(n['energy-kcal_100g']||0);
+            const prot=parseFloat((n.proteins_100g||0).toFixed(1));
+            const fat=parseFloat((n.fat_100g||0).toFixed(1));
+            const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
+            const brand=p.brands?p.brands.split(',')[0]:'';
+            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
+                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
+                +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
+                +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
+        }).join('');
+    }catch(e){
+        listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
+    }
+}
+
+function addExternalProduct(name,cal,prot,fat,carb,brand){
+    const products=loadCustomProducts();
+    const fullName=brand?name+' ('+brand+')':name;
+    if(products.find(x=>x.name.toLowerCase()===fullName.toLowerCase())){
+        alert('Продукт уже есть в базе');
+        return;
+    }
+    products.push({name:fullName,cat:'Прочее',cal:cal,p:prot,f:fat,c:carb});
+    saveCustomProducts(products);
+    alert('✅ Добавлено: '+fullName+'\nТеперь можно выбрать из базы.');
+    renderProducts();
+}
+
+function onProductSearchInput(){
+    const q=document.getElementById('prodSearch').value.trim();
+    if(q.length>=3){
+        const localCount=allProducts().filter(p=>p.name.toLowerCase().includes(q.toLowerCase())).length;
+        if(localCount<3){
+            searchExternalProducts(q);
+            return;
+        }
+    }
+    renderProducts();
+}
+  
 function allProducts(){return[...FOOD_LIBRARY,...loadCustomProducts()]}
 function todayISO(){const d=new Date();const tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10)}
 
@@ -1322,6 +1394,7 @@ if(id==='screen-recipes')renderRecipes();
 if(id==='screen-recipe-create')renderRecipeDraft();
 if(id==='screen-recipe-picker')renderRecipePicker();
 if(id==='screen-programs')renderPrograms();
+if(id==='screen-ai')renderAIMessages();
 if(id==='screen-calendar')renderCalendar();
 if(id==='screen-records')renderRecords();
 if(id==='screen-water')renderWater();
@@ -1721,6 +1794,14 @@ const templates=loadTemplates();const list=document.getElementById('templatesLis
 if(templates.length===0){list.innerHTML='<div class="empty"><span class="emoji">📋</span><div class="text">Пока нет шаблонов</div></div>';return}
 list.innerHTML=templates.map(t=>'<div class="template-card"><div class="template-header"><div class="template-icon">'+t.icon+'</div><div class="t-info"><div class="t-name">'+t.name+'</div><div class="t-count">'+t.exercises.length+' упражнений</div></div></div><div class="template-exercises">'+t.exercises.slice(0,3).map(e=>'<div class="template-ex-tag">'+e+'</div>').join('')+(t.exercises.length>3?'<div class="template-ex-tag">+'+(t.exercises.length-3)+'</div>':'')+'</div><div class="template-actions"><button class="t-action-btn start" onclick="startSession('+t.id+')">▶ Старт</button><button class="t-action-btn" onclick="editTemplate('+t.id+')">✏️</button><button class="t-action-btn delete" onclick="deleteTemplate('+t.id+')">🗑</button></div></div>').join('');
 }
+
+function addCustomExerciseToTemplate(){
+    const name=prompt('Введите название упражнения:');
+    if(!name||!name.trim())return;
+    templateDraft.exercises.push(name.trim());
+    renderTemplateDraft();
+}  
+  
 function openTemplateCreate(){templateDraft={id:null,name:'',icon:'💪',exercises:[]};document.getElementById('templateCreateTitle').textContent='Шаблон';document.getElementById('tplName').value='';document.getElementById('tplIcon').value='💪';showScreen('screen-template-create');}
 function editTemplate(id){const t=loadTemplates().find(x=>x.id===id);if(!t)return;templateDraft=JSON.parse(JSON.stringify(t));document.getElementById('templateCreateTitle').textContent='Редакт.';document.getElementById('tplName').value=t.name;document.getElementById('tplIcon').value=t.icon;showScreen('screen-template-create');}
 function renderTemplateDraft(){const list=document.getElementById('templateDraftList');if(templateDraft.exercises.length===0){list.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">Пусто</div></div>';return}list.innerHTML=templateDraft.exercises.map((e,i)=>'<div class="draft-exercise"><div class="de-name">'+(i+1)+'. '+e+'</div><button class="de-remove" onclick="removeDraftExercise('+i+')">✕</button></div>').join('');}
@@ -1729,6 +1810,13 @@ function cancelTemplateCreate(){if(templateDraft.exercises.length>0||templateDra
 function saveTemplate(){const name=document.getElementById('tplName').value.trim();const icon=document.getElementById('tplIcon').value;if(!name)return alert('Введите название');if(templateDraft.exercises.length===0)return alert('Добавьте упражнения');const templates=loadTemplates();if(templateDraft.id){const idx=templates.findIndex(x=>x.id===templateDraft.id);templates[idx]={id:templateDraft.id,name,icon,exercises:[...templateDraft.exercises]};}else templates.push({id:Date.now(),name,icon,exercises:[...templateDraft.exercises]});saveTemplates(templates);templateDraft={id:null,name:'',icon:'💪',exercises:[]};showScreen('screen-templates');}
 function deleteTemplate(id){if(!confirm('Удалить?'))return;saveTemplates(loadTemplates().filter(t=>t.id!==id));renderTemplates();}
 
+function addCustomExerciseToTemplate() {
+    const name = prompt('Введите название упражнения:');
+    if (!name || !name.trim()) return;
+    templateDraft.exercises.push(name.trim());
+    renderTemplateDraft();
+}
+  
 // ============ SESSION ============
 function startSession(templateId){const t=loadTemplates().find(x=>x.id===templateId);if(!t)return;sessionData={templateName:t.name,exercises:t.exercises.map(name=>({name,weight:null,reps:null,skipped:false})),index:0};document.getElementById('sessionDate').value=todayISO();showScreen('screen-workout-session');}
 function renderSession(){if(!sessionData)return;const ex=sessionData.exercises[sessionData.index];document.getElementById('sessionCount').textContent=(sessionData.index+1)+' / '+sessionData.exercises.length;document.getElementById('sessionExerciseName').textContent=ex.name;document.getElementById('sessionBarFill').style.width=((sessionData.index)/sessionData.exercises.length*100)+'%';document.getElementById('sessionWeight').value=ex.weight||'';document.getElementById('sessionReps').value=ex.reps||'';document.getElementById('sessionNextBtn').textContent=sessionData.index===sessionData.exercises.length-1?'Завершить ✓':'Далее →';}
@@ -1920,6 +2008,67 @@ function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-ne
 function exportData(){const data={};[PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY].forEach(k=>{data[k]=localStorage.getItem(k);});const json=JSON.stringify(data);const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='atom-backup.json';a.click();URL.revokeObjectURL(url);alert('Файл сохранён');}
 function importData(){const txt=document.getElementById('importText').value.trim();if(!txt)return alert('Вставь JSON');try{const data=JSON.parse(txt);Object.keys(data).forEach(k=>{if(data[k])localStorage.setItem(k,data[k]);});alert('Загружено! Обновление...');setTimeout(()=>location.reload(),800);}catch(e){alert('Ошибка: '+e.message);}}
 
+function renderAIMessages(){
+    const c=document.getElementById('aiMessages');if(!c)return;
+    if(aiMessages.length===0){
+        c.innerHTML='<div style="background:var(--mint-soft);padding:16px;border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start;max-width:90%;">'
+            +'<div style="font-weight:900;font-size:14px;margin-bottom:6px;">💪 Привет! Я ATOM</div>'
+            +'<div style="font-size:13px;color:var(--text-gray);line-height:1.5;font-weight:600;">Задай любой вопрос по тренировкам, питанию или восстановлению. Отвечу как профессиональный тренер и нутрициолог.</div>'
+            +'<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;">'
+            +'<div onclick="askQuick(\'Как набрать массу?\')" style="padding:8px 12px;background:var(--white);border-radius:50px;font-size:11px;font-weight:800;cursor:pointer;">Как набрать массу?</div>'
+            +'<div onclick="askQuick(\'Сколько белка мне нужно?\')" style="padding:8px 12px;background:var(--white);border-radius:50px;font-size:11px;font-weight:800;cursor:pointer;">Сколько белка?</div>'
+            +'<div onclick="askQuick(\'Программа для начинающих\')" style="padding:8px 12px;background:var(--white);border-radius:50px;font-size:11px;font-weight:800;cursor:pointer;">Программа для новичка</div>'
+            +'</div></div>';
+        return;
+    }
+    c.innerHTML=aiMessages.map(m=>'<div style="background:'+(m.role==='user'?'var(--mint)':'var(--white)')+';color:'+(m.role==='user'?'#fff':'var(--text-dark)')+';padding:14px 16px;border-radius:16px;'+(m.role==='user'?'border-bottom-right-radius:4px;align-self:flex-end;':'border-bottom-left-radius:4px;align-self:flex-start;')+'font-size:14px;font-weight:600;line-height:1.5;box-shadow:var(--shadow-sm);max-width:85%;white-space:pre-wrap;">'+m.content+'</div>').join('');
+    setTimeout(()=>{c.scrollIntoView({behavior:'smooth',block:'end'});},100);
+}
+
+function askQuick(text){
+    document.getElementById('aiInput').value=text;
+    sendAIMessage();
+}
+
+async function sendAIMessage(){
+    const input=document.getElementById('aiInput');
+    const text=input.value.trim();
+    if(!text)return;
+    input.value='';
+    aiMessages.push({role:'user',content:text});
+    aiHistory.push({role:'user',content:text});
+    renderAIMessages();
+
+    const c=document.getElementById('aiMessages');
+    const loading=document.createElement('div');
+    loading.style.cssText='background:var(--white);padding:14px 16px;border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start;box-shadow:var(--shadow-sm);font-size:14px;color:var(--text-gray);font-weight:600;';
+    loading.textContent='Печатает...';
+    c.appendChild(loading);
+    setTimeout(()=>{c.scrollIntoView({behavior:'smooth',block:'end'});},50);
+
+    try{
+        const systemPrompt='Ты — ATOM, профессиональный фитнес-тренер и нутрициолог с 10-летним опытом. Отвечай коротко (максимум 4-5 абзацев), по делу, дружелюбно, но профессионально. Давай конкретные советы по тренировкам, питанию, восстановлению. При вопросе о программе тренировок — предлагай конкретные упражнения и подходы. Отвечай ТОЛЬКО на русском языке. Если вопрос не по теме фитнеса — вежливо верни пользователя к теме.';
+        const res=await fetch(WORKER_URL+'/ai-chat',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({messages:[{role:'system',content:systemPrompt}].concat(aiHistory.slice(-10))})
+        });
+        const data=await res.json();
+        let reply='Извини, не смог ответить. Попробуй ещё раз.';
+        if(data&&data.choices&&data.choices[0]&&data.choices[0].message){
+            reply=data.choices[0].message.content;
+        }else if(data&&data.error){
+            reply='Ошибка: '+(data.error.message||JSON.stringify(data.error));
+        }
+        loading.remove();
+        aiMessages.push({role:'assistant',content:reply});
+        aiHistory.push({role:'assistant',content:reply});
+        renderAIMessages();
+    }catch(e){
+        loading.textContent='Ошибка соединения. Проверь интернет.';
+    }
+}
+  
 init();
 
 if ('serviceWorker' in navigator) {
