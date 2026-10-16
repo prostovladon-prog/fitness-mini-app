@@ -1041,23 +1041,31 @@ function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}
 function loadSteps(){try{return JSON.parse(localStorage.getItem(STEPS_KEY))||{}}catch{return{}}}
 function saveStepsData(d){localStorage.setItem(STEPS_KEY,JSON.stringify(d))}
 async function searchExternalProducts(query){
-    if(!query||query.length<2)return;
     const listDiv=document.getElementById('prodList');
     listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в базе магазинов...</div></div>';
     try{
-        const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
-        const data=await res.json();
-        // Более умный фильтр: принимаем продукт, если есть название И хоть какие-то данные о калориях
-        const products=(data.products||[]).filter(p=>{
-            if(!p.product_name||!p.nutriments)return false;
-            const n=p.nutriments;
-            // Есть калории в ккал, ИЛИ в кДж, ИЛИ есть хотя бы БЖУ
-            return n['energy-kcal_100g']||n['energy_100g']||n['proteins_100g']||n['carbohydrates_100g']||n['fat_100g'];
-        });
+        let products=await _doSearch(query);
+        // Если пусто — пробуем второй раз (OFF иногда отвечает пусто из-за лимитов)
         if(products.length===0){
-            listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">В магазинах ничего не найдено.<br>Попробуй другое название или добавь свой продукт.</div></div>';
-            return;
+            await new Promise(r=>setTimeout(r,800));
+            products=await _doSearch(query);
         }
+        _searchCache[query]=products;
+        renderExternalResults(products,query);
+    }catch(e){
+        listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
+    }
+}
+
+async function _doSearch(query){
+    const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
+    const data=await res.json();
+    return (data.products||[]).filter(p=>{
+        if(!p.product_name||!p.nutriments)return false;
+        const n=p.nutriments;
+        return n['energy-kcal_100g']||n['energy_100g']||n['proteins_100g']||n['carbohydrates_100g']||n['fat_100g'];
+    });
+}
         listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
         +products.map(p=>{
             const n=p.nutriments;
