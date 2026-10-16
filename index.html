@@ -1060,28 +1060,7 @@ async function searchExternalProducts(query, hasLocalResults){
             return;
         }
         // Показываем внешние результаты
-        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
-        +products.map(p=>{
-            const n=p.nutriments;
-            let cal=0;
-            if(n['energy-kcal_100g'])cal=Math.round(n['energy-kcal_100g']);
-            else if(n['energy_100g'])cal=Math.round(n['energy_100g']/4.184);
-            const prot=parseFloat((n.proteins_100g||0).toFixed(1));
-            const fat=parseFloat((n.fat_100g||0).toFixed(1));
-            const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
-            const brand=p.brands?p.brands.split(',')[0]:'';
-            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
-                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
-                +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
-                +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
-        }).join('');
-    }catch(e){
-        if(!hasLocalResults){
-            listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
-        }
-    }
-}
+        
         
     }catch(e){
         listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
