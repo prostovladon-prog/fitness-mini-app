@@ -508,6 +508,7 @@
     <div class="stat-big" onclick="showScreen('screen-water')"><div class="sb-top"><div class="sb-label">Вода</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="statWater">0<span class="unit">/8</span></div><div class="sb-target">Стаканов</div></div>
     <div class="stat-big" onclick="showScreen('screen-workouts')"><div class="sb-top"><div class="sb-label">Подходы</div><div class="sb-icon orange">💪</div></div><div class="sb-value" id="statWorkouts">0</div><div class="sb-target">Всего</div></div>
   </div>
+  <div id="todayWorkoutBlock"></div>
   <div class="section-title">Меню</div>
   <div class="list-item" onclick="showScreen('screen-food')"><div class="li-icon orange">🍎</div><div class="li-info"><div class="li-title">Питание</div><div class="li-sub">Календарь, БЖУ, продукты</div></div><div class="li-arrow">›</div></div>
   <div class="list-item" onclick="showScreen('screen-recipes')"><div class="li-icon mint">🍱</div><div class="li-info"><div class="li-title">Рецепты</div><div class="li-sub">Свои блюда из продуктов</div></div><div class="li-arrow">›</div></div>
@@ -1491,12 +1492,13 @@ return '<div class="program-card'+(isSelected?' active':'')+'">'
 }).join('');
 }
 function selectProgram(id){
-selectedProgramId=id;
-const p=loadProfile()||{};
-p.selectedProgramId=id;
-saveProfileData(p);
-renderPrograms();
-alert('Программа выбрана! ✅');
+  selectedProgramId=id;
+  const p=loadProfile()||{};
+  p.selectedProgramId=id;
+  saveProfileData(p);
+  renderPrograms();
+  renderTodayWorkout();
+  alert('Программа выбрана! ✅ Теперь на главном экране видно, что делать сегодня.');
 }
 function openProgramDetail(id){
 const program=WORKOUT_PROGRAMS.find(x=>x.id===id);if(!program)return;
@@ -1633,6 +1635,7 @@ const total=exercises.reduce((s,ex)=>s+ex.history.length,0);
 document.getElementById('statWorkouts').textContent=total;
 renderNotifications();
 renderUserNameAndAvatar();
+renderTodayWorkout();
 }
 function renderNotifications(){
 const area=document.getElementById('notifArea');if(!area)return;
@@ -2415,6 +2418,72 @@ function closeBarcodeScanner(){
     scannerRunning = false;
   }
   showScreen('screen-products');
+}
+
+// ============ СЕГОДНЯШНЯЯ ТРЕНИРОВКА ============
+function renderTodayWorkout(){
+  const block = document.getElementById('todayWorkoutBlock');
+  if(!block) return;
+  const p = loadProfile();
+  if(!p || !p.selectedProgramId){ block.innerHTML = ''; return; }
+  const program = WORKOUT_PROGRAMS.find(x => x.id === p.selectedProgramId);
+  if(!program){ block.innerHTML = ''; return; }
+
+  const jsDay = new Date().getDay();       // 0=Вс, 1=Пн, ...
+  const dayIndex = (jsDay + 6) % 7;         // 0=Пн, 6=Вс
+  const today = program.schedule[dayIndex];
+  const dayNames = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+  const dayName = dayNames[dayIndex];
+
+  if(!today) { block.innerHTML = ''; return; }
+
+  // Отдых
+  if(today.type === 'rest'){
+    block.innerHTML = '<div style="background:var(--white);border-radius:22px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow-sm);">'
+      + '<div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-gray);margin-bottom:6px;">'+dayName+' · Сегодня</div>'
+      + '<div style="font-size:22px;font-weight:900;margin-bottom:6px;">😴 Отдых</div>'
+      + '<div style="font-size:13px;color:var(--text-gray);font-weight:600;">Восстанавливайся — завтра новая тренировка</div>'
+      + '</div>';
+    return;
+  }
+
+  // Тренировка
+  const preview = today.exercises.slice(0, 4).map(ex =>
+    '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.15);">'
+    + '<div style="font-weight:700;font-size:13px;flex:1;">'+ex.name+'</div>'
+    + '<div style="font-size:11px;opacity:.8;font-weight:700;white-space:nowrap;margin-left:8px;">'+ex.sets+'</div>'
+    + '</div>'
+  ).join('');
+  const more = today.exercises.length > 4 ? '<div style="font-size:12px;opacity:.8;font-weight:700;padding-top:8px;">Ещё '+(today.exercises.length-4)+' упражнений</div>' : '';
+
+  block.innerHTML = '<div style="background:linear-gradient(135deg,var(--mint) 0%,var(--mint-dim) 100%);border-radius:22px;padding:20px;margin-bottom:12px;color:#fff;box-shadow:var(--shadow-mint);position:relative;overflow:hidden;">'
+    + '<div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;opacity:.9;margin-bottom:6px;">'+dayName+' · Сегодня</div>'
+    + '<div style="font-size:22px;font-weight:900;margin-bottom:16px;letter-spacing:-0.5px;">💪 '+today.title+'</div>'
+    + '<div style="background:rgba(255,255,255,.15);border-radius:16px;padding:6px 14px 10px;margin-bottom:16px;">'
+    + preview
+    + more
+    + '</div>'
+    + '<button onclick="startTodayWorkout()" style="width:100%;padding:14px;background:#fff;color:var(--mint-dim);border:none;border-radius:50px;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);">▶ Начать тренировку</button>'
+    + '</div>';
+}
+
+function startTodayWorkout(){
+  const p = loadProfile();
+  if(!p || !p.selectedProgramId) return;
+  const program = WORKOUT_PROGRAMS.find(x => x.id === p.selectedProgramId);
+  if(!program) return;
+  const jsDay = new Date().getDay();
+  const dayIndex = (jsDay + 6) % 7;
+  const today = program.schedule[dayIndex];
+  if(!today || today.type !== 'workout') return;
+
+  sessionData = {
+    templateName: today.title,
+    exercises: today.exercises.map(ex => ({name: ex.name, weight: null, reps: null, skipped: false})),
+    index: 0
+  };
+  document.getElementById('sessionDate').value = todayISO();
+  showScreen('screen-workout-session');
 }
   
 init();
