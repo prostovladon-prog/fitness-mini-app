@@ -838,7 +838,7 @@
   <div class="section-title">Упражнения</div>
   <div id="templateDraftList"></div>
   <button class="btn btn-secondary" onclick="openLibraryForTemplate()" style="padding:14px;font-size:12px;">+ Из библиотеки</button>
-<button class="btn btn-secondary" onclick="addCustomExerciseToTemplate()" style="padding:14px;font-size:12px;margin-top:8px;">✏️ Своё упражнение</button>
+
   <button class="btn btn-secondary" onclick="addCustomExerciseToTemplate()" style="padding:14px;font-size:12px;margin-top:8px;">✏️ Своё упражнение</button>
   <button class="btn" onclick="saveTemplate()" style="margin-top:14px;">Сохранить</button>
 </div>
@@ -1082,20 +1082,7 @@ async function searchExternalProducts(query, hasLocalResults){
         }
     }
 }
-        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
-        +products.map(p=>{
-            const n=p.nutriments;
-            const cal=Math.round(n['energy-kcal_100g']||0);
-            const prot=parseFloat((n.proteins_100g||0).toFixed(1));
-            const fat=parseFloat((n.fat_100g||0).toFixed(1));
-            const carb=parseFloat((n.carbohydrates_100g||0).toFixed(1));
-            const brand=p.brands?p.brands.split(',')[0]:'';
-            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
-                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
-                +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
-                +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
-        }).join('');
+        
     }catch(e){
         listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка соединения</div></div>';
     }
@@ -1934,12 +1921,6 @@ function cancelTemplateCreate(){if(templateDraft.exercises.length>0||templateDra
 function saveTemplate(){const name=document.getElementById('tplName').value.trim();const icon=document.getElementById('tplIcon').value;if(!name)return alert('Введите название');if(templateDraft.exercises.length===0)return alert('Добавьте упражнения');const templates=loadTemplates();if(templateDraft.id){const idx=templates.findIndex(x=>x.id===templateDraft.id);templates[idx]={id:templateDraft.id,name,icon,exercises:[...templateDraft.exercises]};}else templates.push({id:Date.now(),name,icon,exercises:[...templateDraft.exercises]});saveTemplates(templates);templateDraft={id:null,name:'',icon:'💪',exercises:[]};showScreen('screen-templates');}
 function deleteTemplate(id){if(!confirm('Удалить?'))return;saveTemplates(loadTemplates().filter(t=>t.id!==id));renderTemplates();}
 
-function addCustomExerciseToTemplate() {
-    const name = prompt('Введите название упражнения:');
-    if (!name || !name.trim()) return;
-    templateDraft.exercises.push(name.trim());
-    renderTemplateDraft();
-}
   
 // ============ SESSION ============
 function startSession(templateId){const t=loadTemplates().find(x=>x.id===templateId);if(!t)return;sessionData={templateName:t.name,exercises:t.exercises.map(name=>({name,weight:null,reps:null,skipped:false})),index:0};document.getElementById('sessionDate').value=todayISO();showScreen('screen-workout-session');}
