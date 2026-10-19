@@ -88,6 +88,13 @@ const js=async r=>r.json();
   const k8=JSON.parse(store.get('u:101'));k8.t0=Date.now()-30*86400000;k8.bonus=0;store.set('u:101',JSON.stringify(k8));
   r=await W.atomRequireAccess(new Request('https://w.test/ai-chat',{method:'POST',headers:{'X-Telegram-Init-Data':initData(101)}}),env);ok('requireAccess: просрочено → 402',r&&r.status===402);
   r=await W.atomRequireAccess(new Request('https://w.test/ai-chat',{method:'POST'}),{});ok('requireAccess: платная часть не настроена → пропускает',r===null);
+  // --- /start
+  let n0=tgCalls.length;await call('/api/tg-webhook',{message:{chat:{id:55,type:'private'},from:{id:55,first_name:'Аня'},text:'/start'}},env,'POST',H);
+  const sm=tgCalls.slice(n0).find(c=>c.m==='sendMessage');
+  ok('/start: приветствие с кнопкой запуска приложения',sm&&sm.body.chat_id===55&&sm.body.text.includes('Аня')&&sm.body.reply_markup.inline_keyboard[0][0].web_app.url.startsWith('https://prostovladon-prog.github.io/'),sm);
+  n0=tgCalls.length;await call('/api/tg-webhook',{message:{chat:{id:-9,type:'supergroup'},from:{id:5},text:'/start'}},env,'POST',H);ok('/start в группе игнорируется',!tgCalls.slice(n0).some(c=>c.m==='sendMessage'));
+  n0=tgCalls.length;await call('/api/tg-webhook',{message:{chat:{id:56,type:'private'},from:{id:56},text:'/start ref123'}},env,'POST',H);ok('/start с параметром тоже работает',tgCalls.slice(n0).some(c=>c.m==='sendMessage'));
+  n0=tgCalls.length;await call('/api/tg-webhook',{message:{chat:{id:57,type:'private'},from:{id:57},text:'просто текст'}},env,'POST',H);ok('обычный текст не вызывает ответов',!tgCalls.slice(n0).some(c=>c.m==='sendMessage'));
   // --- статистика
   const stt=JSON.parse(store.get('st'));
   ok('статистика: новые/активные/бонус/к оплате/оплатили/выручка',stt.total.new>=3&&stt.total.active>=3&&stt.total.bonus>=2&&stt.total.inv>=1&&stt.total.paid>=2&&stt.total.rev>=500&&stt.total.renew===1,stt.total);

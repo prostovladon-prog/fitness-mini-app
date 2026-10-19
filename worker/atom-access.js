@@ -222,6 +222,18 @@ async function atomHandleUpdate(upd, env) {
     await atomTg(env, 'sendMessage', { chat_id: uid, text: '✅ ATOM Pro активен до ' + dd + '. Спасибо, что с нами! 💪' });
     return true;
   }
+  // Команды /start и /help в личном чате: приветствие и кнопка запуска приложения
+  const text = msg && typeof msg.text === 'string' ? msg.text.trim() : '';
+  if (msg && msg.chat && msg.chat.type === 'private' && /^\/(start|help)(@\w+)?(\s|$)/i.test(text)) {
+    const appUrl = env.APP_URL || 'https://prostovladon-prog.github.io/fitness-mini-app/';
+    const name = msg.from && msg.from.first_name ? ', ' + String(msg.from.first_name).slice(0, 40) : '';
+    await atomTg(env, 'sendMessage', {
+      chat_id: msg.chat.id,
+      text: 'Привет' + name + '! ⚡\n\nATOM — твой фитнес-клуб в Telegram: ИИ-тренер, база из 23 000 продуктов со сканером штрих-кодов, программы тренировок и графики прогресса.\n\n🎁 4 дня бесплатно. Нажми кнопку ниже, чтобы открыть приложение 👇',
+      reply_markup: { inline_keyboard: [[{ text: '⚡ Открыть ATOM', web_app: { url: appUrl } }]] }
+    });
+    return true;
+  }
   return false;
 }
 
