@@ -88,5 +88,14 @@ const js=async r=>r.json();
   const k8=JSON.parse(store.get('u:101'));k8.t0=Date.now()-30*86400000;k8.bonus=0;store.set('u:101',JSON.stringify(k8));
   r=await W.atomRequireAccess(new Request('https://w.test/ai-chat',{method:'POST',headers:{'X-Telegram-Init-Data':initData(101)}}),env);ok('requireAccess: просрочено → 402',r&&r.status===402);
   r=await W.atomRequireAccess(new Request('https://w.test/ai-chat',{method:'POST'}),{});ok('requireAccess: платная часть не настроена → пропускает',r===null);
+  // --- статистика
+  const stt=JSON.parse(store.get('st'));
+  ok('статистика: новые/активные/бонус/к оплате/оплатили/выручка',stt.total.new>=3&&stt.total.active>=3&&stt.total.bonus>=2&&stt.total.inv>=1&&stt.total.paid>=2&&stt.total.rev>=500&&stt.total.renew===1,stt.total);
+  const day=new Date().toISOString().slice(0,10);ok('статистика: дневная корзина',stt.days[day]&&stt.days[day].new>=3);
+  const a0=stt.total.active;await call('/api/status',{initData:initData(100)});ok('повторный заход в тот же день не раздувает «активных»',JSON.parse(store.get('st')).total.active===a0);
+  r=await call('/api/admin',null,{...env,ADMIN_KEY:'k1'},'GET');ok('админка без ключа: 404',r.status===404);
+  r=await W.atomAccessHandle(new Request('https://w.test/api/admin?key=k1'),{...env,ADMIN_KEY:'k1'});const html=await r.text();ok('админка с ключом: страница со статистикой',r.status===200&&html.includes('статистика')&&html.includes('Воронка'));
+  r=await W.atomAccessHandle(new Request('https://w.test/api/admin?key=bad'),{...env,ADMIN_KEY:'k1'});ok('админка с чужим ключом: 404',r.status===404);
+  r=await W.atomAccessHandle(new Request('https://w.test/api/admin?key=k1'),env);ok('без ADMIN_KEY в настройках админка закрыта',r.status===404);
   console.log(`\nИТОГО: ${pass}/${pass+fail}`);process.exit(fail?1:0);
 })();

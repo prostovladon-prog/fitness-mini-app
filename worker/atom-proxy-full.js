@@ -124,12 +124,29 @@ async function atomAuth(request, body, env) {
   return null;
 }
 
+// ---------- статистика (один документ в KV: итоги + последние 60 дней) ----------
+// События: new (новый пользователь), active (заходил в этот день), bonus, inv (дошёл до оплаты),
+// paid (первая оплата), renew (повторные платежи), rev (звёзды). Для аналитики; точность ±1 при гонках.
+async function atomCount(env, ev, n) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const st = (await env.ATOM_KV.get('st', 'json')) || { total: {}, days: {} };
+    st.total[ev] = (st.total[ev] || 0) + (n || 1);
+    const d = st.days[day] || (st.days[day] = {});
+    d[ev] = (d[ev] || 0) + (n || 1);
+    const keys = Object.keys(st.days).sort();
+    while (keys.length > 60) delete st.days[keys.shift()];
+    await env.ATOM_KV.put('st', JSON.stringify(st));
+  } catch (e) { /* статистика не должна ломать основную работу */ }
+}
+
 // ---------- хранилище пользователей (KV) ----------
 async function atomGetUser(env, uid, create) {
   let u = await env.ATOM_KV.get('u:' + uid, 'json');
   if (!u && create) {
     u = { t0: Date.now(), bonus: 0, sub: 0, pays: [] };
     await env.ATOM_KV.put('u:' + uid, JSON.stringify(u));
+    await atomCount(env, 'new');
   }
   return u;
 }
@@ -195,7 +212,11 @@ async function atomHandleUpdate(upd, env) {
       : Math.max(now, u.sub || 0) + 30 * ATOM_DAY;
     u.sub = Math.max(u.sub || 0, end);
     u.pays = (u.pays || []).concat([{ id: chargeId, at: now, amt: sp.total_amount }]).slice(-20);
+    const firstPay = !u.paid;
+    u.paid = 1;
     await atomSaveUser(env, uid, u);
+    await atomCount(env, firstPay ? 'paid' : 'renew');
+    await atomCount(env, 'rev', Number(sp.total_amount) || 0);
     const d = new Date(u.sub);
     const dd = String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + d.getUTCFullYear();
     await atomTg(env, 'sendMessage', { chat_id: uid, text: '✅ ATOM Pro активен до ' + dd + '. Спасибо, что с нами! 💪' });
@@ -234,6 +255,7 @@ async function atomAccessHandle(request, env) {
   }
   if (!enabled) return atomJson({ error: 'not_configured' }, 503, env);
   if (p === '/api/tg-webhook') return atomWebhook(request, env);
+  if (p === '/api/admin') return atomAdmin(url, env);
   if (request.method !== 'POST') return atomJson({ error: 'method_not_allowed' }, 405, env);
 
   let body = {};
@@ -243,6 +265,12 @@ async function atomAccessHandle(request, env) {
 
   if (p === '/api/status') {
     const u = await atomGetUser(env, a.uid, true);
+    const today = new Date().toISOString().slice(0, 10);
+    if (u.seen !== today) {            // не чаще одной записи в сутки на пользователя
+      u.seen = today; u.days = (u.days || 0) + 1;
+      await atomSaveUser(env, a.uid, u);
+      await atomCount(env, 'active');
+    }
     return atomJson(atomStatus(u, cfg, Date.now()), 200, env);
   }
 
@@ -258,6 +286,7 @@ async function atomAccessHandle(request, env) {
     if (subscribed && !u.bonus && now < u.t0 + (cfg.trialDays + cfg.bonusDays) * ATOM_DAY) {
       u.bonus = 1; granted = true;
       await atomSaveUser(env, a.uid, u);
+      await atomCount(env, 'bonus');
     }
     return atomJson(Object.assign(atomStatus(u, cfg, now), { subscribed, granted }), 200, env);
   }
@@ -272,6 +301,8 @@ async function atomAccessHandle(request, env) {
       subscription_period: 2592000
     });
     if (!r.ok) return atomJson({ error: 'invoice_failed', hint: r.description || '' }, 502, env);
+    const uu = await atomGetUser(env, a.uid, true);
+    if (!uu.inv) { uu.inv = Date.now(); await atomSaveUser(env, a.uid, uu); await atomCount(env, 'inv'); }
     return atomJson({ url: r.result }, 200, env);
   }
 
@@ -293,6 +324,39 @@ async function atomRequireAccess(request, env) {
   const u = await atomGetUser(env, a.uid, true);
   if (!atomStatus(u, atomCfg(env), Date.now()).access) return atomJson({ error: 'payment_required' }, 402, env);
   return null;
+}
+
+
+// ---------- страница статистики для владельца ----------
+// Открывается так:  https://<ваш-воркер>/api/admin?key=<ADMIN_KEY>   (&format=json — данные в JSON)
+async function atomAdmin(url, env) {
+  const key = env.ADMIN_KEY || '';
+  const given = url.searchParams.get('key') || '';
+  if (!key || !atomSafeEq(given, key)) return new Response('not found', { status: 404 });
+  const st = (await env.ATOM_KV.get('st', 'json')) || { total: {}, days: {} };
+  const cfg = atomCfg(env);
+  if (url.searchParams.get('format') === 'json') return atomJson(st, 200, env);
+  const t = st.total, n = k => Number(t[k] || 0), pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const rows = Object.keys(st.days).sort().reverse().slice(0, 14).map(d => {
+    const x = st.days[d];
+    return '<tr><td>' + d + '</td><td>' + (x.new || 0) + '</td><td>' + (x.active || 0) + '</td><td>' + (x.inv || 0) + '</td><td>' + (x.paid || 0) + '</td><td>' + (x.rev || 0) + '</td></tr>';
+  }).join('');
+  const bar = (label, v, max) => '<div class="b"><span>' + label + '</span><div><i style="width:' + (max ? Math.max(2, Math.round(v / max * 100)) : 2) + '%"></i></div><b>' + v + '</b></div>';
+  const users = n('new');
+  const html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATOM — статистика</title>'
+    + '<style>body{font:15px system-ui,sans-serif;background:#0f1314;color:#fff;margin:0;padding:20px;max-width:640px;margin:auto}h1{font-size:22px}h2{font-size:15px;opacity:.7;margin:26px 0 10px}'
+    + '.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.c{background:#1a1f21;border-radius:14px;padding:14px}.c b{display:block;font-size:26px;color:#00d9a3}.c span{font-size:12px;opacity:.7}'
+    + '.b{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}.b span{width:130px}.b div{flex:1;background:#1a1f21;border-radius:8px;height:14px}.b i{display:block;height:100%;background:#00d9a3;border-radius:8px}.b b{width:44px;text-align:right}'
+    + 'table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 4px;border-bottom:1px solid #24292b;text-align:right}td:first-child,th:first-child{text-align:left}</style>'
+    + '<h1>⚡ ATOM — статистика</h1><div class="g">'
+    + '<div class="c"><b>' + users + '</b><span>открыли приложение (всего)</span></div>'
+    + '<div class="c"><b>' + n('paid') + '</b><span>оплатили (конверсия ' + pct(n('paid'), users) + ')</span></div>'
+    + '<div class="c"><b>' + n('rev') + ' ⭐</b><span>выручка всего</span></div>'
+    + '<div class="c"><b>' + n('renew') + '</b><span>продлений</span></div></div>'
+    + '<h2>Воронка</h2>' + bar('Открыли', users, users) + bar('Бонус за канал', n('bonus'), users) + bar('Нажали «Оформить»', n('inv'), users) + bar('Оплатили', n('paid'), users)
+    + '<h2>Последние 14 дней</h2><table><tr><th>День (UTC)</th><th>Новые</th><th>Активные</th><th>К оплате</th><th>Оплат</th><th>⭐</th></tr>' + rows + '</table>'
+    + '<p style="opacity:.5;font-size:12px;margin-top:24px">Цена: ' + cfg.price + ' ⭐ · триал ' + cfg.trialDays + ' дн. · данные ведутся с момента запуска статистики; при одновременных событиях возможна погрешность ±1.</p>';
+  return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
 }
 
 
