@@ -1023,6 +1023,7 @@
     <div class="qm-title">Что добавить?</div>
     <button class="qm-option" onclick="quickAdd('food')"><div class="qm-icon orange">🍎</div><div class="qm-text"><div class="qm-opt-title">Приём пищи</div><div class="qm-opt-sub">Записать еду и БЖУ</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('workout')"><div class="qm-icon mint">💪</div><div class="qm-text"><div class="qm-opt-title">Упражнение</div><div class="qm-opt-sub">Записать подход</div></div><div class="li-arrow">›</div></button>
+    <button class="qm-option" onclick="quickAdd('timer')"><div class="qm-icon" style="background:#ffe8e8;">⏱</div><div class="qm-text"><div class="qm-opt-title">Таймер отдыха</div><div class="qm-opt-sub">Запустить таймер вручную</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('water')"><div class="qm-icon blue">💧</div><div class="qm-text"><div class="qm-opt-title">Стакан воды</div><div class="qm-opt-sub">+1 к счётчику</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('weight')"><div class="qm-icon purple">⚖️</div><div class="qm-text"><div class="qm-opt-title">Вес тела</div><div class="qm-opt-sub">Обновить вес</div></div><div class="li-arrow">›</div></button>
     <button class="btn btn-secondary" onclick="closeQuickMenu()" style="margin-top:12px;">Отмена</button>
@@ -1607,6 +1608,7 @@ closeQuickMenu();
 if(type==='food')showScreen('screen-food-add');
 else if(type==='workout')showScreen('screen-add');
 else if(type==='water'){changeWater(1);showScreen('screen-water')}
+else if(type==='timer'){openTimer('Отдых', parseInt(loadSettings().timerDefault)||90)}
 else if(type==='weight'){const p=loadProfile();if(!p)return alert('Сначала заполни профиль');const v=prompt('Текущий вес (кг):',p.weight);if(!v)return;const w=parseFloat(v);if(!w||w<20)return alert('Некорректный вес');p.weight=w;saveProfileData(p);alert('Вес обновлён: '+w+' кг');showScreen('screen-profile');}
 }
 function applyTheme(theme){
@@ -2180,7 +2182,7 @@ setTimerPreset(preset,matched?document.querySelector('.timer-preset.active'):pre
 document.getElementById('timerOverlay').classList.add('active');
 }
 function openTimerFromFloat(){document.getElementById('timerOverlay').classList.add('active');}
-function closeTimer(){stopTimerInterval();timerState.running=false;timerState.paused=false;document.getElementById('timerOverlay').classList.remove('active');document.getElementById('floatingTimerBtn').classList.remove('active');showScreen('screen-history');}
+function closeTimer(){stopTimerInterval();timerState.running=false;timerState.paused=false;document.getElementById('timerOverlay').classList.remove('active');document.getElementById('floatingTimerBtn').classList.remove('active');}
 function setTimerPreset(seconds,el){document.querySelectorAll('.timer-preset').forEach(p=>p.classList.remove('active'));if(el)el.classList.add('active');stopTimerInterval();timerState.total=seconds;timerState.remaining=seconds;timerState.running=true;timerState.paused=false;updateTimerDisplay();startTimerInterval();document.getElementById('timerPauseBtn').textContent='⏸ Пауза';document.getElementById('floatingTimerBtn').classList.add('active');}
 function startTimerInterval(){timerState.interval=setInterval(()=>{if(timerState.paused)return;timerState.remaining--;if(timerState.remaining<=0){timerState.remaining=0;updateTimerDisplay();stopTimerInterval();timerState.running=false;onTimerComplete();return;}updateTimerDisplay();},1000);}
 function stopTimerInterval(){if(timerState.interval){clearInterval(timerState.interval);timerState.interval=null;}}
