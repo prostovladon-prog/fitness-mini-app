@@ -61,6 +61,8 @@
   }
   .container { max-width:520px; margin:0 auto; padding:20px 16px 60px; }
   .screen { display:none; animation:fadeIn .3s ease; }
+  #screen-ai.active { display: flex; flex-direction: column; height: calc(100vh - 160px); }
+  #aiMessages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
   .screen.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .screen-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-top:8px; }
@@ -531,8 +533,8 @@
 <!-- AI ТРЕНЕР -->
 <div id="screen-ai" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>AI Тренер</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
-  <div id="aiMessages" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;min-height:300px;"></div>
-  <div style="display:flex;gap:8px;position:sticky;bottom:16px;">
+  <div id="aiMessages"></div>
+  <div style="display:flex;gap:8px;flex-shrink:0;margin-top:auto;padding-bottom:10px;">
     <input id="aiInput" style="flex:1;padding:16px;background:var(--white);border:none;border-radius:50px;font-size:15px;font-weight:600;font-family:inherit;outline:none;color:var(--text-dark);box-shadow:var(--shadow-sm);" placeholder="Спроси тренера..." onkeypress="if(event.key==='Enter')sendAIMessage()">
     <button onclick="sendAIMessage()" style="width:52px;height:52px;border-radius:50%;background:var(--mint);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:var(--shadow-mint);flex-shrink:0;">→</button>
   </div>
