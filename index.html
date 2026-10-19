@@ -1822,6 +1822,9 @@ const sum={calories:0,protein:0,fats:0,carbs:0};
 meals.forEach(m=>{sum.calories+=m.calories||0;sum.protein+=m.protein||0;sum.fats+=m.fats||0;sum.carbs+=m.carbs||0;});
 document.getElementById('totalCalories').innerHTML=Math.round(sum.calories)+'<span class="unit">ккал</span>';
 document.getElementById('targetCalories').innerHTML=(target?Math.round(target.calories):'—')+'<span class="unit">ккал</span>';
+if(target){
+  document.getElementById('targetMacros').innerHTML = 'Б ' + target.protein + ' · Ж ' + target.fats + ' · У ' + target.carbs;
+}
 updateMacro('ringCal','ringCalVal',sum.calories,target?.calories||0);
 updateMacro('ringPro','ringProVal',sum.protein,target?.protein||0);
 updateMacro('ringFat','ringFatVal',sum.fats,target?.fats||0);
@@ -1833,10 +1836,12 @@ const typeColors={breakfast:'orange',lunch:'red',dinner:'purple',snack:'blue'};
 list.innerHTML=[...meals].sort((a,b)=>b.id-a.id).map(m=>'<div class="list-item"><div class="li-icon '+(typeColors[m.type]||'mint')+'">'+(typeIcons[m.type]||'🍽')+'</div><div class="li-info"><div class="li-title">'+esc(m.name)+'</div><div class="li-sub">Б '+(m.protein||0).toFixed(1)+' · Ж '+(m.fats||0).toFixed(1)+' · У '+(m.carbs||0).toFixed(1)+'</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:900;font-size:16px;color:var(--mint);">'+Math.round(m.calories)+'</div><div style="font-size:10px;color:var(--text-gray);font-weight:700;">ккал</div></div><button class="li-delete" onclick="deleteMeal('+m.id+')">🗑</button></div>').join('');
 }
 function updateMacro(barId,valId,value,target){
-const bar=document.getElementById(barId),val=document.getElementById(valId);
-let pct=target>0?Math.min(value/target,1):0;
-bar.style.width=(pct*100)+'%';
-val.textContent=target>0?Math.round((value/target)*100)+'%':(value>0?'—':'0%');
+  const bar=document.getElementById(barId),val=document.getElementById(valId);
+  let pct=target>0?Math.min(value/target,1):0;
+  bar.style.width=(pct*100)+'%';
+  // Показываем "съедено / цель"
+  const targetStr = target > 0 ? target : '—';
+  val.innerHTML = Math.round(value) + '<span style="font-size:10px; color:var(--text-gray); font-weight:600;"> / ' + targetStr + '</span>';
 }
 function copyYesterday(){
 const yest=parseISO(currentFoodDate);yest.setDate(yest.getDate()-1);
