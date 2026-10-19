@@ -171,6 +171,14 @@
   .water-glasses { display:flex; gap:5px; justify-content:space-between; margin:16px 0; }
   .water-glass { flex:1; height:52px; border-radius: 12px; background: var(--gray-1); display:flex; align-items:center; justify-content:center; font-size:20px; transition: all .3s; }
   .water-glass.filled { background: linear-gradient(180deg, #bfe6ff 0%, var(--blue) 100%); color:#fff; transform: scale(1.05); }
+  .wt-goal { font-size:13px; font-weight:700; color:var(--text-gray); margin:-8px 0 12px; }
+  .wt-bar { height:16px; background:var(--gray-1); border-radius:10px; overflow:hidden; }
+  .wt-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#7cc8ff,var(--blue)); transition:width .4s; }
+  .wt-hint { font-size:12px; font-weight:800; color:var(--text-gray); margin:8px 0 16px; min-height:16px; }
+  .water-quick { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .water-quick button { background:var(--gray-1); border:none; border-radius:18px; padding:14px 8px; cursor:pointer; color:var(--text-dark); font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .water-quick button span { font-size:26px; } .water-quick button b { font-size:15px; font-weight:900; } .water-quick button small { font-size:11px; color:var(--text-gray); font-weight:700; }
+  .water-quick button:active { transform:scale(.96); background:var(--mint-soft); }
   .water-controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .calendar-header { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:10px; }
   .calendar-hd { text-align:center; font-size:10px; color: var(--text-gray); font-weight:900; text-transform:uppercase; padding:4px; }
@@ -533,7 +541,7 @@
   <div class="stats-grid">
     <div class="stat-big" onclick="showScreen('screen-profile')"><div class="sb-top"><div class="sb-label">Вес</div><div class="sb-icon mint">⚖️</div></div><div class="sb-value" id="statWeight">—<span class="unit">кг</span></div><div class="sb-target" id="statWeightGoal">Цель: —</div></div>
     <div class="stat-big" onclick="showScreen('screen-progress')"><div class="sb-top"><div class="sb-label">Шаги</div><div class="sb-icon purple">👟</div></div><div class="sb-value" id="statSteps">0</div><div class="sb-target">Цель: 10 000</div></div>
-    <div class="stat-big" onclick="showScreen('screen-water')"><div class="sb-top"><div class="sb-label">Вода</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="statWater">0<span class="unit">/8</span></div><div class="sb-target">Стаканов</div></div>
+    <div class="stat-big" onclick="showScreen('screen-water')"><div class="sb-top"><div class="sb-label">Вода</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="statWater">0<span class="unit"> мл</span></div><div class="sb-target" id="statWaterGoal">Норма</div></div>
     <div class="stat-big" onclick="showScreen('screen-workouts')"><div class="sb-top"><div class="sb-label">Подходы</div><div class="sb-icon orange">💪</div></div><div class="sb-value" id="statWorkouts">0</div><div class="sb-target">Всего</div></div>
   </div>
   <div id="todayWorkoutBlock"></div>
@@ -584,16 +592,21 @@
 <div id="screen-water" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Вода 💧</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
   <div class="water-tracker">
-    <div class="wt-header"><div class="wt-title">Выпито сегодня</div><div class="wt-count" id="waterCount">0 <span class="unit">/ 8</span></div></div>
-    <div class="water-glasses" id="waterGlasses"></div>
-    <div class="water-controls">
-      <button class="btn btn-secondary" onclick="changeWater(-1)" style="margin-top:0;">− Убрать</button>
-      <button class="btn" onclick="changeWater(1)" style="margin-top:0;">+ Добавить</button>
+    <div class="wt-header"><div class="wt-title">Выпито сегодня</div><div class="wt-count" id="waterCount">0 мл</div></div>
+    <div class="wt-goal" id="waterGoalText">Норма: 2 л</div>
+    <div class="wt-bar"><div class="wt-fill" id="waterFill" style="width:0%"></div></div>
+    <div class="wt-hint" id="waterLeft"></div>
+    <div class="water-quick">
+      <button type="button" onclick="addWater(250)"><span>🥛</span><b>+250 мл</b><small>стакан</small></button>
+      <button type="button" onclick="addWater(500)"><span>🧴</span><b>+500 мл</b><small>бутылка</small></button>
+      <button type="button" onclick="addWater(1000)"><span>🍶</span><b>+1 л</b><small>большая</small></button>
+      <button type="button" onclick="addWaterCustom()"><span>✏️</span><b>Свой объём</b><small>в мл</small></button>
     </div>
+    <button class="btn btn-secondary" onclick="addWater(-250)" style="margin:12px 0 0;padding:12px;font-size:12px;">− Убрать 250 мл</button>
   </div>
   <div class="stats-grid">
-    <div class="stat-big"><div class="sb-top"><div class="sb-label">Сегодня</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="waterToday">0<span class="unit">ст</span></div></div>
-    <div class="stat-big"><div class="sb-top"><div class="sb-label">Сред. 7д</div><div class="sb-icon mint">📊</div></div><div class="sb-value" id="waterAvg">0<span class="unit">ст</span></div></div>
+    <div class="stat-big"><div class="sb-top"><div class="sb-label">Сегодня</div><div class="sb-icon blue">💧</div></div><div class="sb-value" id="waterToday">0 мл</div></div>
+    <div class="stat-big"><div class="sb-top"><div class="sb-label">Сред. 7д</div><div class="sb-icon mint">📊</div></div><div class="sb-value" id="waterAvg">0 мл</div></div>
   </div>
   <div class="section-title">История</div>
   <div id="waterHistory"></div>
@@ -1066,7 +1079,7 @@
     <button class="qm-option" onclick="quickAdd('food')"><div class="qm-icon orange">🍎</div><div class="qm-text"><div class="qm-opt-title">Приём пищи</div><div class="qm-opt-sub">Записать еду и БЖУ</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('workout')"><div class="qm-icon mint">💪</div><div class="qm-text"><div class="qm-opt-title">Упражнение</div><div class="qm-opt-sub">Записать подход</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('timer')"><div class="qm-icon" style="background:#ffe8e8;">⏱</div><div class="qm-text"><div class="qm-opt-title">Таймер отдыха</div><div class="qm-opt-sub">Запустить таймер вручную</div></div><div class="li-arrow">›</div></button>
-    <button class="qm-option" onclick="quickAdd('water')"><div class="qm-icon blue">💧</div><div class="qm-text"><div class="qm-opt-title">Стакан воды</div><div class="qm-opt-sub">+1 к счётчику</div></div><div class="li-arrow">›</div></button>
+    <button class="qm-option" onclick="quickAdd('water')"><div class="qm-icon blue">💧</div><div class="qm-text"><div class="qm-opt-title">Вода</div><div class="qm-opt-sub">+250 мл (стакан)</div></div><div class="li-arrow">›</div></button>
     <button class="qm-option" onclick="quickAdd('weight')"><div class="qm-icon purple">⚖️</div><div class="qm-text"><div class="qm-opt-title">Вес тела</div><div class="qm-opt-sub">Обновить вес</div></div><div class="li-arrow">›</div></button>
     <button class="btn btn-secondary" onclick="closeQuickMenu()" style="margin-top:12px;">Отмена</button>
   </div>
@@ -1165,7 +1178,10 @@ function loadPhotos(){try{return JSON.parse(localStorage.getItem(PHOTOS_KEY))||[
 function savePhotos(d){try{lsSet(PHOTOS_KEY,JSON.stringify(d))}catch(e){alert('Память переполнена')}}
 function loadTemplates(){try{return JSON.parse(localStorage.getItem(TEMPLATES_KEY))||[]}catch{return[]}}
 function saveTemplates(d){lsSet(TEMPLATES_KEY,JSON.stringify(d))}
-function loadWater(){try{return JSON.parse(localStorage.getItem(WATER_KEY))||{}}catch{return{}}}
+// Вода хранится в миллилитрах. Старые записи были в стаканах (числа 1–12) — читаем их как стаканы по 250 мл.
+function loadWater(){try{const w=JSON.parse(localStorage.getItem(WATER_KEY))||{};const o={};Object.keys(w).forEach(k=>{const v=+w[k]||0;o[k]=(v>0&&v<=12)?v*250:Math.max(0,Math.round(v));});return o}catch{return{}}}
+function waterGoal(){const p=loadProfile();const w=p&&+p.weight;if(!w||w<20||w>400)return 2000;return Math.min(4000,Math.max(1500,Math.round(w*30/50)*50));}
+function fmtMl(ml){ml=Math.round(ml||0);if(ml<1000)return ml+' мл';return (ml/1000).toLocaleString('ru-RU',{maximumFractionDigits:2})+' л';}
 function saveWater(d){lsSet(WATER_KEY,JSON.stringify(d))}
 function loadRecipes(){try{return JSON.parse(localStorage.getItem(RECIPES_KEY))||[]}catch{return[]}}
 function saveRecipes(d){lsSet(RECIPES_KEY,JSON.stringify(d))}
@@ -1693,7 +1709,7 @@ function quickAdd(type){
 closeQuickMenu();
 if(type==='food')showScreen('screen-food-add');
 else if(type==='workout')showScreen('screen-add');
-else if(type==='water'){changeWater(1);showScreen('screen-water')}
+else if(type==='water'){addWater(250);showScreen('screen-water')}
 else if(type==='timer'){openTimer('Отдых', parseInt(loadSettings().timerDefault)||90)}
 else if(type==='weight'){const p=loadProfile();if(!p)return alert('Сначала заполни профиль');askInput('Текущий вес (кг)',p.weight,v=>{const w=parseFloat(String(v).replace(',','.'));if(!w||w<20||w>400)return alert('Некорректный вес');p.weight=w;saveProfileData(p);alert('Вес обновлён: '+w+' кг');showScreen('screen-profile');},'decimal');}
 }
@@ -1724,7 +1740,7 @@ const p=loadProfile();
 if(p){document.getElementById('statWeight').innerHTML=p.weight+'<span class="unit">кг</span>';document.getElementById('statWeightGoal').textContent=p.targetWeight?'Цель: '+p.targetWeight+' кг':'Цель не задана';}
 document.getElementById('statStreak').textContent=calcStreak();
 const water=loadWater();const w=water[todayISO()]||0;
-document.getElementById('statWater').innerHTML=w+'<span class="unit">/8</span>';
+document.getElementById('statWater').innerHTML=fmtMl(w).replace(' ','<span class="unit"> ')+'</span>';document.getElementById('statWaterGoal').textContent='Норма: '+fmtMl(waterGoal());
 const steps=loadSteps();
 document.getElementById('statSteps').textContent=(steps[todayISO()]||0).toLocaleString('ru-RU');
 const exercises=loadExercises();
@@ -1741,7 +1757,7 @@ const notifications=[];
 const meals=loadMeals().filter(m=>m.date===today);
 if(meals.length===0)notifications.push({icon:'🍎',text:'Ты ещё не записал приёмы пищи',target:'screen-food'});
 const water=loadWater()[today]||0;
-if(water<8)notifications.push({icon:'💧',text:'Выпито '+water+' из 8 стаканов воды',target:'screen-water'});
+if(water<waterGoal())notifications.push({icon:'💧',text:'Выпито '+fmtMl(water)+' из '+fmtMl(waterGoal())+' воды',target:'screen-water'});
 const steps=loadSteps()[today]||0;
 if(steps===0)notifications.push({icon:'👟',text:'Не указал шаги за сегодня',target:'screen-progress'});
 if(notifications.length===0){area.innerHTML='';return}
@@ -1820,21 +1836,22 @@ document.getElementById('editTargetWeight').value=p.targetWeight||'';
 
 // ============ WATER ============
 function renderWater(){
-const water=loadWater();const today=todayISO();const count=water[today]||0;
-document.getElementById('waterCount').innerHTML=count+' <span class="unit">/ 8</span>';
-const glasses=document.getElementById('waterGlasses');let html='';
-for(let i=0;i<8;i++){html+='<div class="water-glass '+(i<count?'filled':'')+'">'+(i<count?'💧':'○')+'</div>';}
-glasses.innerHTML=html;
-document.getElementById('waterToday').innerHTML=count+'<span class="unit">ст</span>';
+const water=loadWater();const today=todayISO();const ml=water[today]||0;const goal=waterGoal();
+document.getElementById('waterCount').textContent=fmtMl(ml);
+document.getElementById('waterGoalText').textContent='Норма: '+fmtMl(goal)+' (по весу, 30 мл на кг)';
+document.getElementById('waterFill').style.width=Math.min(100,Math.round(ml/goal*100))+'%';
+document.getElementById('waterLeft').textContent=ml>=goal?'Норма выполнена 🎉':'Осталось '+fmtMl(goal-ml)+' · '+Math.round(ml/goal*100)+'%';
+document.getElementById('waterToday').textContent=fmtMl(ml);
 let sum=0,days=0;
 for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const iso=isoOf(d);if(water[iso]){sum+=water[iso];days++;}}
-document.getElementById('waterAvg').innerHTML=(days?(sum/days).toFixed(1):'0')+'<span class="unit">ст</span>';
+document.getElementById('waterAvg').textContent=days?fmtMl(sum/days):'0 мл';
 const histDiv=document.getElementById('waterHistory');
-const dates=Object.keys(water).filter(d=>d<=today).sort((a,b)=>b.localeCompare(a)).slice(0,10);
+const dates=Object.keys(water).filter(d=>d<=today&&water[d]>0).sort((a,b)=>b.localeCompare(a)).slice(0,10);
 if(dates.length===0){histDiv.innerHTML='';return}
-histDiv.innerHTML=dates.map(d=>{const f=formatDate(d);return'<div class="history-item"><div class="history-values">'+water[d]+'<span class="unit"> / 8</span></div><div class="history-date"><span class="day-name">'+f.day+'</span>'+f.short+'</div></div>';}).join('');
+histDiv.innerHTML=dates.map(d=>{const f=formatDate(d);return'<div class="history-item"><div class="history-values">'+fmtMl(water[d])+'<span class="unit"> / '+fmtMl(goal)+'</span></div><div class="history-date"><span class="day-name">'+f.day+'</span>'+f.short+'</div></div>';}).join('');
 }
-function changeWater(delta){const water=loadWater();const today=todayISO();let c=(water[today]||0)+delta;if(c<0)c=0;if(c>12)c=12;water[today]=c;saveWater(water);renderWater();}
+function addWater(ml){const water=loadWater();const today=todayISO();water[today]=Math.min(10000,Math.max(0,(water[today]||0)+ml));saveWater(water);renderWater();if(ml>0){try{if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}catch(e){}}}
+function addWaterCustom(){askInput('Сколько мл выпил?','',v=>{const n=Math.round(parseFloat(String(v).replace(',','.')));if(!n||n<=0||n>3000)return alert('Введи объём от 1 до 3000 мл');addWater(n);},'decimal');}
 
 // ============ FOOD ============
 function shiftDate(delta){const d=parseISO(currentFoodDate);d.setDate(d.getDate()+delta);currentFoodDate=isoOf(d);renderFood();}
