@@ -370,9 +370,64 @@ async function atomAdmin(url, env) {
     + '<p style="opacity:.5;font-size:12px;margin-top:24px">Цена: ' + cfg.price + ' ⭐ · триал ' + cfg.trialDays + ' дн. · данные ведутся с момента запуска статистики; при одновременных событиях возможна погрешность ±1.</p>';
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
 }
+// ===== Поиск продукта по штрихкоду =====
+// Сначала своя база (D1) по колонке code — с учётом лишних нулей (EAN-13 / UPC-A),
+// если не нашли — Open Food Facts (бесплатная открытая база, есть российские продукты).
+function atomMapRow(row) {
+  return {
+    product_name: row.name,
+    brands: row.brand,
+    serving_size: row.serving_size,
+    code: row.code,
+    nutriments: {
+      'energy-kcal_100g': row.calories,
+      'proteins_100g': row.protein,
+      'fat_100g': row.fat,
+      'carbohydrates_100g': row.carbs
+    }
+  };
+}
 
+async function atomOffLookup(code) {
+  const variants = [code];
+  if (code.length === 12) variants.push('0' + code);
+  if (code.length === 13 && code[0] === '0') variants.push(code.slice(1));
+  for (const c of variants) {
+    try {
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 4000);
+      const r = await fetch('https://world.openfoodfacts.org/api/v2/product/' + c + '.json?fields=code,product_name,product_name_ru,generic_name,brands,serving_size,nutriments', {
+        headers: { 'User-Agent': 'ATOM-fitness-app/1.0 (Telegram Mini App)' },
+        signal: ac.signal,
+        cf: { cacheTtl: 86400, cacheEverything: true }
+      });
+      clearTimeout(t);
+      if (!r.ok) continue;
+      const j = await r.json();
+      const p = j && j.status === 1 && j.product;
+      if (!p) continue;
+      const n = p.nutriments || {};
+      let kcal = Number(n['energy-kcal_100g']);
+      if (!isFinite(kcal) && isFinite(Number(n['energy_100g']))) kcal = Number(n['energy_100g']) / 4.184;
+      const name = (p.product_name_ru || p.product_name || p.generic_name || '').trim();
+      if (!name || !isFinite(kcal)) continue;
+      return [{
+        product_name: name,
+        brands: p.brands || '',
+        serving_size: p.serving_size || '',
+        code: p.code || c,
+        nutriments: {
+          'energy-kcal_100g': Math.round(kcal),
+          'proteins_100g': Number(n['proteins_100g']) || 0,
+          'fat_100g': Number(n['fat_100g']) || 0,
+          'carbohydrates_100g': Number(n['carbohydrates_100g']) || 0
+        }
+      }];
+    } catch (e) { /* пробуем следующий вариант */ }
+  }
+  return [];
+}
 
-// ===================== Основной воркер ATOM =====================
 export default {
   async fetch(request, env, ctx) {
     const corsHeaders = {
@@ -402,6 +457,23 @@ export default {
         const query = url.searchParams.get("q");
         if (!query || query.length < 2) {
           return new Response(JSON.stringify({ products: [] }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
+        // Штрихкод (только цифры, 6–14 знаков): ищем по коду, а не по названию
+        if (/^\d{6,14}$/.test(query.trim())) {
+          const code = query.trim();
+          let found = [];
+          try {
+            const r = await env.DB.prepare(
+              "SELECT name, brand, serving_size, code, calories, protein, fat, carbs FROM products WHERE LTRIM(CAST(code AS TEXT), '0') = ? LIMIT 5"
+            ).bind(code.replace(/^0+/, '')).all();
+            found = (r.results || []).map(atomMapRow);
+          } catch (e) { /* нет колонки/таблицы — пробуем внешнюю базу */ }
+          let source = 'db';
+          if (!found.length) { found = await atomOffLookup(code); source = 'off'; }
+          return new Response(JSON.stringify({ products: found, count: found.length, query: code, barcode: true, source }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }

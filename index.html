@@ -580,6 +580,8 @@
   <p style="color:var(--text-gray);font-size:13px;font-weight:600;margin-bottom:16px;">Наведи камеру на штрих-код продукта</p>
   <div id="barcodeReader" style="width:100%;border-radius:22px;overflow:hidden;background:#000;min-height:300px;"></div>
   <div id="barcodeStatus" style="text-align:center;padding:20px;font-size:14px;font-weight:700;color:var(--text-gray);">Инициализация камеры...</div>
+  <button class="btn btn-secondary" onclick="barcodeManual()" style="margin-top:0;padding:14px;font-size:12px;">⌨️ Ввести номер вручную</button>
+  <div style="height:90px;"></div>
 </div>
   
 <!-- ДЕТАЛИ ПРОГРАММЫ -->
@@ -635,7 +637,7 @@
   </div>
   <div class="section-title">Приёмы пищи</div>
   <div id="mealsList"></div>
-  <button class="btn" onclick="showScreen('screen-food-add')">+ Добавить приём</button>
+  <button class="btn" onclick="openFoodAdd()">+ Добавить еду</button>
 </div>
 
 <!-- ОТЧЁТ БЖУ -->
@@ -688,6 +690,7 @@
   <input id="prodSearch" style="flex:1;padding:16px 18px;font-size:15px;font-weight:700;background:var(--white);border:none;border-radius:16px;box-shadow:var(--shadow-sm);outline:none;color:var(--text-dark);min-width:0;" placeholder="🔍 Поиск..." oninput="onProductSearchInput()">
   <button onclick="openBarcodeScanner()" style="width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:var(--shadow-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;">📷</button>
 </div>
+  <div id="prodMealBox" style="display:none;margin-bottom:6px;"><div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-gray);margin:0 4px 8px;">Добавить в</div><div id="prodMealChips" class="chips"></div><button type="button" onclick="openManualMeal()" style="background:none;border:none;color:var(--mint);font-weight:800;font-size:12px;cursor:pointer;margin:0 4px 10px;font-family:inherit;">✏️ Записать вручную, без базы</button></div>
   <div id="prodTabs" class="chips"></div>
   <div id="prodList"></div>
   <div style="height:80px;"></div>
@@ -712,7 +715,9 @@
 <div id="screen-portion" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Порция</h1></div><button class="icon-btn" onclick="showScreen('screen-products')">✕</button></div>
   <div id="portionProductInfo"></div>
+  <div id="portionMealBox" style="display:none;margin-top:14px;"><div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-gray);margin:0 4px 8px;">Добавить в</div><div id="portionMealChips" class="chips"></div></div>
   <div class="card" style="margin-top:14px;">
+    <div class="chips" id="portionPresets" style="margin-bottom:12px;"></div>
     <div class="input-group"><label>Вес порции (г)</label><input id="portionWeight" type="number" placeholder="100" oninput="updatePortionPreview()"></div>
     <div class="product-summary">
       <div class="ps-title">БЖУ порции</div>
@@ -723,7 +728,7 @@
         <div class="ps-item"><div class="v c" id="pvCar">0</div><div class="l">Углев</div></div>
       </div>
     </div>
-    <button class="btn" onclick="applyPortion()" style="margin-top:8px;">Добавить</button>
+    <button class="btn" id="portionAddBtn" onclick="applyPortion()" style="margin-top:8px;">Добавить</button>
   </div>
 </div>
 
@@ -1707,7 +1712,7 @@ function openQuickMenu(){document.getElementById('quickModal').classList.add('ac
 function closeQuickMenu(){document.getElementById('quickModal').classList.remove('active')}
 function quickAdd(type){
 closeQuickMenu();
-if(type==='food')showScreen('screen-food-add');
+if(type==='food')openFoodAdd();
 else if(type==='workout')showScreen('screen-add');
 else if(type==='water'){addWater(250);showScreen('screen-water')}
 else if(type==='timer'){openTimer('Отдых', parseInt(loadSettings().timerDefault)||90)}
@@ -2027,23 +2032,47 @@ function renderProducts(){
 const tabsDiv=document.getElementById('prodTabs');
 tabsDiv.innerHTML=PROD_GROUPS.map(g=>{const cnt=g==='Все'?allProducts().length:allProducts().filter(x=>x.cat===g).length;return'<div class="chip '+(g===selectedProdGroup?'active':'')+'" onclick="selectProdGroup(\''+g+'\')">'+g+'<span class="chip-count">'+cnt+'</span></div>';}).join('');
 const search=(document.getElementById('prodSearch').value||'').toLowerCase();
+const mealBox=document.getElementById('prodMealBox');const diaryMode=foodAddFrom==='diary'&&recipePickerTarget!=='recipe';
+if(mealBox){mealBox.style.display=diaryMode?'block':'none';if(diaryMode)document.getElementById('prodMealChips').innerHTML=mealChipsHtml();}
 const custom=loadCustomProducts(),customNames=new Set(custom.map(p=>p.name));
 let items=allProducts();
 if(selectedProdGroup!=='Все')items=items.filter(e=>e.cat===selectedProdGroup);
 if(search)items=items.filter(e=>e.name.toLowerCase().includes(search));
 const listDiv=document.getElementById('prodList');
 if(items.length===0){listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено</div></div>';return}
-listDiv.innerHTML=items.map(e=>{const isCustom=customNames.has(e.name);return'<div class="product-item'+(isCustom?' custom':'')+'" onclick="openPortion('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+(isCustom?'<span class="custom-badge">СВОЙ</span>':'')+'</div><div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div><div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');
+let recentHtml='';
+if(diaryMode&&!search&&selectedProdGroup==='Все'){const all=allProducts();const rec=loadRecentFoods().map(n=>all.find(x=>x.name===n)).filter(Boolean).slice(0,6);
+if(rec.length)recentHtml='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:4px 4px 10px;">Недавние</div>'+rec.map(e=>'<div class="product-item" onclick="openPortion('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+'</div><div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div><div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>').join('')+'<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:18px 4px 10px;">Все продукты</div>';}
+listDiv.innerHTML=recentHtml+items.map(e=>{const isCustom=customNames.has(e.name);return'<div class="product-item'+(isCustom?' custom':'')+'" onclick="openPortion('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+(isCustom?'<span class="custom-badge">СВОЙ</span>':'')+'</div><div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div><div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');
 }
 function selectProdGroup(g){selectedProdGroup=g;renderProducts();}
-function openProductPicker(){selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products');}
-function closeProductsBack(){if(recipePickerTarget==='recipe'){recipePickerTarget=null;showScreen('screen-recipe-create');}else showScreen('screen-food-add');}
+function openProductPicker(){foodAddFrom='form';selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products');}
+function closeProductsBack(){if(recipePickerTarget==='recipe'){recipePickerTarget=null;showScreen('screen-recipe-create');}else if(foodAddFrom==='diary')showScreen('screen-food');else showScreen('screen-food-add');}
+// ===== Простое добавление еды: поиск → порция → «Добавить» (без промежуточной формы) =====
+let foodAddFrom='form';
+const MEAL_TYPES=[['breakfast','🌅 Завтрак'],['lunch','☀️ Обед'],['dinner','🌙 Ужин'],['snack','🍿 Перекус']];
+function autoMealType(){const h=new Date().getHours();return h>=5&&h<11?'breakfast':h>=11&&h<16?'lunch':h>=16&&h<21?'dinner':'snack';}
+let addMealType=autoMealType();
+function notify(m){if(window.atomToast)window.atomToast(m);else alert(m);}
+function loadRecentFoods(){try{const a=JSON.parse(localStorage.getItem(RECENT_KEY));return Array.isArray(a)?a.filter(x=>typeof x==='string'):[]}catch{return[]}}
+function pushRecentFood(name){const a=loadRecentFoods().filter(x=>x!==name);a.unshift(name);lsSet(RECENT_KEY,JSON.stringify(a.slice(0,12)));}
+function mealChipsHtml(){return MEAL_TYPES.map(m=>'<div class="chip'+(m[0]===addMealType?' active':'')+'" onclick="setAddMealType(\''+m[0]+'\')">'+m[1]+'</div>').join('');}
+function setAddMealType(k){addMealType=k;const a=document.getElementById('prodMealChips'),b=document.getElementById('portionMealChips');if(a)a.innerHTML=mealChipsHtml();if(b)b.innerHTML=mealChipsHtml();const btn=document.getElementById('portionAddBtn');if(btn&&foodAddFrom==='diary'&&recipePickerTarget!=='recipe')btn.textContent='Добавить: '+(MEAL_TYPES.find(m=>m[0]===k)||['',''])[1].replace(/^\S+\s/,'');}
+function openFoodAdd(){foodAddFrom='diary';addMealType=autoMealType();recipePickerTarget=null;selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products');}
+function openManualMeal(){foodAddFrom='form';showScreen('screen-food-add');const t=document.getElementById('mealType');if(t)t.value=addMealType;}
 function openPortion(name){
 const p=allProducts().find(x=>x.name===name);if(!p)return;
 portionProductData=p;
 document.getElementById('portionProductInfo').innerHTML='<div class="card"><div style="font-weight:900;font-size:17px;">'+esc(p.name)+'</div><div style="font-size:12px;color:var(--text-gray);margin-top:4px;font-weight:700;">На 100 г: '+p.cal+' ккал · Б '+p.p+' · Ж '+p.f+' · У '+p.c+'</div></div>';
-document.getElementById('portionWeight').value=100;updatePortionPreview();showScreen('screen-portion');
+document.getElementById('portionWeight').value=100;updatePortionPreview();
+const diary=foodAddFrom==='diary'&&recipePickerTarget!=='recipe';
+document.getElementById('portionMealBox').style.display=diary?'block':'none';
+document.getElementById('portionPresets').innerHTML=[50,100,150,200,250].map(g=>'<div class="chip" onclick="setPortion('+g+')">'+g+' г</div>').join('');
+document.getElementById('portionAddBtn').textContent='Добавить';
+showScreen('screen-portion');
+if(diary)setAddMealType(addMealType);
 }
+function setPortion(g){document.getElementById('portionWeight').value=g;updatePortionPreview();}
 function updatePortionPreview(){if(!portionProductData)return;const w=parseFloat(document.getElementById('portionWeight').value)||0;const k=w/100;document.getElementById('pvCal').textContent=Math.round(portionProductData.cal*k);document.getElementById('pvPro').textContent=(portionProductData.p*k).toFixed(1);document.getElementById('pvFat').textContent=(portionProductData.f*k).toFixed(1);document.getElementById('pvCar').textContent=(portionProductData.c*k).toFixed(1);}
 function applyPortion(){
 if(!portionProductData)return;
@@ -2055,6 +2084,12 @@ recipeDraft.ingredients.push({name:portionProductData.name,weight:w,cal:Math.rou
 recipePickerTarget=null;showScreen('screen-recipe-create');return;
 }
 pendingProduct={name:portionProductData.name+' ('+w+'г)',calories:Math.round(portionProductData.cal*k),protein:parseFloat((portionProductData.p*k).toFixed(1)),fats:parseFloat((portionProductData.f*k).toFixed(1)),carbs:parseFloat((portionProductData.c*k).toFixed(1))};
+if(foodAddFrom==='diary'){
+const meals=loadMeals();meals.push({id:newId(),name:pendingProduct.name,type:addMealType,date:currentFoodDate,calories:pendingProduct.calories,protein:pendingProduct.protein,fats:pendingProduct.fats,carbs:pendingProduct.carbs});saveMeals(meals);
+pushRecentFood(portionProductData.name);const added=pendingProduct;pendingProduct=null;
+try{if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}catch(e){}
+showScreen('screen-food');notify('✅ Добавлено: '+added.calories+' ккал');return;
+}
 fillMealForm();showScreen('screen-food-add');
 }
 function fillMealForm(){if(!pendingProduct)return;document.getElementById('mealName').value=pendingProduct.name;document.getElementById('mealCalories').value=pendingProduct.calories;document.getElementById('mealProtein').value=pendingProduct.protein;document.getElementById('mealFats').value=pendingProduct.fats;document.getElementById('mealCarbs').value=pendingProduct.carbs;document.getElementById('mealDate').value=currentFoodDate;renderSelectedProductBox();}
@@ -2070,10 +2105,12 @@ const c=parseFloat(document.getElementById('custCarbs').value)||0;
 if(!name)return alert('Введите название');
 if(!cal||cal<=0)return alert('Введите калории');
 const products=loadCustomProducts();
-if(products.find(x=>x.name.toLowerCase()===name.toLowerCase())){if(!confirm('Продукт уже есть. Заменить?'))return;const filtered=products.filter(x=>x.name.toLowerCase()!==name.toLowerCase());filtered.push({name,cat,cal,p,f,c});saveCustomProducts(filtered);}
-else{products.push({name,cat,cal,p,f,c});saveCustomProducts(products);}
+if(products.find(x=>x.name.toLowerCase()===name.toLowerCase())){if(!confirm('Продукт уже есть. Заменить?'))return;const filtered=products.filter(x=>x.name.toLowerCase()!==name.toLowerCase());filtered.push({name,cat,cal,p,f,c,code:pendingBarcode||''});saveCustomProducts(filtered);}
+else{products.push({name,cat,cal,p,f,c,code:pendingBarcode||''});saveCustomProducts(products);}
 ['custName','custCalories','custProtein','custFats','custCarbs'].forEach(id=>document.getElementById(id).value='');
 selectedProdGroup='Все';document.getElementById('prodSearch').value='';
+const hadCode=!!pendingBarcode;pendingBarcode=null;
+if(hadCode||foodAddFrom==='diary'){notify('Продукт сохранён ✅');openPortion(name);return;}
 showScreen('screen-products');alert('Продукт сохранён ✅');
 }
 
@@ -2439,7 +2476,8 @@ function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-ne
 
 // ============ EXPORT/IMPORT ============
 // Все ключи, которые нужно сохранять в резервную копию (раньше терялись цели КБЖУ и отметки о выполненных днях программы)
-function backupKeys(){return[PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY,'fitness_program_progress',TARGETS_KEY];}
+const RECENT_KEY='atom_recent_foods';
+function backupKeys(){return[RECENT_KEY,PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY,'fitness_program_progress',TARGETS_KEY];}
 function exportData(){
 const data={};
 backupKeys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
@@ -2632,68 +2670,56 @@ async function openBarcodeScanner(){
 async function onBarcodeDetected(decodedText, decodedResult){
   if(!scannerRunning) return;
   scannerRunning = false;
-  
-  const status = document.getElementById('barcodeStatus');
-  status.textContent = '🔍 Ищу продукт: ' + decodedText;
-  
-  // Вибрация
   if(navigator.vibrate) navigator.vibrate(200);
   if(tg.HapticFeedback){ try{tg.HapticFeedback.notificationOccurred('success');}catch(e){} }
-  
-  // Останавливаем сканер
   try { await html5QrCode.stop(); } catch(e){}
-  
-  // Ищем в базе
+  lookupBarcode(String(decodedText).replace(/\D/g,'')||String(decodedText));
+}
+function barcodeButtons(code){
+  return '<button class="btn" onclick="addCustomForBarcode('+jsArg(code)+')" style="margin-top:14px;padding:14px;font-size:12px;">✍️ Добавить продукт вручную</button>'
+    +'<button class="btn btn-secondary" onclick="openBarcodeScanner()" style="margin-top:8px;padding:12px;font-size:12px;">📷 Сканировать заново</button>'
+    ;
+}
+// Поиск по штрихкоду: сначала свои сохранённые продукты, потом база на сервере (там же запасная Open Food Facts)
+async function lookupBarcode(code){
+  const status = document.getElementById('barcodeStatus');
+  status.textContent = '🔍 Ищу продукт: ' + code;
+  const norm = x => String(x||'').replace(/^0+/,'');
+  const local = loadCustomProducts().find(x => x.code && norm(x.code) === norm(code));
+  if(local){ closeBarcodeScanner(); openPortion(local.name); return; }
   try {
-    const res = await fetch(WORKER_URL + '/food-search?q=' + encodeURIComponent(decodedText));
+    const res = await fetch(WORKER_URL + '/food-search?q=' + encodeURIComponent(code));
+    if(res.status === 402){ status.innerHTML = '🔒 Нужна подписка для поиска по штрихкоду.'; return; }
     if(!res.ok) throw new Error('сервер ответил ' + res.status);
     const data = await res.json();
     const found = (data.products || []).filter(x => x && typeof x.product_name === 'string' && x.product_name.trim());
-
     if(found.length > 0){
-      const p = found[0];
-      const n = p.nutriments || {};
-      const cal = Math.round(num(n['energy-kcal_100g']));
-      const prot = parseFloat(num(n['proteins_100g']).toFixed(1));
-      const fat = parseFloat(num(n['fat_100g']).toFixed(1));
-      const carb = parseFloat(num(n['carbohydrates_100g']).toFixed(1));
+      const p = found[0], n = p.nutriments || {};
       const brand = p.brands ? String(p.brands).split(',')[0].trim() : '';
-      const pname = p.product_name.trim();
-
-      // Показываем результат (все строки экранируются)
-      status.innerHTML = `
-        <div style="background:var(--mint-soft);border-radius:16px;padding:16px;margin-top:12px;text-align:left;">
-          <div style="font-weight:900;font-size:16px;margin-bottom:4px;">${esc(pname)}</div>
-          <div style="font-size:12px;color:var(--text-gray);margin-bottom:8px;">${esc(brand)}</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
-            <div><div style="font-weight:900;color:var(--mint);">${cal}</div><div style="font-size:9px;color:var(--text-gray);">ккал</div></div>
-            <div><div style="font-weight:900;color:var(--orange);">${prot}</div><div style="font-size:9px;color:var(--text-gray);">Б</div></div>
-            <div><div style="font-weight:900;color:var(--purple);">${fat}</div><div style="font-size:9px;color:var(--text-gray);">Ж</div></div>
-            <div><div style="font-weight:900;color:var(--blue);">${carb}</div><div style="font-size:9px;color:var(--text-gray);">У</div></div>
-          </div>
-          <div style="font-size:10px;color:var(--text-gray);margin-top:8px;">на 100 г</div>
-          <button class="btn" onclick="useScannedProduct(${jsArg(pname)},${cal},${prot},${fat},${carb},${jsArg(brand)})" style="margin-top:14px;">Использовать</button>
-          <button class="btn btn-secondary" onclick="openBarcodeScanner()" style="margin-top:10px;padding:12px;font-size:12px;">Сканировать заново</button>
-        </div>
-      `;
+      useScannedProduct(p.product_name.trim(), Math.round(num(n['energy-kcal_100g'])), parseFloat(num(n['proteins_100g']).toFixed(1)), parseFloat(num(n['fat_100g']).toFixed(1)), parseFloat(num(n['carbohydrates_100g']).toFixed(1)), brand, code);
     } else {
-      status.innerHTML = `⚠️ Продукт со штрих-кодом <b>${esc(decodedText)}</b> не найден в базе.<br><br>
-        <button class="btn btn-secondary" onclick="openBarcodeScanner()" style="padding:12px;font-size:12px;">Сканировать заново</button>`;
+      status.innerHTML = '⚠️ Продукт со штрих-кодом <b>' + esc(code) + '</b> пока нет в базе.<br><span style="font-size:12px;font-weight:600;">Добавь его один раз — и он будет находиться по сканированию.</span>' + barcodeButtons(code);
     }
   } catch(e){
-    status.innerHTML = '⚠️ Не удалось найти продукт. Проверь интернет.<br><br><button class="btn btn-secondary" onclick="openBarcodeScanner()" style="padding:12px;font-size:12px;">Сканировать заново</button>';
+    status.innerHTML = '⚠️ Не удалось выполнить поиск. Проверь интернет.' + barcodeButtons(code);
   }
 }
-
-function useScannedProduct(name, cal, prot, fat, carb, brand){
+function barcodeManual(){
+  stopBarcodeScanner();
+  askInput('Номер штрих-кода (цифры под полосками)','',v=>{const c=String(v).replace(/\D/g,'');if(c.length<6)return alert('Введи цифры штрих-кода');showScreen('screen-barcode');lookupBarcode(c);},'decimal');
+}
+let pendingBarcode=null;
+function addCustomForBarcode(code){
+  stopBarcodeScanner();pendingBarcode=code;
+  ['custName','custCalories','custProtein','custFats','custCarbs'].forEach(id=>document.getElementById(id).value='');
+  showScreen('screen-product-custom');notify('Заполни данные с упаковки (на 100 г)');
+}
+function useScannedProduct(name, cal, prot, fat, carb, brand, code){
   const fullName = brand ? name + ' (' + brand + ')' : name;
-  // Сохраняем в личную базу
   const products = loadCustomProducts();
-  if(!products.find(x => x.name.toLowerCase() === fullName.toLowerCase())){
-    products.push({ name: fullName, cat: 'Прочее', cal, p: prot, f: fat, c: carb });
-    saveCustomProducts(products);
-  }
-  // Открываем экран порции
+  const ex = products.find(x => x.name.toLowerCase() === fullName.toLowerCase());
+  if(!ex){ products.push({ name: fullName, cat: 'Прочее', cal, p: prot, f: fat, c: carb, code: code||'' }); saveCustomProducts(products); }
+  else if(code && !ex.code){ ex.code = code; saveCustomProducts(products); }
   closeBarcodeScanner();
   openPortion(fullName);
 }
@@ -2809,6 +2835,7 @@ const LS=window.localStorage;
 const rawSet=Storage.prototype.setItem, rawRem=Storage.prototype.removeItem;
 const inTg=!!(tg&&tg.initData);
 const toast=(m,ms)=>{try{let t=document.getElementById('atomToast');if(!t){t=document.createElement('div');t.id='atomToast';t.style.cssText='position:fixed;left:50%;bottom:calc(90px + var(--safe-bottom));transform:translateX(-50%);max-width:88vw;background:var(--black);color:#fff;padding:12px 18px;border-radius:16px;font-size:13px;font-weight:800;z-index:30000;box-shadow:0 8px 30px rgba(0,0,0,.35);text-align:center;transition:opacity .25s;opacity:0;pointer-events:none;';document.body.appendChild(t);}t.textContent=m;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},ms||3200);}catch(e){}};
+window.atomToast=toast;
 const hap=(t,k)=>{try{const h=tg.HapticFeedback;if(!h)return;if(t==='n')h.notificationOccurred(k||'success');else if(t==='s')h.selectionChanged();else h.impactOccurred(k||'light');}catch(e){}};
 const jget=(k,d)=>{try{const v=LS.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
 const jset=(k,v)=>{try{rawSet.call(LS,k,JSON.stringify(v));}catch(e){}};
