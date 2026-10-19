@@ -468,6 +468,10 @@
   .day-card .dc-title { font-size:17px; font-weight:900; margin-top:4px; }
   .day-card .dc-check { width:32px; height:32px; border-radius:50%; background: var(--gray-1); border:2px solid var(--gray-2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; }
   .day-card .dc-check.done { background: var(--mint); border-color: var(--mint); color:#fff; }
+  .prog-ex { display:flex; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid var(--gray-1); }
+  .prog-ex .pe-name { flex:1; min-width:0; font-weight:800; font-size:14px; }
+  .prog-ex .pe-in { width:64px; padding:10px 6px; text-align:center; border:none; border-radius:10px; background:var(--gray-1); color:var(--text-dark); font-weight:800; font-size:13px; font-family:inherit; outline:none; }
+  .prog-ex .pe-in.pe-rest { width:44px; } .prog-ex .pe-unit { font-size:11px; color:var(--text-gray); font-weight:700; margin-left:-2px; }
   .exercise-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--gray-1); }
   .exercise-row:last-child { border-bottom:none; }
   .exercise-row .er-name { font-weight:700; font-size:14px; flex:1; }
@@ -560,7 +564,8 @@
 <!-- ПРОГРАММЫ -->
 <div id="screen-programs" class="screen">
   <div class="screen-header"><div class="sh-left"><h1>Программы</h1></div><button class="icon-btn" onclick="showScreen('screen-home')">✕</button></div>
-  <p style="color:var(--text-gray); font-size:13px; font-weight:600; margin-bottom:16px;">Готовые планы тренировок на 6 месяцев. Выбери свой.</p>
+  <button class="btn" onclick="openProgramCreate()" style="margin-top:0;margin-bottom:12px;">➕ Создать свою программу</button>
+  <p style="color:var(--text-gray); font-size:13px; font-weight:600; margin-bottom:16px;">Или выбери готовый план тренировок.</p>
   <div id="programsList"></div>
 </div>
 
@@ -585,6 +590,14 @@
 </div>
   
 <!-- ДЕТАЛИ ПРОГРАММЫ -->
+<div id="screen-program-edit" class="screen">
+  <div class="screen-header"><div class="sh-left"><h1 id="progEditTitle">Своя<br>программа</h1></div><button class="icon-btn" onclick="cancelProgramEdit()">✕</button></div>
+  <div class="card"><div class="input-group" style="margin-bottom:0;"><label>Название программы</label><input id="progName" placeholder="Например: Моя сплит-программа" maxlength="60" oninput="progDraft.title=this.value"></div></div>
+  <div class="section-title">Дни недели</div>
+  <div id="progDays"></div>
+  <button class="btn" onclick="saveProgramDraft()">Сохранить программу</button>
+</div>
+
 <div id="screen-program-detail" class="screen">
   <div class="screen-header"><div class="sh-left"><h1 id="programDetailTitle">План</h1></div><button class="icon-btn" onclick="showScreen('screen-programs')">✕</button></div>
   <div id="programDetailContent"></div>
@@ -1564,15 +1577,17 @@ const prof=loadProfile();
 selectedProgramId=prof?.selectedProgramId||null;
 const userGender=prof?.gender||'male';
 completedDays=loadProgramProgress();
-const filteredPrograms=WORKOUT_PROGRAMS.filter(p=>p.gender==='unisex'||p.gender===userGender);
+syncCustomPrograms();
+const filteredPrograms=WORKOUT_PROGRAMS.filter(p=>p.gender==='unisex'||p.gender===userGender).sort((a,b)=>(b.custom?1:0)-(a.custom?1:0));
 list.innerHTML=filteredPrograms.map(p=>{
 const isSelected=p.id===selectedProgramId;
 return '<div class="program-card'+(isSelected?' active':'')+'">'
-+'<div class="pc-header"><div class="pc-icon">'+p.icon+'</div><div class="pc-info"><div class="pc-title">'+p.title+'</div><div class="pc-sub">'+p.subtitle+'</div></div></div>'
-+'<div class="pc-desc">'+p.description+'</div>'
-+'<div class="pc-meta">'+p.tags.map(t=>'<span class="pc-pill mint">'+t+'</span>').join('')+'</div>'
++'<div class="pc-header"><div class="pc-icon">'+p.icon+'</div><div class="pc-info"><div class="pc-title">'+esc(p.title)+'</div><div class="pc-sub">'+esc(p.subtitle)+'</div></div></div>'
++'<div class="pc-desc">'+esc(p.description)+'</div>'
++'<div class="pc-meta">'+p.tags.map(t=>'<span class="pc-pill mint">'+esc(t)+'</span>').join('')+'</div>'
 +'<div class="pc-actions"><button class="pc-btn select'+(isSelected?' selected':'')+'" onclick="selectProgram(\''+p.id+'\')">'+(isSelected?'✓ Выбрана':'Выбрать')+'</button>'
 +'<button class="pc-btn" style="background:var(--gray-1);color:var(--text-dark);flex:0 0 auto;padding:12px 16px;" onclick="openProgramDetail(\''+p.id+'\')">Смотреть</button></div>'
++(p.custom?'<div class="pc-actions" style="margin-top:8px;"><button class="pc-btn" style="background:var(--gray-1);color:var(--text-dark);" onclick="openProgramEdit(\''+p.id+'\')">✏️ Изменить</button><button class="pc-btn" style="background:var(--gray-1);color:var(--red);flex:0 0 auto;padding:12px 16px;" onclick="deleteCustomProgram(\''+p.id+'\')">🗑</button></div>':'')
 +'</div>';
 }).join('');
 }
@@ -1590,22 +1605,23 @@ const program=WORKOUT_PROGRAMS.find(x=>x.id===id);if(!program)return;
 document.getElementById('programDetailTitle').textContent=program.title;
 completedDays=loadProgramProgress();
 const content=document.getElementById('programDetailContent');
-let html='<div style="background:var(--white);border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm);"><div style="font-size:13px;color:var(--text-gray);font-weight:700;line-height:1.5;">'+program.description+'</div></div>';
+let html='<div style="background:var(--white);border-radius:22px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow-sm);"><div style="font-size:13px;color:var(--text-gray);font-weight:700;line-height:1.5;">'+esc(program.description)+'</div></div>';
 program.schedule.forEach((day,i)=>{
 const dayKey=program.id+'_'+i;
 const isDone=completedDays[dayKey];
 const isRest=day.type==='rest';
 html+='<div class="day-card'+(isRest?' rest':'')+'">';
-html+='<div class="dc-header"><div><div class="dc-day">'+day.day+'</div><div class="dc-title">'+day.title+'</div></div>';
+html+='<div class="dc-header"><div><div class="dc-day">'+day.day+'</div><div class="dc-title">'+esc(day.title)+'</div></div>';
 if(!isRest)html+='<div class="dc-check'+(isDone?' done':'')+'" onclick="toggleDayDone(\''+dayKey+'\',this)">'+(isDone?'✓':'')+'</div>';
 else html+='<span style="font-size:20px;">😴</span>';
 html+='</div>';
 if(!isRest)day.exercises.forEach(ex=>{
-html+='<div class="exercise-row"><div class="er-name">'+ex.name+'</div><div class="er-sets">'+ex.sets+' · '+ex.rest+'</div></div>';
+html+='<div class="exercise-row"><div class="er-name">'+esc(ex.name)+'</div><div class="er-sets">'+esc(ex.sets)+(ex.rest?' · '+esc(ex.rest):'')+'</div></div>';
 });
 html+='</div>';
 });
 html+='<button class="btn" onclick="selectProgram(\''+program.id+'\');showScreen(\'screen-programs\');" style="margin-top:20px;">Выбрать эту программу</button>';
+if(program.custom)html+='<button class="btn btn-secondary" onclick="openProgramEdit(\''+program.id+'\')" style="margin-top:10px;padding:14px;font-size:12px;">✏️ Изменить программу</button>';
 content.innerHTML=html;
 showScreen('screen-program-detail');
 }
@@ -1620,6 +1636,7 @@ el.textContent=completedDays[key]?'✓':'';
 
 // ============ INIT И NAV ============
 function init(){
+syncCustomPrograms();
 // Основная тема — зелёно-чёрная (Neon Dark). Один раз переводим тех, у кого стояла светлая по умолчанию; синюю/оранжевую не трогаем.
 {const s0=loadSettings();if(!s0.themeV2){if(!s0.theme||s0.theme==='light')s0.theme='dark';s0.themeV2=1;saveSettings(s0);}
 currentTheme=s0.theme||'dark';applyTheme(currentTheme);}
@@ -1680,6 +1697,7 @@ if(id==='screen-recipes')renderRecipes();
 if(id==='screen-recipe-create')renderRecipeDraft();
 if(id==='screen-recipe-picker')renderRecipePicker();
 if(id==='screen-programs')renderPrograms();
+if(id==='screen-program-edit')renderProgramEdit();
 if(id==='screen-ai')renderAIMessages();
 if(id==='screen-calendar')renderCalendar();
 if(id==='screen-records')renderRecords();
@@ -2141,15 +2159,15 @@ if(selectedExGroup!=='Все')items=items.filter(e=>e.group===selectedExGroup);
 if(search)items=items.filter(e=>e.name.toLowerCase().includes(search));
 const listDiv=document.getElementById('libList');
 const rawSearch=(document.getElementById('libSearch').value||'').trim();
-const custom=(libraryMode==='session'&&rawSearch&&!EXERCISE_LIBRARY.some(e=>e.name.toLowerCase()===rawSearch.toLowerCase()))?'<div class="product-item" onclick="pickExercise('+jsArg(rawSearch)+')"><div class="p-info"><div class="p-name">Добавить «'+esc(rawSearch)+'»</div><div class="p-macros" style="color:var(--mint);font-weight:900;">Своё упражнение</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>':'';
+const custom=((libraryMode==='session'||libraryMode==='program')&&rawSearch&&!EXERCISE_LIBRARY.some(e=>e.name.toLowerCase()===rawSearch.toLowerCase()))?'<div class="product-item" onclick="pickExercise('+jsArg(rawSearch)+')"><div class="p-info"><div class="p-name">Добавить «'+esc(rawSearch)+'»</div><div class="p-macros" style="color:var(--mint);font-weight:900;">Своё упражнение</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>':'';
 if(items.length===0){listDiv.innerHTML=custom||'<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено</div></div>';return}
 listDiv.innerHTML=custom+items.map(e=>'<div class="product-item" onclick="pickExercise('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+'</div><div class="p-macros" style="color:var(--mint);font-weight:900;text-transform:uppercase;">'+e.group+'</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>').join('');
 }
 function selectExGroup(g){selectedExGroup=g;renderLibrary();}
 function openLibrary(){libraryMode='exercise';document.getElementById('libraryTitle').textContent='Библиотека';selectedExGroup='Все';document.getElementById('libSearch').value='';showScreen('screen-library');}
 function openLibraryForTemplate(){libraryMode='template';document.getElementById('libraryTitle').textContent='В шаблон';selectedExGroup='Все';document.getElementById('libSearch').value='';showScreen('screen-library');}
-function closeLibrary(){if(libraryMode==='template')showScreen('screen-template-create');else if(libraryMode==='session')showScreen('screen-workout-session');else showScreen('screen-add');}
-function pickExercise(name){if(libraryMode==='session'){if(sessionData){sessionData.exercises.push(sessMakeEx(name,3));sessSave();}showScreen('screen-workout-session');}else if(libraryMode==='template'){templateDraft.exercises.push(name);showScreen('screen-template-create');}else{document.getElementById('exName').value=name;showScreen('screen-add');}}
+function closeLibrary(){if(libraryMode==='template')showScreen('screen-template-create');else if(libraryMode==='session')showScreen('screen-workout-session');else if(libraryMode==='program')showScreen('screen-program-edit');else showScreen('screen-add');}
+function pickExercise(name){if(libraryMode==='program'){const d=progDraft.schedule[progDayIdx];if(d)d.exercises.push({name:name,sets:'3 × 10',rest:'90с'});showScreen('screen-program-edit');}else if(libraryMode==='session'){if(sessionData){sessionData.exercises.push(sessMakeEx(name,3));sessSave();}showScreen('screen-workout-session');}else if(libraryMode==='template'){templateDraft.exercises.push(name);showScreen('screen-template-create');}else{document.getElementById('exName').value=name;showScreen('screen-add');}}
 
 // ============ TEMPLATES ============
 function renderTemplates(){
@@ -2477,7 +2495,8 @@ function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-ne
 // ============ EXPORT/IMPORT ============
 // Все ключи, которые нужно сохранять в резервную копию (раньше терялись цели КБЖУ и отметки о выполненных днях программы)
 const RECENT_KEY='atom_recent_foods';
-function backupKeys(){return[RECENT_KEY,PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY,'fitness_program_progress',TARGETS_KEY];}
+const CUSTOM_PROGRAMS_KEY='fitness_custom_programs';
+function backupKeys(){return[CUSTOM_PROGRAMS_KEY,RECENT_KEY,PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY,'fitness_program_progress',TARGETS_KEY];}
 function exportData(){
 const data={};
 backupKeys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
@@ -2735,6 +2754,57 @@ function closeBarcodeScanner(){
   showScreen('screen-products');
 }
 
+// ============ СВОЯ ПРОГРАММА ТРЕНИРОВОК ============
+const PROG_DAYS=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+let progDraft={id:null,title:'',schedule:[]},progDayIdx=0;
+function loadCustomPrograms(){try{const a=JSON.parse(localStorage.getItem(CUSTOM_PROGRAMS_KEY));return Array.isArray(a)?a.filter(x=>x&&x.id&&Array.isArray(x.schedule)):[]}catch{return[]}}
+function saveCustomPrograms(a){lsSet(CUSTOM_PROGRAMS_KEY,JSON.stringify(a));}
+// Свои программы подмешиваются в общий список WORKOUT_PROGRAMS — дальше работает весь существующий код (выбор, «сегодня по плану», запуск тренировки)
+function syncCustomPrograms(){for(let i=WORKOUT_PROGRAMS.length-1;i>=0;i--)if(WORKOUT_PROGRAMS[i].custom)WORKOUT_PROGRAMS.splice(i,1);loadCustomPrograms().forEach(p=>WORKOUT_PROGRAMS.push(Object.assign({},p,{custom:true,gender:'unisex'})));}
+function emptyProgDraft(){return{id:null,title:'',schedule:PROG_DAYS.map((d,i)=>[0,2,4].includes(i)?{day:d,title:'День '+([0,2,4].indexOf(i)+1),type:'workout',exercises:[]}:{day:d,title:'Отдых',type:'rest',exercises:[]})};}
+function openProgramCreate(){progDraft=emptyProgDraft();document.getElementById('progEditTitle').innerHTML='Своя<br>программа';showScreen('screen-program-edit');}
+function openProgramEdit(id){const p=loadCustomPrograms().find(x=>x.id===id);if(!p)return;progDraft=JSON.parse(JSON.stringify({id:p.id,title:p.title,schedule:p.schedule}));document.getElementById('progEditTitle').innerHTML='Изменить<br>программу';showScreen('screen-program-edit');}
+function cancelProgramEdit(){showScreen('screen-programs');}
+function renderProgramEdit(){
+  const nm=document.getElementById('progName');if(nm&&document.activeElement!==nm)nm.value=progDraft.title||'';
+  document.getElementById('progDays').innerHTML=progDraft.schedule.map((d,i)=>{
+    const w=d.type==='workout';
+    let h='<div class="day-card'+(w?'':' rest')+'" style="opacity:1;"><div class="dc-header" style="margin-bottom:12px;"><div class="dc-day">'+d.day+'</div><div class="chips" style="margin:0;padding:0;"><div class="chip'+(w?'':' active')+'" onclick="progSetType('+i+',\'rest\')">😴 Отдых</div><div class="chip'+(w?' active':'')+'" onclick="progSetType('+i+',\'workout\')">💪 Тренировка</div></div></div>';
+    if(w){
+      h+='<div class="input-group"><label>Название дня</label><input value="'+esc(d.title)+'" placeholder="Например: Грудь и трицепс" maxlength="50" oninput="progDraft.schedule['+i+'].title=this.value"></div>';
+      h+=d.exercises.map((ex,j)=>'<div class="prog-ex"><div class="pe-name">'+esc(ex.name)+'</div><input class="pe-in" value="'+esc(ex.sets)+'" placeholder="3 × 10" maxlength="14" oninput="progDraft.schedule['+i+'].exercises['+j+'].sets=this.value"><input class="pe-in pe-rest" inputmode="numeric" value="'+esc(parseInt(ex.rest)||'')+'" placeholder="90" maxlength="3" oninput="progSetRest('+i+','+j+',this.value)"><span class="pe-unit">с</span><button type="button" class="sess-x" onclick="progRemoveEx('+i+','+j+')">✕</button></div>').join('');
+      h+=(d.exercises.length?'<div style="font-size:11px;color:var(--text-gray);font-weight:700;margin:4px 0 0;">Подходы × повторы · отдых в секундах</div>':'')+'<button type="button" class="sess-add" onclick="progAddEx('+i+')">+ Упражнение</button>';
+    }
+    return h+'</div>';
+  }).join('');
+}
+function progSetType(i,t){const d=progDraft.schedule[i];d.type=t;if(t==='rest'){d.title='Отдых';}else if(!d.title||d.title==='Отдых'){d.title='День '+(progDraft.schedule.filter(x=>x.type==='workout').length);}renderProgramEdit();}
+function progSetRest(i,j,v){const n=parseInt(v);progDraft.schedule[i].exercises[j].rest=n>0?n+'с':'';}
+function progRemoveEx(i,j){progDraft.schedule[i].exercises.splice(j,1);renderProgramEdit();}
+function progAddEx(i){progDayIdx=i;libraryMode='program';document.getElementById('libraryTitle').textContent='В программу';selectedExGroup='Все';document.getElementById('libSearch').value='';showScreen('screen-library');}
+function normSets(v){const m=/(\d+)\s*[×xх*\-]\s*(\d+(?:\s*-\s*\d+)?)/i.exec(String(v||''));return m?m[1]+' × '+m[2].replace(/\s+/g,''):(String(v||'').trim()||'3 × 10');}
+function saveProgramDraft(){
+  const title=(progDraft.title||'').trim();
+  if(!title)return alert('Введи название программы');
+  const days=progDraft.schedule.filter(d=>d.type==='workout');
+  if(!days.length)return alert('Выбери хотя бы один день тренировки');
+  if(days.some(d=>!d.exercises.length))return alert('Добавь упражнения в каждый день тренировки или отметь его как отдых');
+  const schedule=progDraft.schedule.map((d,i)=>d.type==='workout'?{day:d.day,title:(d.title||'').trim()||'Тренировка '+(i+1),type:'workout',exercises:d.exercises.map(e=>({name:e.name,sets:normSets(e.sets),rest:e.rest||'90с'}))}:{day:d.day,title:'Отдых',type:'rest',exercises:[]});
+  const progs=loadCustomPrograms();
+  const prog={id:progDraft.id||('c_'+Date.now()),icon:'📝',title:title,subtitle:days.length+' '+(days.length===1?'день':days.length<5?'дня':'дней')+' в неделю · Своя',gender:'unisex',description:'Твоя программа: '+days.map(d=>d.title).join(' · '),tags:['Своя'],schedule:schedule};
+  const idx=progs.findIndex(x=>x.id===prog.id);if(idx>=0)progs[idx]=prog;else progs.push(prog);
+  saveCustomPrograms(progs);syncCustomPrograms();
+  const pr=loadProfile()||{};pr.selectedProgramId=prog.id;saveProfileData(pr);
+  progDraft={id:null,title:'',schedule:[]};
+  showScreen('screen-programs');renderTodayWorkout();notify('✅ Программа сохранена и выбрана');
+}
+function deleteCustomProgram(id){
+  if(!confirm('Удалить программу?'))return;
+  saveCustomPrograms(loadCustomPrograms().filter(x=>x.id!==id));syncCustomPrograms();
+  const pr=loadProfile();if(pr&&pr.selectedProgramId===id){delete pr.selectedProgramId;saveProfileData(pr);}
+  renderPrograms();renderTodayWorkout();
+}
+
 // ============ СЕГОДНЯШНЯЯ ТРЕНИРОВКА ============
 function renderTodayWorkout(){
   const block = document.getElementById('todayWorkoutBlock');
@@ -2765,15 +2835,15 @@ function renderTodayWorkout(){
   // Тренировка
   const preview = today.exercises.slice(0, 4).map(ex =>
     '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.15);">'
-    + '<div style="font-weight:700;font-size:13px;flex:1;">'+ex.name+'</div>'
-    + '<div style="font-size:11px;opacity:.8;font-weight:700;white-space:nowrap;margin-left:8px;">'+ex.sets+'</div>'
+    + '<div style="font-weight:700;font-size:13px;flex:1;">'+esc(ex.name)+'</div>'
+    + '<div style="font-size:11px;opacity:.8;font-weight:700;white-space:nowrap;margin-left:8px;">'+esc(ex.sets)+'</div>'
     + '</div>'
   ).join('');
   const more = today.exercises.length > 4 ? '<div style="font-size:12px;opacity:.8;font-weight:700;padding-top:8px;">Ещё '+(today.exercises.length-4)+' упражнений</div>' : '';
 
   block.innerHTML = '<div style="background:linear-gradient(135deg,var(--mint) 0%,var(--mint-dim) 100%);border-radius:22px;padding:20px;margin-bottom:12px;color:#fff;box-shadow:var(--shadow-mint);position:relative;overflow:hidden;">'
     + '<div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;opacity:.9;margin-bottom:6px;">'+dayName+' · Сегодня</div>'
-    + '<div style="font-size:22px;font-weight:900;margin-bottom:16px;letter-spacing:-0.5px;">💪 '+today.title+'</div>'
+    + '<div style="font-size:22px;font-weight:900;margin-bottom:16px;letter-spacing:-0.5px;">💪 '+esc(today.title)+'</div>'
     + '<div style="background:rgba(255,255,255,.15);border-radius:16px;padding:6px 14px 10px;margin-bottom:16px;">'
     + preview
     + more
