@@ -37,3 +37,25 @@ r=await f('/food-search?q=5449000000996',hdr);j=await r.json();t('нет в ба
 r=await f('/food-search?q=9999999999999',hdr);j=await r.json();t('нигде нет → пустой список, без ошибки',r.status===200&&j.products.length===0);
 r=await f('/food-search?q=0012345678905',hdr);j=await r.json();t('UPC-A: пробует вариант без нуля',r.status===200&&offCalls.some(u=>u.includes('/012345678905.json')));
 console.log(ok+'/'+(ok+bad));
+// --- текстовый поиск на настоящей SQLite (та же SQL, что в D1)
+{
+const { DatabaseSync } = await import('node:sqlite');
+const db = new DatabaseSync(':memory:');
+db.exec('CREATE TABLE products(name TEXT,brand TEXT,serving_size TEXT,code TEXT,calories REAL,protein REAL,fat REAL,carbs REAL,name_lower TEXT,brand_lower TEXT)');
+const ins = db.prepare('INSERT INTO products VALUES(?,?,?,?,?,?,?,?,?,?)');
+[['Грудка куриная копчёная','Ганна',250,'4810000000011'],['Колбаса варёная Докторская','Ганна',260,'4810000000028'],['Куриная грудка отварная','Домашний',150,'1'],['Гречка','Мистраль',310,'2'],['Грудка индейки','Ганна',130,'3']]
+ .forEach(([n,b,k,c])=>ins.run(n,b,'',c,k,20,10,1,n.toLowerCase(),b.toLowerCase()));
+env.DB={prepare:(q)=>({bind:(...a)=>({all:async()=>({results:db.prepare(q).all(...a)})})})};
+let offQ=null;globalThis.fetch=async(u)=>{if(String(u).includes('search.pl')){offQ=u;return{ok:true,json:async()=>({products:[{code:'9',product_name:'Грудка куриная копчёная',brands:'Ганна',nutriments:{'energy-kcal_100g':250}},{code:'10',product_name:'Грудка куриная копчёная в нарезке',brands:'Ганна, Беларусь',nutriments:{'energy-kcal_100g':240,'proteins_100g':20}},{code:'11',product_name:'Чай',brands:'X',nutriments:{'energy-kcal_100g':1}}]})}}return{ok:true,json:async()=>({status:0})}};
+const h={headers:{'X-Telegram-Init-Data':init(88)}};
+await W.fetch(new Request('https://w/api/status',{method:'POST',body:JSON.stringify({initData:init(88)})}),env,{});
+const s=async q=>(await (await f('/food-search?q='+encodeURIComponent(q),h)).json());
+let j=await s('куриная грудка ганна');t('«куриная грудка ганна» находит «Грудка куриная копчёная · Ганна»',j.products.some(p=>p.product_name==='Грудка куриная копчёная'&&p.brands==='Ганна'),j);
+j=await s('копченная грудка ганна');t('опечатка «копченная» + ё/е',j.products.some(p=>p.product_name==='Грудка куриная копчёная'),j);
+j=await s('ганна');t('только бренд: все товары бренда',j.products.filter(p=>p.brands==='Ганна').length===3);
+j=await s('гречка');t('простой запрос работает',j.products[0].product_name==='Гречка');
+j=await s('куриная грудка ганна');t('из Open Food Facts добавлены только подходящие и без дублей',j.source==='db+off'&&j.products.filter(p=>p.product_name==='Грудка куриная копчёная').length===1&&j.products.some(p=>p.product_name.includes('в нарезке'))&&!j.products.some(p=>p.product_name==='Чай'),j);
+globalThis.fetch=async()=>{throw new Error('offline')};
+j=await s('куриная грудка ганна');t('Open Food Facts недоступен → всё равно ответ из своей базы',j.products.length>=1,j);
+console.log(ok+'/'+(ok+bad));
+}

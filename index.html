@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#080d0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -51,6 +51,10 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html { height:100%; }
+  /* Без зума и «плавания» вбок: поля ввода ≥16px (иначе iOS приближает страницу при фокусе), боковая прокрутка отключена */
+  html, body { overflow-x:hidden; max-width:100%; overscroll-behavior-x:none; -webkit-text-size-adjust:100%; text-size-adjust:100%; touch-action:pan-x pan-y; }
+  input, select, textarea { font-size:16px !important; touch-action:manipulation; }
+  .chips, .chips * { touch-action:pan-x pan-y; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     background: var(--gray-1); color: var(--text-dark); min-height:100vh;
@@ -1128,6 +1132,19 @@
 <button class="floating-timer-btn" id="floatingTimerBtn" data-time="90" onclick="openTimerFromFloat()">⏱</button>
 
 <script>
+/* Запрет зума щипком (iOS игнорирует user-scalable=no); двойной тап отключён через touch-action */
+(function(){
+  var stop=function(e){e.preventDefault();};
+  ['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,stop,{passive:false});});
+  document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+  /* если страница всё же сместилась вбок (например после системного зума) — возвращаем на место */
+  function reset(){if(window.scrollX)window.scrollTo(0,window.scrollY);}
+  window.addEventListener('scroll',reset,{passive:true});
+  document.addEventListener('focusout',function(){setTimeout(reset,50);});
+  if(window.visualViewport){visualViewport.addEventListener('resize',function(){if(visualViewport.scale>1.001)reset();});}
+})();
+</script>
+<script>
 // Telegram WebApp: если скрипт telegram-web-app.js не загрузился (офлайн / обычный браузер) — приложение всё равно работает
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {platform:'unknown',initDataUnsafe:{},ready(){},expand(){},openLink(u){window.open(u,'_blank')}};
 try{tg.ready();tg.expand();if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();}catch(e){}
@@ -1332,6 +1349,7 @@ let _lastExternalQuery = '';
 
 function onProductSearchInput() {
     const q = document.getElementById('prodSearch').value.trim();
+    document.getElementById('prodTabs').style.display=q?'none':'';
     
     // 1. Мгновенный локальный fuzzy-поиск
     if (q.length === 0) {
@@ -2050,6 +2068,7 @@ function renderProducts(){
 const tabsDiv=document.getElementById('prodTabs');
 tabsDiv.innerHTML=PROD_GROUPS.map(g=>{const cnt=g==='Все'?allProducts().length:allProducts().filter(x=>x.cat===g).length;return'<div class="chip '+(g===selectedProdGroup?'active':'')+'" onclick="selectProdGroup(\''+g+'\')">'+g+'<span class="chip-count">'+cnt+'</span></div>';}).join('');
 const search=(document.getElementById('prodSearch').value||'').toLowerCase();
+tabsDiv.style.display=search?'none':'';
 const mealBox=document.getElementById('prodMealBox');const diaryMode=foodAddFrom==='diary'&&recipePickerTarget!=='recipe';
 if(mealBox){mealBox.style.display=diaryMode?'block':'none';if(diaryMode)document.getElementById('prodMealChips').innerHTML=mealChipsHtml();}
 const custom=loadCustomProducts(),customNames=new Set(custom.map(p=>p.name));

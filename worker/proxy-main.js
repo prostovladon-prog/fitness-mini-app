@@ -56,6 +56,51 @@ async function atomOffLookup(code) {
   return [];
 }
 
+
+// ===== Текстовый поиск: каждое слово ищем и в названии, и в бренде =====
+function atomNorm(s) { return String(s || '').toLowerCase().replace(/ё/g, 'е'); }
+// «основа» слова: отрезаем окончание, чтобы «куриная»/«курица», «копченная»/«копчёная» находились
+function atomStem(w) { return w.length >= 6 ? w.slice(0, Math.max(4, w.length - 3)) : w; }
+function atomTokens(q) {
+  return atomNorm(q).split(/[^a-zа-я0-9%]+/i).filter(w => w.length >= 2).slice(0, 6).map(atomStem);
+}
+
+async function atomOffSearch(q, tokens) {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 4500);
+    const r = await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_terms=' + encodeURIComponent(q)
+      + '&search_simple=1&action=process&json=1&page_size=24&fields=code,product_name,product_name_ru,generic_name,brands,serving_size,nutriments', {
+      headers: { 'User-Agent': 'ATOM-fitness-app/1.0 (Telegram Mini App)' },
+      signal: ac.signal,
+      cf: { cacheTtl: 3600, cacheEverything: true }
+    });
+    clearTimeout(t);
+    if (!r.ok) return [];
+    const j = await r.json();
+    const out = [];
+    for (const p of (j.products || [])) {
+      const n = p.nutriments || {};
+      let kcal = Number(n['energy-kcal_100g']);
+      if (!isFinite(kcal) && isFinite(Number(n['energy_100g']))) kcal = Number(n['energy_100g']) / 4.184;
+      const name = String(p.product_name_ru || p.product_name || p.generic_name || '').trim();
+      if (!name || !isFinite(kcal)) continue;
+      const hay = atomNorm(name + ' ' + (p.brands || ''));
+      if (!tokens.every(tk => hay.includes(tk))) continue; // OFF ищет нечётко — оставляем только то, где есть все слова
+      out.push({
+        product_name: name, brands: p.brands || '', serving_size: p.serving_size || '', code: p.code || '',
+        nutriments: {
+          'energy-kcal_100g': Math.round(kcal),
+          'proteins_100g': Number(n['proteins_100g']) || 0,
+          'fat_100g': Number(n['fat_100g']) || 0,
+          'carbohydrates_100g': Number(n['carbohydrates_100g']) || 0
+        }
+      });
+    }
+    return out;
+  } catch (e) { return []; }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const corsHeaders = {
@@ -109,15 +154,17 @@ export default {
         const q = query.trim().toLowerCase();
         const likeStart = q + '%';
         const likeAny = '%' + q + '%';
-        const likeWords = '%' + q.split(/\s+/).filter(w => w).join('%') + '%';
-
+        const tokens = atomTokens(q);
+        const nm = "REPLACE(name_lower,'ё','е')", br = "REPLACE(brand_lower,'ё','е')";
+        const tokCond = tokens.map(() => '(' + nm + ' LIKE ? OR ' + br + ' LIKE ?)').join(' AND ');
+        const tokBind = [];
+        tokens.forEach(tk => { tokBind.push('%' + tk + '%', '%' + tk + '%'); });
         const stmt = env.DB.prepare(`
           SELECT name, brand, serving_size, code, calories, protein, fat, carbs
           FROM products
           WHERE
+            ${tokens.length ? '(' + tokCond + ') OR' : ''}
             name_lower LIKE ?
-            OR name_lower LIKE ?
-            OR name_lower LIKE ?
             OR brand_lower LIKE ?
           ORDER BY
             CASE
@@ -128,7 +175,7 @@ export default {
             END,
             LENGTH(name) ASC
           LIMIT 30
-        `).bind(likeStart, likeAny, likeWords, likeAny, likeStart, likeAny, likeStart);
+        `).bind(...tokBind, likeAny, likeAny, likeStart, likeAny, likeStart);
 
         const result = await stmt.all();
 
@@ -145,10 +192,23 @@ export default {
           }
         }));
 
+        // Мало нашли в своей базе — добавляем результаты Open Food Facts (там есть белорусские и российские товары)
+        let source = 'db';
+        if (products.length < 8 && tokens.length) {
+          const extra = await atomOffSearch(q, tokens);
+          const seen = new Set(products.map(p => atomNorm(p.product_name) + '|' + atomNorm(p.brands)));
+          for (const e of extra) {
+            const k = atomNorm(e.product_name) + '|' + atomNorm(e.brands);
+            if (!seen.has(k)) { seen.add(k); products.push(e); }
+          }
+          if (extra.length) source = 'db+off';
+        }
+
         return new Response(JSON.stringify({
           products,
           count: products.length,
-          query: q
+          query: q,
+          source
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
