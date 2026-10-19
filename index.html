@@ -1311,7 +1311,9 @@ const MONTHS_SHORT=['Янв','Фев','Мар','Апр','Май','Июн','Ию�
 function formatDate(iso){const d=new Date(iso);return{day:DAYS[d.getDay()],short:`${d.getDate()} ${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`}}
 
 function calcDailyTarget(){
-const p=loadProfile();if(!p)return null;
+  const custom = loadCustomTargets();
+  if(custom) return custom; // Если заданы ручные цели - возвращаем их
+  const p=loadProfile();if(!p)return null;
 let bmr=p.gender==='male'?10*p.weight+6.25*p.height-5*p.age+5:10*p.weight+6.25*p.height-5*p.age-161;
 let tdee=bmr*1.375;
 if(p.goal==='lose')tdee*=0.8;else if(p.goal==='gain')tdee*=1.2;
@@ -1647,7 +1649,16 @@ else if(theme==='orange')document.body.classList.add('theme-orange');
 }
 function setTheme(theme){currentTheme=theme;applyTheme(theme);const s=loadSettings();s.theme=theme;saveSettings(s);renderSettings();}
 function renderSettings(){
-['dark','light','blue','orange'].forEach(t=>{const c=document.getElementById('themeCard-'+t);if(c)c.classList.toggle('active',t===currentTheme);});
+  ['dark','light','blue','orange'].forEach(t=>{const c=document.getElementById('themeCard-'+t);if(c)c.classList.toggle('active',t===currentTheme);});
+  
+  // Добавляем заполнение полей КБЖУ при открытии настроек
+  const custom = loadCustomTargets();
+  if(custom) {
+    document.getElementById('setCalories').value = custom.calories;
+    document.getElementById('setProtein').value = custom.protein;
+    document.getElementById('setFat').value = custom.fats;
+    document.getElementById('setCarbs').value = custom.carbs;
+  }
 }
 function saveSetting(key,value){const s=loadSettings();s[key]=value;saveSettings(s)}
 
@@ -2514,6 +2525,37 @@ function startTodayWorkout(){
   };
   document.getElementById('sessionDate').value = todayISO();
   showScreen('screen-workout-session');
+}
+
+// ============ РУЧНЫЕ ЦЕЛИ КБЖУ ============
+const TARGETS_KEY = 'fitness_custom_targets';
+
+function loadCustomTargets() {
+  try { return JSON.parse(localStorage.getItem(TARGETS_KEY)) || null; } catch { return null; }
+}
+
+function saveCustomTargets() {
+  const cal = parseInt(document.getElementById('setCalories').value);
+  const prot = parseInt(document.getElementById('setProtein').value);
+  const fat = parseInt(document.getElementById('setFat').value);
+  const carb = parseInt(document.getElementById('setCarbs').value);
+  
+  if(!cal || !prot || !fat || !carb) return alert('Заполни все поля для ручного расчёта');
+  
+  localStorage.setItem(TARGETS_KEY, JSON.stringify({ calories: cal, protein: prot, fats: fat, carbs: carb }));
+  alert('Твои личные цели сохранены! ✅');
+  renderSettings();
+}
+
+function resetCustomTargets() {
+  if(!confirm('Вернуть автоматический расчёт КБЖУ?')) return;
+  localStorage.removeItem(TARGETS_KEY);
+  document.getElementById('setCalories').value = '';
+  document.getElementById('setProtein').value = '';
+  document.getElementById('setFat').value = '';
+  document.getElementById('setCarbs').value = '';
+  alert('Включен автоматический расчёт ✅');
+  renderSettings();
 }
   
 init();
