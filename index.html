@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#00d9a3">
+<meta name="theme-color" content="#080d0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ATOM">
@@ -31,8 +31,8 @@
     --shadow-mint: 0 8px 24px rgba(0,217,163,.35);
   }
   body.theme-dark {
-    --gray-1: #0f1314; --gray-2: #1a1f21; --white: #1a1f21;
-    --text-dark: #ffffff; --text-gray: #a8b0b5;
+    --gray-1: #080d0c; --gray-2: #131c1a; --white: #121a18;
+    --text-dark: #ffffff; --text-gray: #9fb3ad;
     --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
     --shadow: 0 4px 20px rgba(0,0,0,.4);
     --mint-soft: #0d2a22;
@@ -97,6 +97,7 @@
   .stat-big .sb-icon.purple { background: #f0edff; color: var(--purple); }
   .stat-big .sb-icon.red { background: #ffe8e8; color: var(--red); }
   .stat-big .sb-icon.blue { background: #e5efff; color: var(--blue); }
+  body.theme-dark .stat-big .sb-icon.orange { background:#2a2113; } body.theme-dark .stat-big .sb-icon.purple { background:#1f1d33; } body.theme-dark .stat-big .sb-icon.red { background:#2f1a1a; } body.theme-dark .stat-big .sb-icon.blue { background:#14233a; }
   .stat-big .sb-value { font-size:32px; font-weight:900; letter-spacing:-1.5px; line-height:1; color: var(--text-dark); }
   .stat-big .sb-value .unit { font-size:13px; color: var(--text-gray); font-weight:700; margin-left:2px; }
   .stat-big .sb-target { font-size:11px; color: var(--text-gray); font-weight:700; }
@@ -1131,7 +1132,7 @@ let pendingProduct=null,portionProductData=null,currentExerciseId=null,currentFo
 let currentChartPeriod=7,currentBjuPeriod=7,selectedPhotoId=null,pendingPhotoData=null;
 let libraryMode='exercise',templateDraft={id:null,name:'',icon:'💪',exercises:[]},sessionData=null;
 let recipeDraft={id:null,name:'',ingredients:[]},recipePickerTarget=null,calendarDate=new Date();
-let currentTheme='light';
+let currentTheme='dark';
 let aiMessages=[];
 let aiHistory=[];
 
@@ -1151,7 +1152,7 @@ function loadWater(){try{return JSON.parse(localStorage.getItem(WATER_KEY))||{}}
 function saveWater(d){lsSet(WATER_KEY,JSON.stringify(d))}
 function loadRecipes(){try{return JSON.parse(localStorage.getItem(RECIPES_KEY))||[]}catch{return[]}}
 function saveRecipes(d){lsSet(RECIPES_KEY,JSON.stringify(d))}
-function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{autoTimer:'on',timerDefault:'90',theme:'light'}}catch{return{autoTimer:'on',timerDefault:'90',theme:'light'}}}
+function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{autoTimer:'on',timerDefault:'90',theme:'dark'}}catch{return{autoTimer:'on',timerDefault:'90',theme:'dark'}}}
 function saveSettings(s){lsSet(SETTINGS_KEY,JSON.stringify(s))}
 function loadSteps(){try{return JSON.parse(localStorage.getItem(STEPS_KEY))||{}}catch{return{}}}
 function saveStepsData(d){lsSet(STEPS_KEY,JSON.stringify(d))}
@@ -1581,6 +1582,9 @@ el.textContent=completedDays[key]?'✓':'';
 
 // ============ INIT И NAV ============
 function init(){
+// Основная тема — зелёно-чёрная (Neon Dark). Один раз переводим тех, у кого стояла светлая по умолчанию; синюю/оранжевую не трогаем.
+{const s0=loadSettings();if(!s0.themeV2){if(!s0.theme||s0.theme==='light')s0.theme='dark';s0.themeV2=1;saveSettings(s0);}
+currentTheme=s0.theme||'dark';applyTheme(currentTheme);}
 const profile0=loadProfile();
 // Проверка 1: есть ли имя
 if(!profile0||!profile0.userName){
@@ -1596,7 +1600,7 @@ if(!profile0.gender){
 }
 // Всё есть — на главный
 const settings=loadSettings();
-currentTheme=settings.theme||'light';
+currentTheme=settings.theme||'dark';
 applyTheme(currentTheme);
 document.getElementById('exDate').value=todayISO();
 document.getElementById('apDate').value=todayISO();
