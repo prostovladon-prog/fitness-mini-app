@@ -66,6 +66,11 @@
   #screen-ai.active { display:flex; flex-direction:column; height: calc(100vh - 170px); height: calc(100dvh - 170px - var(--safe-bottom)); min-height:380px; }
   #aiMessages { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; gap:10px; padding-bottom:16px; }
   .screen.active { display:block; }
+  body[data-nav=fwd] .screen.active { animation: atomInFwd .26s cubic-bezier(.2,.8,.2,1); }
+  body[data-nav=back] .screen.active { animation: atomInBack .26s cubic-bezier(.2,.8,.2,1); }
+  @keyframes atomInFwd { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes atomInBack { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
+  @media (prefers-reduced-motion: reduce) { .screen.active { animation:none !important; } }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .screen-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-top:8px; }
   .screen-header .sh-left { display:flex; align-items:center; gap:12px; }
@@ -830,6 +835,7 @@
     <div class="theme-card" id="themeCard-dark" onclick="setTheme('dark')"><div class="theme-preview dark"></div><div class="t-name">Neon Dark</div></div>
     <div class="theme-card" id="themeCard-blue" onclick="setTheme('blue')"><div class="theme-preview blue"></div><div class="t-name">Blue</div></div>
     <div class="theme-card" id="themeCard-orange" onclick="setTheme('orange')"><div class="theme-preview orange"></div><div class="t-name">Sunset</div></div>
+    <div class="theme-card" id="themeCard-auto" onclick="setTheme('auto')"><div class="theme-preview" style="background:linear-gradient(135deg,#ffffff 50%,#1a1f21 50%);"></div><div class="t-name">Как в Telegram</div></div>
   </div>
   <div class="section-title">Таймер отдыха</div>
   <div class="card">
@@ -847,6 +853,10 @@
   <button class="btn" onclick="saveCustomTargets()" style="margin-top:8px;">Сохранить цели</button>
   <button class="btn btn-secondary" onclick="resetCustomTargets()" style="margin-top:10px;padding:12px;font-size:12px;">Сбросить (Авто)</button>
 </div>
+  <div class="section-title">Подписка</div>
+  <div class="card" id="atomSubCard" style="display:none;"></div>
+  <div class="section-title">Синхронизация</div>
+  <div class="card"><div id="syncStatus" style="font-size:13px;line-height:1.5;"></div><button class="btn btn-secondary" onclick="atomSyncNow()" style="margin:12px 0 0;padding:12px;font-size:12px;">🔄 Синхронизировать сейчас</button></div>
   <div class="section-title">Данные</div>
   <button class="btn btn-secondary" onclick="exportData()" style="padding:14px;font-size:12px;">📤 Экспорт (JSON)</button>
   <button class="btn btn-secondary" onclick="showScreen('screen-import')" style="padding:14px;font-size:12px;">📥 Импорт</button>
@@ -2446,7 +2456,7 @@ function openInExternalBrowser(){
   try {
     // Telegram открывает ссылку во внешнем браузере
     if(tg.openLink){
-      tg.openLink(APP_URL);
+      tg.openLink(window.atomInstallUrl?atomInstallUrl():APP_URL);
     } else {
       window.open(APP_URL, '_blank');
     }
@@ -2697,6 +2707,343 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').catch(() => {});
   });
 }
+</script>
+<script>
+// ============ ATOM EXTRA: синхронизация · нативный вид Telegram · пробный период и подписка ============
+(function(){
+'use strict';
+const LS=window.localStorage;
+const rawSet=Storage.prototype.setItem, rawRem=Storage.prototype.removeItem;
+const inTg=!!(tg&&tg.initData);
+const toast=(m,ms)=>{try{let t=document.getElementById('atomToast');if(!t){t=document.createElement('div');t.id='atomToast';t.style.cssText='position:fixed;left:50%;bottom:calc(90px + var(--safe-bottom));transform:translateX(-50%);max-width:88vw;background:var(--black);color:#fff;padding:12px 18px;border-radius:16px;font-size:13px;font-weight:800;z-index:30000;box-shadow:0 8px 30px rgba(0,0,0,.35);text-align:center;transition:opacity .25s;opacity:0;pointer-events:none;';document.body.appendChild(t);}t.textContent=m;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},ms||3200);}catch(e){}};
+const hap=(t,k)=>{try{const h=tg.HapticFeedback;if(!h)return;if(t==='n')h.notificationOccurred(k||'success');else if(t==='s')h.selectionChanged();else h.impactOccurred(k||'light');}catch(e){}};
+const jget=(k,d)=>{try{const v=LS.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+const jset=(k,v)=>{try{rawSet.call(LS,k,JSON.stringify(v));}catch(e){}};
+
+// ===================== 1. СИНХРОНИЗАЦИЯ (Telegram CloudStorage) =====================
+const CS=(inTg&&tg.CloudStorage&&(!tg.isVersionAtLeast||tg.isVersionAtLeast('6.9')))?tg.CloudStorage:null;
+const SYNC=new Set(backupKeys().filter(k=>k!==PHOTOS_KEY)); // фото слишком тяжёлые для облака Telegram — они остаются на устройстве
+const CHUNK=3500, MAX_CHUNKS=200;
+const TS_KEY='atom_sync_ts', DIRTY_KEY='atom_sync_dirty', PREV_KEY='atom_sync_prev', LAST_KEY='atom_sync_last';
+let syncState={ok:null,msg:'',busy:false}, pushTimer=null, applying=false, pendingReload=false, lastPull=0;
+const cs={
+  get:keys=>new Promise((res,rej)=>CS.getItems(keys,(e,v)=>e?rej(new Error(String(e))):res(v||{}))),
+  set:(k,v)=>new Promise((res,rej)=>CS.setItem(k,v,(e,ok)=>e||!ok?rej(new Error(String(e||'не сохранено'))):res())),
+  rem:keys=>new Promise((res,rej)=>keys.length?CS.removeItems(keys,(e)=>e?rej(new Error(String(e))):res()):res())
+};
+const ckey=(k,i)=>'d_'+k+'_'+i;
+function getTs(){return jget(TS_KEY,{});}
+function markTs(k){const t=getTs();t[k]=Date.now();jset(TS_KEY,t);const d=new Set(jget(DIRTY_KEY,[]));d.add(k);jset(DIRTY_KEY,[...d]);}
+function setSync(ok,msg){syncState.ok=ok;syncState.msg=msg;updateSyncUI();}
+// Отслеживаем любые изменения данных приложения (включая прямые вызовы localStorage)
+Storage.prototype.setItem=function(k,v){rawSet.call(this,k,v);if(this===LS&&!applying&&SYNC.has(k)){markTs(k);schedulePush();}};
+Storage.prototype.removeItem=function(k){rawRem.call(this,k);if(this===LS&&!applying&&SYNC.has(k)){markTs(k);schedulePush();}};
+function schedulePush(){if(!CS)return;clearTimeout(pushTimer);pushTimer=setTimeout(()=>{push().catch(()=>{});},4000);}
+async function readMeta(){const r=await cs.get(['m']);try{const m=r.m?JSON.parse(r.m):null;return m&&m.k?m:{v:1,k:{}};}catch(e){return {v:1,k:{}};}}
+async function push(){
+  if(!CS||syncState.busy)return;
+  const dirty=jget(DIRTY_KEY,[]).filter(k=>SYNC.has(k));
+  if(!dirty.length)return;
+  syncState.busy=true;
+  try{
+    const meta=await readMeta(), ts=getTs();
+    for(const k of dirty){
+      const old=meta.k[k]||{n:0};
+      const v=LS.getItem(k);
+      if(v===null){
+        await cs.rem(Array.from({length:old.n||0},(_,i)=>ckey(k,i)));
+        meta.k[k]={t:ts[k]||Date.now(),n:0,del:1};
+        continue;
+      }
+      const n=Math.max(1,Math.ceil(v.length/CHUNK));
+      if(n>MAX_CHUNKS){setSync(false,'«'+k+'» слишком большой для облака');continue;}
+      for(let i=0;i<n;i++)await cs.set(ckey(k,i),v.slice(i*CHUNK,(i+1)*CHUNK));
+      const stale=[];for(let i=n;i<(old.n||0);i++)stale.push(ckey(k,i));
+      await cs.rem(stale);
+      meta.k[k]={t:ts[k]||Date.now(),n:n};
+    }
+    await cs.set('m',JSON.stringify(meta)); // метаданные пишем последними — незавершённая запись не считается новой версией
+    jset(DIRTY_KEY,[]);
+    rawSet.call(LS,LAST_KEY,String(Date.now()));
+    setSync(true,'');
+  }catch(e){setSync(false,'Нет связи с облаком Telegram');}
+  finally{syncState.busy=false;}
+}
+// Забираем из облака более новые данные. mode: 'start' | 'resume' | 'manual'
+async function pull(mode){
+  if(!CS)return {changed:0};
+  syncState.busy=true;let changed=0;
+  try{
+    const meta=await readMeta(), ts=getTs();
+    const p=loadProfile();const fresh=!p||!p.userName; // чистая установка: локальные данные ничего не весят
+    const dirty=new Set(jget(DIRTY_KEY,[]));
+    const prev={};let prevSize=0;
+    for(const k of Object.keys(meta.k)){
+      if(!SYNC.has(k))continue;
+      const e=meta.k[k], localT=fresh?0:(ts[k]||0);
+      if(e.t>localT){
+        let val=null;
+        if(!e.del){
+          const keys=Array.from({length:e.n},(_,i)=>ckey(k,i));
+          const parts=await cs.get(keys);
+          if(keys.some(x=>typeof parts[x]!=='string'))continue; // облако неполное — не трогаем локальное
+          val=keys.map(x=>parts[x]).join('');
+          try{JSON.parse(val);}catch(_){continue;}
+        }
+        const cur=LS.getItem(k);
+        if(cur!==null&&cur!==val&&prevSize+cur.length<400000){prev[k]=cur;prevSize+=cur.length;}
+        applying=true;try{if(val===null)rawRem.call(LS,k);else rawSet.call(LS,k,val);}finally{applying=false;}
+        ts[k]=e.t;dirty.delete(k);if(cur!==val)changed++;
+      }else if(e.t<localT)dirty.add(k);
+    }
+    for(const k of SYNC){if(!meta.k[k]&&LS.getItem(k)!==null)dirty.add(k);} // локальные данные, которых нет в облаке
+    jset(TS_KEY,ts);jset(DIRTY_KEY,[...dirty]);
+    if(Object.keys(prev).length)jset(PREV_KEY,{at:Date.now(),data:prev}); // страховка: что было на устройстве до перезаписи
+    lastPull=Date.now();
+    setSync(true,'');
+    await push();
+  }catch(e){setSync(false,'Нет связи с облаком Telegram');}
+  finally{syncState.busy=false;}
+  return {changed};
+}
+async function syncStart(){
+  if(!CS){updateSyncUI();return;}
+  const r=await pull('start');
+  if(r.changed>0){toast('☁️ Данные загружены из облака');setTimeout(()=>location.reload(),600);}
+}
+window.atomSyncNow=async function(){
+  if(!CS)return toast('Синхронизация работает только внутри Telegram');
+  setSync(null,'Синхронизация...');
+  const r=await pull('manual');
+  if(syncState.ok){hap('n');toast(r.changed?'☁️ Получены данные с другого устройства':'☁️ Всё синхронизировано');if(r.changed)setTimeout(()=>location.reload(),700);}
+  else{hap('n','error');toast('Не удалось синхронизировать');}
+};
+function updateSyncUI(){
+  const el=document.getElementById('syncStatus');if(!el)return;
+  if(!CS){el.innerHTML='Синхронизация между устройствами работает внутри Telegram. Открой ATOM через бота — и данные (кроме фото) будут сохраняться в облаке Telegram.';return;}
+  const last=+LS.getItem(LAST_KEY)||0;
+  const when=last?new Date(last).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'ещё не было';
+  el.innerHTML=(syncState.ok===false?'⚠️ '+esc(syncState.msg||'Ошибка')+'<br>':'')+'☁️ Облако Telegram · последняя синхронизация: <b>'+when+'</b><br><span style="opacity:.7">Фото остаются только на этом устройстве.</span>';
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){clearTimeout(pushTimer);push().catch(()=>{});}
+  else if(CS&&Date.now()-lastPull>60000&&!jget(DIRTY_KEY,[]).length){pull('resume').then(r=>{if(r&&r.changed){if(document.getElementById('screen-home').classList.contains('active'))location.reload();else{pendingReload=true;toast('☁️ Есть данные с другого устройства — откроются на главной');}}});}
+});
+
+// ===================== 2. НАТИВНЫЙ ВИД TELEGRAM =====================
+const MAIN=['screen-home','screen-food','screen-workouts','screen-profile','screen-name-setup','screen-onboarding'];
+let stack=['screen-home'], navBack=false, curScreen='screen-home';
+const _show=window.showScreen;
+window.showScreen=function(id){
+  if(!navBack){
+    if(MAIN.includes(id))stack=[id];else if(stack[stack.length-1]!==id)stack.push(id);
+    if(stack.length>30)stack.shift();
+  }
+  document.body.setAttribute('data-nav',navBack?'back':'fwd');
+  _show(id);curScreen=id;
+  if(id==='screen-home'&&pendingReload){pendingReload=false;location.reload();return;}
+  updateBack();
+  try{if(tg.enableClosingConfirmation&&tg.disableClosingConfirmation){id==='screen-workout-session'?tg.enableClosingConfirmation():tg.disableClosingConfirmation();}}catch(e){}
+  accessSoftCheck();
+};
+function closeOverlays(){
+  let closed=false;
+  const q=document.getElementById('quickModal');if(q&&q.classList.contains('active')){q.classList.remove('active');closed=true;}
+  const t=document.getElementById('timerOverlay');if(t&&t.classList.contains('active')){t.classList.remove('active');closed=true;}
+  const m=document.getElementById('installModal');if(m&&m.style.display==='flex'){m.style.display='none';closed=true;}
+  const a=document.querySelector('[data-ask-input]');if(a){a.remove();closed=true;}
+  return closed;
+}
+function goBack(){
+  if(closeOverlays())return;
+  if(stack.length>1){stack.pop();navBack=true;try{window.showScreen(stack[stack.length-1]);}finally{navBack=false;}}
+}
+function updateBack(){try{const b=tg.BackButton;if(!b)return;if(stack.length>1)b.show();else b.hide();}catch(e){}}
+try{if(tg.BackButton){tg.BackButton.onClick(goBack);}}catch(e){}
+// Свайп от левого края — «назад»
+(function(){let sx=0,sy=0,on=false;
+  document.addEventListener('touchstart',e=>{const t=e.touches[0];on=t.clientX<26&&e.touches.length===1;sx=t.clientX;sy=t.clientY;},{passive:true});
+  document.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0];if(t.clientX-sx>80&&Math.abs(t.clientY-sy)<60&&(stack.length>1||document.querySelector('.timer-overlay.active'))){hap('l');goBack();}},{passive:true});
+})();
+// Тактильный отклик на нажатия
+let lastHap=0;
+document.addEventListener('click',e=>{const el=e.target.closest&&e.target.closest('button,.nav-btn,.theme-card,.list-item,.chip,.stat-big,[onclick]');if(!el)return;const n=Date.now();if(n-lastHap<80)return;lastHap=n;hap(el.classList.contains('nav-btn')?'s':'i','light');},true);
+// Системные уведомления Telegram вместо alert браузера (без адреса страницы в заголовке)
+const _alert=window.alert.bind(window);
+window.alert=function(m){if(inTg&&tg.showAlert&&(!tg.isVersionAtLeast||tg.isVersionAtLeast('6.2'))){try{tg.showAlert(String(m));return;}catch(e){}}_alert(m);};
+// Тема: «Как в Telegram»
+const _applyTheme=window.applyTheme;
+function tgScheme(){return (tg.colorScheme==='dark')?'dark':'light';}
+function hexOf(c){const m=String(c).match(/\d+(\.\d+)?/g);if(!m||m.length<3)return null;return '#'+m.slice(0,3).map(x=>('0'+Math.round(+x).toString(16)).slice(-2)).join('');}
+function paintTelegram(){
+  try{const bg=hexOf(getComputedStyle(document.body).backgroundColor);if(!bg)return;
+    if(tg.setHeaderColor)tg.setHeaderColor(bg);if(tg.setBackgroundColor)tg.setBackgroundColor(bg);if(tg.setBottomBarColor)tg.setBottomBarColor(bg);}catch(e){}
+}
+window.applyTheme=function(theme){_applyTheme(theme==='auto'?tgScheme():theme);setTimeout(paintTelegram,350);};
+try{if(tg.onEvent)tg.onEvent('themeChanged',()=>{if(window.currentTheme==='auto'||currentTheme==='auto')window.applyTheme('auto');});}catch(e){}
+const _renderSettings=window.renderSettings;
+window.renderSettings=function(){_renderSettings();const c=document.getElementById('themeCard-auto');if(c)c.classList.toggle('active',currentTheme==='auto');updateSyncUI();renderSubCard();};
+
+// ===================== 3. ПРОБНЫЙ ПЕРИОД, ПОДПИСКА, КАНАЛ =====================
+const W=WORKER_URL;
+let CFG=null, ST=null, skew=0, locked=false, awaitingChannel=false, refreshing=false;
+const TOKEN_KEY='atom_token', LINK_KEY='atom_link_token', CFG_KEY='atom_cfg', ST_KEY='atom_st';
+// токен привязки может прийти в адресе (#tk=...)
+try{const m=/[#&]tk=([A-Za-z0-9._-]+)/.exec(location.hash||'');if(m){rawSet.call(LS,TOKEN_KEY,m[1]);history.replaceState(null,'',location.pathname+location.search);}}catch(e){}
+const myToken=()=>LS.getItem(TOKEN_KEY)||'';
+const hasIdentity=()=>!!(tg.initData||myToken());
+function authBody(extra){return Object.assign({initData:tg.initData||'',token:tg.initData?'':myToken()},extra||{});}
+async function api(path,body,timeout){
+  const ac=('AbortController' in window)?new AbortController():null;const to=ac?setTimeout(()=>ac.abort(),timeout||8000):null;
+  try{const r=await _fetch(W+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(authBody(body)),signal:ac?ac.signal:undefined});
+    let j=null;try{j=await r.json();}catch(_){}return {status:r.status,data:j};}
+  finally{if(to)clearTimeout(to);}
+}
+// Подписываем запросы к платным функциям (ИИ-тренер, поиск продуктов), когда подписка включена на сервере
+const _fetch=window.fetch.bind(window);
+window.fetch=function(url,opts){
+  try{
+    if(CFG&&CFG.enabled&&typeof url==='string'&&url.indexOf(W)===0&&/\/(ai-chat|food-search)/.test(url)){
+      opts=Object.assign({},opts||{});const h=Object.assign({},opts.headers||{});
+      if(tg.initData)h['X-Telegram-Init-Data']=tg.initData;else if(myToken())h['X-Atom-Token']=myToken();
+      opts.headers=h;
+      return _fetch(url,opts).then(r=>{if(r.status===402)refreshAccess();return r;});
+    }
+  }catch(e){}
+  return _fetch(url,opts);
+};
+function accessEnd(){if(!ST)return 0;return ST.reason==='subscribed'?ST.subUntil:ST.trialEndsAt;}
+function setStatus(s){ST=s;skew=(s.now||Date.now())-Date.now();jset(ST_KEY,{st:s,at:Date.now()});applyGate();}
+const nowS=()=>Date.now()+skew;
+function daysLeft(){const e=accessEnd();return Math.max(0,Math.ceil((e-nowS())/86400000));}
+async function loadCfg(){
+  try{const ac=new AbortController();const to=setTimeout(()=>ac.abort(),5000);const r=await _fetch(W+'/api/config',{signal:ac.signal});clearTimeout(to);
+    if(r.ok){CFG=await r.json();jset(CFG_KEY,CFG);return;}}catch(e){}
+  CFG=jget(CFG_KEY,null); // сервер недоступен — работаем по последним известным настройкам
+}
+async function refreshAccess(){
+  if(!CFG||!CFG.enabled||refreshing)return;refreshing=true;
+  try{
+    if(!hasIdentity()){applyGate();return;}
+    const r=await api('/api/status',{});
+    if(r.status===200&&r.data)setStatus(r.data);
+    else if(r.status===401){ST=null;applyGate('auth');}
+    // 5xx / сеть: остаёмся на последнем известном статусе (не блокируем из-за сбоя сервера)
+  }catch(e){const c=jget(ST_KEY,null);if(c&&!ST){ST=c.st;skew=0;applyGate();}}
+  finally{refreshing=false;}
+}
+function accessSoftCheck(){if(ST&&ST.access&&accessEnd()&&nowS()>accessEnd())refreshAccess();}
+function applyGate(why){
+  if(!CFG||!CFG.enabled){removeLock();renderBanner();return;}
+  if(!hasIdentity()){showLock('open');return;}
+  if(why==='auth'){showLock('open');return;}
+  if(ST&&!ST.access){showLock('paywall');return;}
+  removeLock();renderBanner();renderSubCard();maybeChannelPrompt();
+}
+function removeLock(){locked=false;const l=document.getElementById('atomLock');if(l)l.remove();}
+function btn(label,fn,cls,style){return '<button type="button" class="btn '+(cls||'')+'" style="'+(style||'')+'" onclick="'+fn+'">'+label+'</button>';}
+function channelBlock(){
+  if(!(ST&&ST.bonusAvailable&&CFG&&CFG.channel&&CFG.channel.url))return '';
+  return '<div class="card" style="text-align:left;margin-bottom:14px;"><div style="font-weight:900;font-size:15px;">🎁 +'+(CFG.bonusDays||3)+' дня бесплатно</div><div style="font-size:13px;opacity:.75;margin:6px 0 12px;">Подпишись на наш Telegram-канал — получишь ещё '+(CFG.bonusDays||3)+' дня пользования.</div>'
+    +btn('📣 Подписаться на канал','atomOpenChannel()','','margin:0 0 8px;padding:14px;')+btn('✅ Я подписался — проверить','atomCheckChannel()','btn-secondary','margin:0;padding:12px;font-size:12px;')+'</div>';
+}
+function showLock(kind){
+  locked=true;closeOverlays();
+  let l=document.getElementById('atomLock');if(!l){l=document.createElement('div');l.id='atomLock';l.style.cssText='position:fixed;inset:0;z-index:20000;background:var(--gray-1);color:var(--text-dark);overflow-y:auto;padding:calc(28px + var(--safe-top)) 20px calc(28px + var(--safe-bottom));';document.body.appendChild(l);}
+  const price=(CFG&&CFG.price)||250;let h='<div style="max-width:420px;margin:0 auto;text-align:center;">';
+  if(kind==='open'){
+    h+='<div style="font-size:54px;">⚡</div><div style="font-weight:900;font-size:24px;margin:8px 0;">Открой ATOM в Telegram</div><div style="font-size:14px;opacity:.75;margin-bottom:20px;">Чтобы подтвердить пробный период или подписку, запускай приложение через бота в Telegram.</div>';
+    if(CFG&&CFG.bot)h+=btn('Открыть бота','window.open(\'https://t.me/'+esc(CFG.bot)+'\',\'_blank\')','','margin-bottom:12px;');
+    h+='<div class="card" style="text-align:left;"><div style="font-weight:800;font-size:13px;margin-bottom:8px;">Уже установил на главный экран?</div><div style="font-size:12px;opacity:.7;margin-bottom:10px;">В Telegram: Настройки → Синхронизация → «Скопировать код привязки», и вставь сюда:</div><input id="atomTokenIn" type="text" placeholder="Код привязки" style="width:100%;padding:12px;border-radius:12px;border:2px solid var(--gray-2);background:var(--gray-1);color:var(--text-dark);font-size:14px;margin-bottom:10px;">'+btn('Привязать','atomBindToken()','btn-secondary','margin:0;padding:12px;font-size:12px;')+'</div>';
+  }else{
+    const exp=ST&&ST.reason==='expired';
+    h+='<div style="font-size:54px;">⏰</div><div style="font-weight:900;font-size:24px;margin:8px 0;">'+(exp?'Пробный период закончился':'Нужна подписка')+'</div><div style="font-size:14px;opacity:.75;margin-bottom:20px;">Твои данные в безопасности — они никуда не делись. Оформи ATOM Pro, чтобы продолжить тренировки, питание и ИИ-тренера.</div>'+channelBlock()
+      +btn('⭐ Оформить за '+price+' ⭐ / месяц','atomPay()','','margin-bottom:10px;')+btn('🔄 Я уже оплатил — проверить','atomRecheck()','btn-secondary','margin-bottom:10px;padding:12px;font-size:12px;')
+      +btn('📤 Экспорт моих данных','exportData()','btn-secondary','margin-bottom:6px;padding:12px;font-size:12px;')
+      +'<div style="font-size:11px;opacity:.55;margin-top:10px;">Подписка продлевается каждые 30 дней. Отменить можно в Telegram: Настройки → Мои звёзды.</div>';
+  }
+  l.innerHTML=h+'</div>';
+}
+window.atomBindToken=async function(){
+  const v=(document.getElementById('atomTokenIn')||{}).value;if(!v||!/^v1\.[A-Za-z0-9._-]+$/.test(v.trim()))return alert('Код не похож на правильный. Скопируй его заново в Telegram.');
+  rawSet.call(LS,TOKEN_KEY,v.trim());await refreshAccess();
+  if(!ST){rawRem.call(LS,TOKEN_KEY);toast('Код не подошёл');}
+};
+window.atomCopyToken=async function(){
+  try{let tok=LS.getItem(LINK_KEY);if(!tok){const r=await api('/api/link-token',{});if(r.status===200&&r.data&&r.data.token){tok=r.data.token;rawSet.call(LS,LINK_KEY,tok);}}
+    if(!tok)return toast('Не удалось получить код');
+    try{await navigator.clipboard.writeText(tok);toast('Код скопирован. Вставь его в установленном приложении');}catch(e){prompt_(tok);}
+  }catch(e){toast('Нет связи с сервером');}
+};
+function prompt_(tok){askInput('Скопируй код привязки',tok,()=>{});}
+window.atomInstallUrl=function(){const t=LS.getItem(LINK_KEY);return APP_URL+(t?'#tk='+t:'');};
+window.atomOpenChannel=function(){
+  const u=CFG&&CFG.channel&&CFG.channel.url;if(!u)return;awaitingChannel=true;
+  try{if(tg.openTelegramLink&&/^https:\/\/t\.me\//.test(u))tg.openTelegramLink(u);else window.open(u,'_blank');}catch(e){window.open(u,'_blank');}
+};
+window.atomCheckChannel=async function(silent){
+  try{const r=await api('/api/channel-check',{});
+    if(r.status===200&&r.data){
+      if(r.data.granted){hap('n');toast('🎉 Спасибо! +'+(CFG.bonusDays||3)+' дня к пробному периоду',4500);}
+      else if(r.data.subscribed&&!silent)toast('Ты уже подписан — бонус уже получен');
+      else if(!r.data.subscribed&&!silent){hap('n','warning');toast('Подписка не найдена. Подпишись на канал и нажми ещё раз');}
+      setStatus(Object.assign({},r.data,{channel:ST&&ST.channel,price:ST&&ST.price}));
+    }else if(!silent)toast(r.status===502?'Не удалось проверить подписку, попробуй позже':'Ошибка проверки');
+  }catch(e){if(!silent)toast('Нет связи с сервером');}
+};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(awaitingChannel){awaitingChannel=false;setTimeout(()=>atomCheckChannel(true),800);}accessSoftCheck();if(locked)refreshAccess();}});
+window.atomRecheck=async function(){await refreshAccess();if(ST&&!ST.access)toast('Оплата пока не найдена. Если только что оплатил — подожди пару секунд');};
+window.atomPay=async function(){
+  try{const r=await api('/api/invoice',{});
+    if(r.status!==200||!r.data||!r.data.url)return toast('Не удалось создать счёт. Попробуй позже');
+    if(tg.openInvoice){tg.openInvoice(r.data.url,async status=>{if(status==='paid'){hap('n');toast('Оплата прошла! Активируем...');for(let i=0;i<6;i++){await new Promise(z=>setTimeout(z,1500));await refreshAccess();if(ST&&ST.access)break;}if(ST&&ST.access)toast('✅ ATOM Pro активен');}else if(status==='failed'){hap('n','error');toast('Оплата не прошла');}});}
+    else window.open(r.data.url,'_blank');
+  }catch(e){toast('Нет связи с сервером');}
+};
+function bannerHost(){let b=document.getElementById('atomBanner');if(!b){const a=document.getElementById('notifArea');if(!a)return null;b=document.createElement('div');b.id='atomBanner';a.insertAdjacentElement('beforebegin',b);}return b;}
+function renderBanner(){
+  const b=bannerHost();if(!b)return;
+  if(!(CFG&&CFG.enabled&&ST&&ST.access&&ST.reason!=='subscribed')){b.innerHTML='';return;}
+  const d=daysLeft();
+  b.innerHTML='<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,var(--mint),var(--mint-dim));color:#fff;"><div style="font-weight:900;font-size:15px;">⚡ Пробный период: осталось '+d+' '+(d%10===1&&d%100!==11?'день':(d%10>=2&&d%10<=4&&(d%100<10||d%100>=20)?'дня':'дней'))+'</div>'
+    +(ST.bonusAvailable&&CFG.channel&&CFG.channel.url?'<div style="font-size:12px;opacity:.9;margin:6px 0 10px;">Подпишись на канал — получишь ещё '+(CFG.bonusDays||3)+' дня</div><button type="button" class="btn btn-secondary" style="margin:0;padding:10px;font-size:12px;" onclick="atomOpenChannel()">📣 Подписаться на канал</button>':'<button type="button" class="btn btn-secondary" style="margin:8px 0 0;padding:10px;font-size:12px;" onclick="atomPay()">⭐ Оформить за '+((CFG&&CFG.price)||250)+' ⭐/мес</button>')+'</div>';
+}
+function maybeChannelPrompt(){
+  try{
+    if(!(ST&&ST.access&&ST.bonusAvailable&&CFG&&CFG.channel&&CFG.channel.url))return;
+    const p=loadProfile();if(!p||!p.userName)return;
+    if(LS.getItem('atom_chprompt'))return;rawSet.call(LS,'atom_chprompt','1');
+    const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:15000;display:flex;align-items:center;justify-content:center;padding:24px;';
+    o.innerHTML='<div style="background:var(--white);color:var(--text-dark);border-radius:22px;padding:24px;width:100%;max-width:340px;text-align:center;"><div style="font-size:44px;">🎁</div><div style="font-weight:900;font-size:18px;margin:6px 0;">+'+(CFG.bonusDays||3)+' дня в подарок</div><div style="font-size:13px;opacity:.75;margin-bottom:16px;">Подпишись на канал ATOM — продли бесплатный период до '+((CFG.trialDays||4)+(CFG.bonusDays||3))+' дней. Там советы по тренировкам и новости приложения.</div><button type="button" class="btn" style="margin:0 0 8px;" data-a="go">📣 Подписаться</button><button type="button" class="btn btn-secondary" style="margin:0;padding:12px;font-size:12px;" data-a="later">Позже</button></div>';
+    document.body.appendChild(o);
+    o.querySelector('[data-a=go]').onclick=()=>{o.remove();atomOpenChannel();};o.querySelector('[data-a=later]').onclick=()=>o.remove();
+  }catch(e){}
+}
+function renderSubCard(){
+  const el=document.getElementById('atomSubCard');if(!el)return;
+  if(!(CFG&&CFG.enabled)){el.style.display='none';return;}el.style.display='';
+  const fmt=t=>new Date(t).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+  let h='';
+  if(!ST)h='<div style="font-size:13px;opacity:.75;">Статус подписки появится после проверки.</div>';
+  else if(ST.reason==='subscribed')h='<div style="font-weight:900;">✅ ATOM Pro активен</div><div style="font-size:12px;opacity:.7;margin:4px 0 0;">до '+fmt(ST.subUntil)+'</div>';
+  else h='<div style="font-weight:900;">⚡ Пробный период</div><div style="font-size:12px;opacity:.7;margin:4px 0 12px;">до '+fmt(ST.trialEndsAt)+' · осталось '+daysLeft()+' дн.</div>'+(ST.bonusAvailable&&CFG.channel&&CFG.channel.url?btn('📣 Подписаться на канал (+'+(CFG.bonusDays||3)+' дня)','atomOpenChannel()','btn-secondary','margin:0 0 8px;padding:12px;font-size:12px;'):'')+btn('⭐ Оформить за '+((CFG&&CFG.price)||250)+' ⭐ / месяц','atomPay()','','margin:0;padding:12px;font-size:12px;');
+  if(tg.initData)h+=btn('🔗 Скопировать код привязки','atomCopyToken()','btn-secondary','margin:10px 0 0;padding:10px;font-size:11px;');
+  el.innerHTML=h;
+}
+
+// ===================== запуск =====================
+window.atomAccess={refresh:refreshAccess};
+syncStart();
+loadCfg().then(async()=>{
+  if(CFG&&CFG.enabled){const c=jget(ST_KEY,null);if(c&&c.st&&hasIdentity()){ST=c.st;skew=0;}await refreshAccess();applyGate();
+    if(tg.initData&&!LS.getItem(LINK_KEY)){api('/api/link-token',{}).then(r=>{if(r.status===200&&r.data&&r.data.token)rawSet.call(LS,LINK_KEY,r.data.token);}).catch(()=>{});}
+    setInterval(()=>{accessSoftCheck();},60000);
+  }
+  window.applyTheme(currentTheme);
+});
+const _renderHome=window.renderHome;window.renderHome=function(){_renderHome.apply(this,arguments);renderBanner();setTimeout(maybeChannelPrompt,700);};
+window.applyTheme(currentTheme);updateBack();
+})();
 </script>
 </body>
 </html>
