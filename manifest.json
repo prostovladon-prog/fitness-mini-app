@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "ATOM — Фитнес-Эксперт",
   "short_name": "ATOM",
   "description": "Дневник питания, тренировок и прогресса",
@@ -9,18 +10,29 @@
   "theme_color": "#00d9a3",
   "orientation": "portrait",
   "lang": "ru",
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle"
+  ],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,SF Pro Display,Segoe UI,Roboto,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,SF Pro Display,Segoe UI,Roboto,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

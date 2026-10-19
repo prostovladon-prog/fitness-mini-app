@@ -10,7 +10,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2300d9a3'/%3E%3Ctext x='256' y='360' font-family='-apple-system,sans-serif' font-size='340' font-weight='900' fill='%230f1314' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>ATOM</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -60,24 +61,10 @@
     transition: background .3s, color .3s; overscroll-behavior: none;
   }
   .container { max-width:520px; margin:0 auto; padding:20px 16px 60px; }
-    /* --- ФИКС ИИ-ЧАТА --- */
-  #screen-ai.active {
-    display: flex;
-    flex-direction: column;
-    height: calc(100dvh - 100px - var(--safe-bottom)); /* учитывает клавиатуру */
-    overflow: hidden;
-  }
-  #aiMessages {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-bottom: 16px;
-  }
   .screen { display:none; animation:fadeIn .3s ease; }
-  #screen-ai.active { display: flex; flex-direction: column; height: calc(100vh - 160px); }
-  #aiMessages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
+  /* ИИ-чат: сообщения прокручиваются внутри, поле ввода всегда видно */
+  #screen-ai.active { display:flex; flex-direction:column; height: calc(100vh - 170px); height: calc(100dvh - 170px - var(--safe-bottom)); min-height:380px; }
+  #aiMessages { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; gap:10px; padding-bottom:16px; }
   .screen.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .screen-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-top:8px; }
@@ -1083,9 +1070,24 @@
 <button class="floating-timer-btn" id="floatingTimerBtn" data-time="90" onclick="openTimerFromFloat()">⏱</button>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.ready(); tg.expand();
+// Telegram WebApp: если скрипт telegram-web-app.js не загрузился (офлайн / обычный браузер) — приложение всё равно работает
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {platform:'unknown',initDataUnsafe:{},ready(){},expand(){},openLink(u){window.open(u,'_blank')}};
+try{tg.ready();tg.expand();if(tg.disableVerticalSwipes)tg.disableVerticalSwipes();}catch(e){}
 const user = tg.initDataUnsafe?.user;
+
+// ---- Безопасность и утилиты ----
+// Экранирование текста для вставки в innerHTML
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// Безопасный строковый аргумент для inline-обработчика onclick="fn(...)"
+function jsArg(s){return esc(JSON.stringify(String(s==null?'':s)));}
+function num(v){const x=parseFloat(v);return isFinite(x)?x:0;}
+// Запись в localStorage с обработкой переполнения памяти
+function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){alert('Не удалось сохранить данные: память заполнена. Удали лишние фото или сделай экспорт (Настройки → Данные).');return false;}}
+// Даты: везде работаем по ЛОКАЛЬНОМУ времени (toISOString даёт UTC и ломает «сегодня» ночью)
+function isoOf(d){const tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10);}
+function parseISO(iso){const a=String(iso).split('-').map(Number);return new Date(a[0],(a[1]||1)-1,a[2]||1);}
+function weekStartISO(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return isoOf(d);}
+let _idSeq=0;function newId(){return Date.now()*1000+(_idSeq++%1000);}
 
 const WORKER_URL='https://atom-proxy.prostovladon.workers.dev';  
 const PROFILE_KEY='fitness_profile',EXERCISES_KEY='fitness_exercises_v2',MEALS_KEY='fitness_meals';
@@ -1125,59 +1127,76 @@ let aiMessages=[];
 let aiHistory=[];
 
 function loadProfile(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY))||null}catch{return null}}
-function saveProfileData(p){localStorage.setItem(PROFILE_KEY,JSON.stringify(p))}
-function loadExercises(){try{return JSON.parse(localStorage.getItem(EXERCISES_KEY))||[]}catch{return[]}}
-function saveExercises(d){localStorage.setItem(EXERCISES_KEY,JSON.stringify(d))}
-function loadMeals(){try{return JSON.parse(localStorage.getItem(MEALS_KEY))||[]}catch{return[]}}
-function saveMeals(d){localStorage.setItem(MEALS_KEY,JSON.stringify(d))}
+function saveProfileData(p){lsSet(PROFILE_KEY,JSON.stringify(p))}
+function loadExercises(){try{const a=JSON.parse(localStorage.getItem(EXERCISES_KEY));return Array.isArray(a)?a.filter(e=>e&&typeof e.name==='string').map(e=>({...e,history:Array.isArray(e.history)?e.history:[]})):[]}catch{return[]}}
+function saveExercises(d){lsSet(EXERCISES_KEY,JSON.stringify(d))}
+function loadMeals(){try{const a=JSON.parse(localStorage.getItem(MEALS_KEY));return Array.isArray(a)?a:[]}catch{return[]}}
+function saveMeals(d){lsSet(MEALS_KEY,JSON.stringify(d))}
 function loadCustomProducts(){try{return JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_KEY))||[]}catch{return[]}}
-function saveCustomProducts(d){localStorage.setItem(CUSTOM_PRODUCTS_KEY,JSON.stringify(d))}
+function saveCustomProducts(d){lsSet(CUSTOM_PRODUCTS_KEY,JSON.stringify(d))}
 function loadPhotos(){try{return JSON.parse(localStorage.getItem(PHOTOS_KEY))||[]}catch{return[]}}
-function savePhotos(d){try{localStorage.setItem(PHOTOS_KEY,JSON.stringify(d))}catch(e){alert('Память переполнена')}}
+function savePhotos(d){try{lsSet(PHOTOS_KEY,JSON.stringify(d))}catch(e){alert('Память переполнена')}}
 function loadTemplates(){try{return JSON.parse(localStorage.getItem(TEMPLATES_KEY))||[]}catch{return[]}}
-function saveTemplates(d){localStorage.setItem(TEMPLATES_KEY,JSON.stringify(d))}
+function saveTemplates(d){lsSet(TEMPLATES_KEY,JSON.stringify(d))}
 function loadWater(){try{return JSON.parse(localStorage.getItem(WATER_KEY))||{}}catch{return{}}}
-function saveWater(d){localStorage.setItem(WATER_KEY,JSON.stringify(d))}
+function saveWater(d){lsSet(WATER_KEY,JSON.stringify(d))}
 function loadRecipes(){try{return JSON.parse(localStorage.getItem(RECIPES_KEY))||[]}catch{return[]}}
-function saveRecipes(d){localStorage.setItem(RECIPES_KEY,JSON.stringify(d))}
+function saveRecipes(d){lsSet(RECIPES_KEY,JSON.stringify(d))}
 function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{autoTimer:'on',timerDefault:'90',theme:'light'}}catch{return{autoTimer:'on',timerDefault:'90',theme:'light'}}}
-function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}
+function saveSettings(s){lsSet(SETTINGS_KEY,JSON.stringify(s))}
 function loadSteps(){try{return JSON.parse(localStorage.getItem(STEPS_KEY))||{}}catch{return{}}}
-function saveStepsData(d){localStorage.setItem(STEPS_KEY,JSON.stringify(d))}
+function saveStepsData(d){lsSet(STEPS_KEY,JSON.stringify(d))}
+let _extReq=0;
+function localResultsHtml(products){
+    const customNames=new Set(loadCustomProducts().map(p=>p.name));
+    return '<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в базе ('+products.length+')</div>'
+    +products.slice(0,30).map(e=>{
+        const isCustom=customNames.has(e.name);
+        return '<div class="product-item'+(isCustom?' custom':'')+'" onclick="openPortion('+jsArg(e.name)+')">'
+            +'<div class="p-info"><div class="p-name">'+esc(e.name)+(isCustom?'<span class="custom-badge">СВОЙ</span>':'')+'</div>'
+            +'<div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div>'
+            +'<div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>';
+    }).join('');
+}
 async function searchExternalProducts(query, hasLocalResults){
     const listDiv=document.getElementById('prodList');
+    const reqId=++_extReq;
+    const stale=()=>reqId!==_extReq||document.getElementById('prodSearch').value.trim()!==query||!document.getElementById('screen-products').classList.contains('active');
     if(!hasLocalResults){
         listDiv.innerHTML='<div class="empty"><span class="emoji">⏳</span><div class="text">Поиск в магазинах...</div></div>';
     }
     try{
         const res=await fetch(WORKER_URL+'/food-search?q='+encodeURIComponent(query));
+        if(!res.ok)throw new Error('сервер ответил '+res.status);
         const data=await res.json();
-        console.log('🔎 Воркер вернул:', data.count, 'продуктов');
-        const products=(data.products||[]).filter(p=>p.product_name&&p.nutriments);
+        if(stale())return; // пользователь уже ввёл другой запрос / ушёл с экрана
+        const products=(data.products||[]).filter(p=>p&&typeof p.product_name==='string'&&p.product_name.trim()&&p.nutriments);
         if(products.length===0){
             if(!hasLocalResults){
                 listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено.<br>Попробуй другое название.</div></div>';
             }
             return;
         }
-        listDiv.innerHTML='<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
+        const local=smartLocalSearch(query);
+        const localHtml=local.length?localResultsHtml(local):'';
+        listDiv.innerHTML=localHtml+'<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:'+(localHtml?'18px':'0')+' 4px 10px;">Найдено в магазинах ('+products.length+')</div>'
         +products.map(p=>{
             const n=p.nutriments||{};
-            let cal=Math.round(n['energy-kcal_100g']||0);
-            const prot=parseFloat((n['proteins_100g']||0).toFixed(1));
-            const fat=parseFloat((n['fat_100g']||0).toFixed(1));
-            const carb=parseFloat((n['carbohydrates_100g']||0).toFixed(1));
-            const brand=p.brands?p.brands.split(',')[0]:'';
-            const safeName=p.product_name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-            return '<div class="product-item custom" onclick="addExternalProduct(\''+safeName+'\','+cal+','+prot+','+fat+','+carb+',\''+brand.replace(/'/g,"\\'")+'\')">'
-                +'<div class="p-info"><div class="p-name">'+p.product_name+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+brand+'</span>':'')+'</div>'
+            const cal=Math.round(num(n['energy-kcal_100g']));
+            const prot=parseFloat(num(n['proteins_100g']).toFixed(1));
+            const fat=parseFloat(num(n['fat_100g']).toFixed(1));
+            const carb=parseFloat(num(n['carbohydrates_100g']).toFixed(1));
+            const brand=p.brands?String(p.brands).split(',')[0].trim():'';
+            return '<div class="product-item custom" onclick="addExternalProduct('+jsArg(p.product_name.trim())+','+cal+','+prot+','+fat+','+carb+','+jsArg(brand)+')">'
+                +'<div class="p-info"><div class="p-name">'+esc(p.product_name)+(brand?' <span style="font-size:11px;color:var(--text-gray);font-weight:600;">· '+esc(brand)+'</span>':'')+'</div>'
                 +'<div class="p-macros">Б <span class="b">'+prot+'</span> · Ж <span class="f">'+fat+'</span> · У <span class="c">'+carb+'</span> · на 100г</div></div>'
                 +'<div class="p-cal"><div class="val">'+cal+'</div><div class="lbl">ккал</div></div></div>';
         }).join('');
     }catch(e){
-        console.error('❌ Ошибка поиска:', e);
-        if(!hasLocalResults){
-            listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Ошибка: '+e.message+'</div></div>';
+        console.warn('Ошибка поиска:', e);
+        if(reqId===_extReq)_lastExternalQuery=''; // разрешаем повторить тот же запрос
+        if(!hasLocalResults&&!stale()){
+            listDiv.innerHTML='<div class="empty"><span class="emoji">⚠️</span><div class="text">Не удалось выполнить поиск в магазинах.<br>Проверь интернет и попробуй ещё раз.</div></div>';
         }
     }
 }
@@ -1185,14 +1204,11 @@ async function searchExternalProducts(query, hasLocalResults){
 function addExternalProduct(name,cal,prot,fat,carb,brand){
     const products=loadCustomProducts();
     const fullName=brand?name+' ('+brand+')':name;
-    if(products.find(x=>x.name.toLowerCase()===fullName.toLowerCase())){
-        alert('Продукт уже есть в базе');
-        return;
+    if(!products.find(x=>x.name.toLowerCase()===fullName.toLowerCase())){
+        products.push({name:fullName,cat:'Прочее',cal:cal,p:prot,f:fat,c:carb});
+        saveCustomProducts(products);
     }
-    products.push({name:fullName,cat:'Прочее',cal:cal,p:prot,f:fat,c:carb});
-    saveCustomProducts(products);
-    alert('✅ Добавлено: '+fullName+'\nТеперь можно выбрать из базы.');
-    renderProducts();
+    openPortion(fullName); // сразу открываем выбор порции
 }
 
 // ===== УМНЫЙ ПОИСК =====
@@ -1278,37 +1294,27 @@ function onProductSearchInput() {
     
     // 2. Внешний поиск с debounce (200мс)
     if (_searchTimer) clearTimeout(_searchTimer);
+    _extReq++; // отменяем устаревшие ответы
     if (q.length < 3) return;
-    if (q === _lastExternalQuery) return;
     
     _searchTimer = setTimeout(() => {
         _lastExternalQuery = q;
         searchExternalProducts(q, localResults.length > 0);
-    }, 200);
+    }, 350);
 }
 
 function renderLocalResults(products, query) {
-    const listDiv = document.getElementById('prodList');
-    const customNames = new Set(loadCustomProducts().map(p => p.name));
-    listDiv.innerHTML =
-        '<div style="font-size:11px;color:var(--text-gray);text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin:0 4px 10px;">Найдено в базе (' + products.length + ')</div>'
-        + products.slice(0, 30).map(e => {
-            const isCustom = customNames.has(e.name);
-            return '<div class="product-item' + (isCustom ? ' custom' : '') + '" onclick="openPortion(\'' + e.name.replace(/'/g, "\\'") + '\')">'
-                + '<div class="p-info"><div class="p-name">' + e.name + (isCustom ? '<span class="custom-badge">СВОЙ</span>' : '') + '</div>'
-                + '<div class="p-macros">Б <span class="b">' + e.p + '</span> · Ж <span class="f">' + e.f + '</span> · У <span class="c">' + e.c + '</span></div></div>'
-                + '<div class="p-cal"><div class="val">' + e.cal + '</div><div class="lbl">ккал</div></div></div>';
-        }).join('');
+    document.getElementById('prodList').innerHTML = localResultsHtml(products);
 }
   
 function allProducts(){return[...FOOD_LIBRARY,...loadCustomProducts()]}
-function todayISO(){const d=new Date();const tz=d.getTimezoneOffset()*60000;return new Date(d-tz).toISOString().slice(0,10)}
+function todayISO(){return isoOf(new Date())}
 
 const DAYS=['ВОСКРЕСЕНЬЕ','ПОНЕДЕЛЬНИК','ВТОРНИК','СРЕДА','ЧЕТВЕРГ','ПЯТНИЦА','СУББОТА'];
 const DAYS_SHORT=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const MONTHS_SHORT=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-function formatDate(iso){const d=new Date(iso);return{day:DAYS[d.getDay()],short:`${d.getDate()} ${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`}}
+function formatDate(iso){const d=parseISO(iso);return{day:DAYS[d.getDay()],short:`${d.getDate()} ${MONTHS[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`}}
 
 function calcDailyTarget(){
   const custom = loadCustomTargets();
@@ -1503,7 +1509,7 @@ schedule:[
 ];
 let selectedProgramId=null,completedDays={};
 function loadProgramProgress(){try{return JSON.parse(localStorage.getItem('fitness_program_progress'))||{}}catch{return{}}}
-function saveProgramProgress(d){localStorage.setItem('fitness_program_progress',JSON.stringify(d))}
+function saveProgramProgress(d){lsSet('fitness_program_progress',JSON.stringify(d))}
 function renderPrograms(){
 const list=document.getElementById('programsList');if(!list)return;
 const prof=loadProfile();
@@ -1596,6 +1602,7 @@ renderUserNameAndAvatar();
 }
 const screenToNav={'screen-home':0,'screen-food':1,'screen-workouts':3,'screen-profile':4};
 function showScreen(id){
+if(id!=='screen-barcode')stopBarcodeScanner();
 document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 const el=document.getElementById(id);
 if(el)el.classList.add('active');
@@ -1631,6 +1638,25 @@ if(id==='screen-workout-session')renderSession();
 if(id==='screen-add-approach'){const ex=loadExercises().find(e=>e.id===currentExerciseId);if(ex)document.getElementById('approachExName').textContent=ex.name;}
 }
 function navTo(id){showScreen(id)}
+// Диалог ввода вместо window.prompt (prompt не поддерживается в части клиентов Telegram)
+function askInput(title,def,cb,mode){
+const ov=document.createElement('div');
+ov.setAttribute('data-ask-input','1');
+ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;';
+ov.innerHTML='<div style="background:var(--white);color:var(--text-dark);border-radius:22px;padding:22px;width:100%;max-width:340px;box-shadow:var(--shadow);">'
++'<div style="font-weight:900;font-size:16px;margin-bottom:14px;">'+esc(title)+'</div>'
++'<input type="text" '+(mode==='decimal'?'inputmode="decimal"':'')+' style="width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--gray-2);background:var(--gray-1);color:var(--text-dark);font-size:16px;font-weight:700;font-family:inherit;outline:none;">'
++'<div style="display:flex;gap:10px;margin-top:16px;"><button type="button" data-a="cancel" class="btn btn-secondary" style="flex:1;margin:0;padding:14px;">Отмена</button><button type="button" data-a="ok" class="btn" style="flex:1;margin:0;padding:14px;">OK</button></div></div>';
+document.body.appendChild(ov);
+const inp=ov.querySelector('input');inp.value=def==null?'':def;
+const close=()=>ov.remove();
+const submit=()=>{const v=inp.value;close();cb(v);};
+ov.querySelector('[data-a=ok]').onclick=submit;
+ov.querySelector('[data-a=cancel]').onclick=close;
+ov.addEventListener('click',e=>{if(e.target===ov)close();});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit();else if(e.key==='Escape')close();});
+setTimeout(()=>{try{inp.focus();inp.select();}catch(e){}},50);
+}
 function openQuickMenu(){document.getElementById('quickModal').classList.add('active')}
 function closeQuickMenu(){document.getElementById('quickModal').classList.remove('active')}
 function quickAdd(type){
@@ -1639,7 +1665,7 @@ if(type==='food')showScreen('screen-food-add');
 else if(type==='workout')showScreen('screen-add');
 else if(type==='water'){changeWater(1);showScreen('screen-water')}
 else if(type==='timer'){openTimer('Отдых', parseInt(loadSettings().timerDefault)||90)}
-else if(type==='weight'){const p=loadProfile();if(!p)return alert('Сначала заполни профиль');const v=prompt('Текущий вес (кг):',p.weight);if(!v)return;const w=parseFloat(v);if(!w||w<20)return alert('Некорректный вес');p.weight=w;saveProfileData(p);alert('Вес обновлён: '+w+' кг');showScreen('screen-profile');}
+else if(type==='weight'){const p=loadProfile();if(!p)return alert('Сначала заполни профиль');askInput('Текущий вес (кг)',p.weight,v=>{const w=parseFloat(String(v).replace(',','.'));if(!w||w<20||w>400)return alert('Некорректный вес');p.weight=w;saveProfileData(p);alert('Вес обновлён: '+w+' кг');showScreen('screen-profile');},'decimal');}
 }
 function applyTheme(theme){
 document.body.classList.remove('theme-light','theme-dark','theme-blue','theme-orange');
@@ -1705,7 +1731,7 @@ if(!age||age<10||age>100)return alert('Введите возраст');
 if(!weight||weight<30)return alert('Введите вес');
 if(!height||height<100)return alert('Введите рост');
 const existing=loadProfile()||{};
-saveProfileData({gender,age,weight,height,goal,targetWeight,userName:existing.userName,avatar:existing.avatar,selectedProgramId:existing.selectedProgramId});
+saveProfileData({...existing,gender,age,weight,height,goal,targetWeight,startWeight:weight});
 document.getElementById('bottomNav').style.display='flex';
 showScreen('screen-home');
 renderHome();
@@ -1720,7 +1746,9 @@ const height=parseInt(document.getElementById('editHeight').value);
 const goal=document.getElementById('editGoal').value;
 const targetWeight=parseFloat(document.getElementById('editTargetWeight').value)||null;
 if(!age||!weight||!height)return alert('Заполните все поля');
-saveProfileData({gender,age,weight,height,goal,targetWeight,userName:p.userName,avatar:p.avatar,selectedProgramId:p.selectedProgramId});
+// стартовый вес нужен для прогресса к цели; при смене цели отсчёт начинается заново
+const startWeight=(p.startWeight&&targetWeight===p.targetWeight)?p.startWeight:weight;
+saveProfileData({...p,gender,age,weight,height,goal,targetWeight,startWeight});
 alert('Профиль обновлён! ✅');
 showScreen('screen-profile');
 }
@@ -1746,8 +1774,11 @@ document.getElementById('bmiStatus').textContent=status;
 const goalDiv=document.getElementById('goalProgress');
 if(p.targetWeight){
 const diff=p.targetWeight-p.weight;
-const pct=Math.min(100,Math.max(15,100-Math.abs(diff)/Math.max(1,Math.abs(p.weight-p.targetWeight))*0+50));
-goalDiv.innerHTML='<div class="goal-card"><div class="gc-head"><div><div class="gc-label">Цель по весу</div><div style="font-size:13px;font-weight:700;margin-top:4px;opacity:.9;">'+p.weight+' кг → '+p.targetWeight+' кг</div></div><div class="gc-target">'+p.targetWeight+'</div></div><div class="gc-bar"><div class="gc-fill" style="width:'+pct+'%"></div></div><div class="gc-info"><span>Разница: '+Math.abs(diff).toFixed(1)+' кг</span><span>Осталось: '+Math.abs(diff).toFixed(1)+' кг</span></div></div>';
+const start=p.startWeight||p.weight;
+const totalWay=Math.abs(p.targetWeight-start);
+const movedRight=(p.targetWeight-start)*(p.weight-start)>0;
+const pct=totalWay>0?Math.min(100,Math.max(3,movedRight?Math.abs(p.weight-start)/totalWay*100:0)):100;
+goalDiv.innerHTML='<div class="goal-card"><div class="gc-head"><div><div class="gc-label">Цель по весу</div><div style="font-size:13px;font-weight:700;margin-top:4px;opacity:.9;">'+p.weight+' кг → '+p.targetWeight+' кг</div></div><div class="gc-target">'+p.targetWeight+'</div></div><div class="gc-bar"><div class="gc-fill" style="width:'+pct+'%"></div></div><div class="gc-info"><span>Пройдено: '+(movedRight?Math.min(Math.abs(p.weight-start),totalWay).toFixed(1):'0.0')+' кг</span><span>Осталось: '+Math.abs(diff).toFixed(1)+' кг</span></div></div>';
 }else goalDiv.innerHTML='';
 document.getElementById('editGender').value=p.gender;
 document.getElementById('editAge').value=p.age;
@@ -1766,7 +1797,7 @@ for(let i=0;i<8;i++){html+='<div class="water-glass '+(i<count?'filled':'')+'">'
 glasses.innerHTML=html;
 document.getElementById('waterToday').innerHTML=count+'<span class="unit">ст</span>';
 let sum=0,days=0;
-for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);if(water[iso]){sum+=water[iso];days++;}}
+for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const iso=isoOf(d);if(water[iso]){sum+=water[iso];days++;}}
 document.getElementById('waterAvg').innerHTML=(days?(sum/days).toFixed(1):'0')+'<span class="unit">ст</span>';
 const histDiv=document.getElementById('waterHistory');
 const dates=Object.keys(water).filter(d=>d<=today).sort((a,b)=>b.localeCompare(a)).slice(0,10);
@@ -1776,7 +1807,7 @@ histDiv.innerHTML=dates.map(d=>{const f=formatDate(d);return'<div class="history
 function changeWater(delta){const water=loadWater();const today=todayISO();let c=(water[today]||0)+delta;if(c<0)c=0;if(c>12)c=12;water[today]=c;saveWater(water);renderWater();}
 
 // ============ FOOD ============
-function shiftDate(delta){const d=new Date(currentFoodDate);d.setDate(d.getDate()+delta);currentFoodDate=d.toISOString().slice(0,10);renderFood();}
+function shiftDate(delta){const d=parseISO(currentFoodDate);d.setDate(d.getDate()+delta);currentFoodDate=isoOf(d);renderFood();}
 function goToday(){currentFoodDate=todayISO();renderFood();}
 function renderFood(){
 const f=formatDate(currentFoodDate);
@@ -1799,22 +1830,22 @@ const list=document.getElementById('mealsList');
 if(meals.length===0){list.innerHTML='<div class="empty"><span class="emoji">🍽</span><div class="text">В этот день ничего нет</div></div>';return}
 const typeIcons={breakfast:'🌅',lunch:'☀️',dinner:'🌙',snack:'🍿'};
 const typeColors={breakfast:'orange',lunch:'red',dinner:'purple',snack:'blue'};
-list.innerHTML=[...meals].sort((a,b)=>b.id-a.id).map(m=>'<div class="list-item"><div class="li-icon '+(typeColors[m.type]||'mint')+'">'+(typeIcons[m.type]||'🍽')+'</div><div class="li-info"><div class="li-title">'+m.name+'</div><div class="li-sub">Б '+m.protein.toFixed(1)+' · Ж '+m.fats.toFixed(1)+' · У '+m.carbs.toFixed(1)+'</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:900;font-size:16px;color:var(--mint);">'+Math.round(m.calories)+'</div><div style="font-size:10px;color:var(--text-gray);font-weight:700;">ккал</div></div><button class="li-delete" onclick="deleteMeal('+m.id+')">🗑</button></div>').join('');
+list.innerHTML=[...meals].sort((a,b)=>b.id-a.id).map(m=>'<div class="list-item"><div class="li-icon '+(typeColors[m.type]||'mint')+'">'+(typeIcons[m.type]||'🍽')+'</div><div class="li-info"><div class="li-title">'+esc(m.name)+'</div><div class="li-sub">Б '+(m.protein||0).toFixed(1)+' · Ж '+(m.fats||0).toFixed(1)+' · У '+(m.carbs||0).toFixed(1)+'</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-weight:900;font-size:16px;color:var(--mint);">'+Math.round(m.calories)+'</div><div style="font-size:10px;color:var(--text-gray);font-weight:700;">ккал</div></div><button class="li-delete" onclick="deleteMeal('+m.id+')">🗑</button></div>').join('');
 }
 function updateMacro(barId,valId,value,target){
 const bar=document.getElementById(barId),val=document.getElementById(valId);
 let pct=target>0?Math.min(value/target,1):0;
 bar.style.width=(pct*100)+'%';
-val.textContent=Math.round((value/(target||1))*100)+'%';
-if(value===0)val.textContent='0%';
+val.textContent=target>0?Math.round((value/target)*100)+'%':(value>0?'—':'0%');
 }
 function copyYesterday(){
-const yest=new Date(currentFoodDate);yest.setDate(yest.getDate()-1);
-const yIso=yest.toISOString().slice(0,10);
+const yest=parseISO(currentFoodDate);yest.setDate(yest.getDate()-1);
+const yIso=isoOf(yest);
 const yMeals=loadMeals().filter(m=>m.date===yIso);
 if(yMeals.length===0)return alert('Вчера не было записей');
 const meals=loadMeals();
-yMeals.forEach(m=>{meals.push({...m,id:Date.now()+Math.random(),date:currentFoodDate});});
+if(meals.some(m=>m.date===currentFoodDate)&&!confirm('На этот день уже есть записи. Добавить к ним копию вчерашнего дня?'))return;
+yMeals.forEach(m=>{meals.push({...m,id:newId(),date:currentFoodDate});});
 saveMeals(meals);renderFood();
 alert('Скопировано: '+yMeals.length+' приёмов');
 }
@@ -1829,7 +1860,7 @@ const carbs=parseFloat(document.getElementById('mealCarbs').value)||0;
 if(!name)return alert('Введите название');
 if(calories<=0)return alert('Введите калории');
 const meals=loadMeals();
-meals.push({id:Date.now(),name,type,date,calories,protein,fats,carbs});
+meals.push({id:newId(),name,type,date,calories,protein,fats,carbs});
 saveMeals(meals);
 ['mealName','mealCalories','mealProtein','mealFats','mealCarbs'].forEach(id=>document.getElementById(id).value='');
 document.getElementById('mealDate').value=currentFoodDate;
@@ -1844,7 +1875,7 @@ function renderBjuReport(){
 const meals=loadMeals();const target=calcDailyTarget();
 const days=[];
 for(let i=currentBjuPeriod-1;i>=0;i--){
-const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);
+const d=new Date();d.setDate(d.getDate()-i);const iso=isoOf(d);
 const dm=meals.filter(m=>m.date===iso);
 const types={breakfast:{c:0,p:0,f:0,k:0},lunch:{c:0,p:0,f:0,k:0},dinner:{c:0,p:0,f:0,k:0},snack:{c:0,p:0,f:0,k:0}};
 dm.forEach(m=>{const t=types[m.type]||types.snack;t.c+=m.calories||0;t.p+=m.protein||0;t.f+=m.fats||0;t.k+=m.carbs||0;});
@@ -1895,7 +1926,7 @@ const container=document.getElementById('nutritionChartContainer');
 const avgDiv=document.getElementById('nutritionAverage');
 const days=[];const target=calcDailyTarget();const meals=loadMeals();
 for(let i=currentChartPeriod-1;i>=0;i--){
-const d=new Date();d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);
+const d=new Date();d.setDate(d.getDate()-i);const iso=isoOf(d);
 const dm=meals.filter(m=>m.date===iso);
 const sum={cal:0,pro:0,fat:0,car:0};
 dm.forEach(m=>{sum.cal+=m.calories||0;sum.pro+=m.protein||0;sum.fat+=m.fats||0;sum.car+=m.carbs||0;});
@@ -1950,7 +1981,7 @@ if(selectedProdGroup!=='Все')items=items.filter(e=>e.cat===selectedProdGroup)
 if(search)items=items.filter(e=>e.name.toLowerCase().includes(search));
 const listDiv=document.getElementById('prodList');
 if(items.length===0){listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено</div></div>';return}
-listDiv.innerHTML=items.map(e=>{const isCustom=customNames.has(e.name);return'<div class="product-item'+(isCustom?' custom':'')+'" onclick="openPortion(\''+e.name.replace(/'/g,"\\'")+'\')"><div class="p-info"><div class="p-name">'+e.name+(isCustom?'<span class="custom-badge">СВОЙ</span>':'')+'</div><div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div><div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');
+listDiv.innerHTML=items.map(e=>{const isCustom=customNames.has(e.name);return'<div class="product-item'+(isCustom?' custom':'')+'" onclick="openPortion('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+(isCustom?'<span class="custom-badge">СВОЙ</span>':'')+'</div><div class="p-macros">Б <span class="b">'+e.p+'</span> · Ж <span class="f">'+e.f+'</span> · У <span class="c">'+e.c+'</span></div></div><div class="p-cal"><div class="val">'+e.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');
 }
 function selectProdGroup(g){selectedProdGroup=g;renderProducts();}
 function openProductPicker(){selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products');}
@@ -1958,7 +1989,7 @@ function closeProductsBack(){if(recipePickerTarget==='recipe'){recipePickerTarge
 function openPortion(name){
 const p=allProducts().find(x=>x.name===name);if(!p)return;
 portionProductData=p;
-document.getElementById('portionProductInfo').innerHTML='<div class="card"><div style="font-weight:900;font-size:17px;">'+p.name+'</div><div style="font-size:12px;color:var(--text-gray);margin-top:4px;font-weight:700;">На 100 г: '+p.cal+' ккал · Б '+p.p+' · Ж '+p.f+' · У '+p.c+'</div></div>';
+document.getElementById('portionProductInfo').innerHTML='<div class="card"><div style="font-weight:900;font-size:17px;">'+esc(p.name)+'</div><div style="font-size:12px;color:var(--text-gray);margin-top:4px;font-weight:700;">На 100 г: '+p.cal+' ккал · Б '+p.p+' · Ж '+p.f+' · У '+p.c+'</div></div>';
 document.getElementById('portionWeight').value=100;updatePortionPreview();showScreen('screen-portion');
 }
 function updatePortionPreview(){if(!portionProductData)return;const w=parseFloat(document.getElementById('portionWeight').value)||0;const k=w/100;document.getElementById('pvCal').textContent=Math.round(portionProductData.cal*k);document.getElementById('pvPro').textContent=(portionProductData.p*k).toFixed(1);document.getElementById('pvFat').textContent=(portionProductData.f*k).toFixed(1);document.getElementById('pvCar').textContent=(portionProductData.c*k).toFixed(1);}
@@ -1975,7 +2006,7 @@ pendingProduct={name:portionProductData.name+' ('+w+'г)',calories:Math.round(po
 fillMealForm();showScreen('screen-food-add');
 }
 function fillMealForm(){if(!pendingProduct)return;document.getElementById('mealName').value=pendingProduct.name;document.getElementById('mealCalories').value=pendingProduct.calories;document.getElementById('mealProtein').value=pendingProduct.protein;document.getElementById('mealFats').value=pendingProduct.fats;document.getElementById('mealCarbs').value=pendingProduct.carbs;document.getElementById('mealDate').value=currentFoodDate;renderSelectedProductBox();}
-function renderSelectedProductBox(){const box=document.getElementById('selectedProductBox');if(!pendingProduct){box.innerHTML='';return}box.innerHTML='<div class="selected-product"><div><div class="sp-name">'+pendingProduct.name+'</div><div class="sp-info">'+pendingProduct.calories+' ккал · Б '+pendingProduct.protein+' · Ж '+pendingProduct.fats+' · У '+pendingProduct.carbs+'</div></div><button class="sp-remove" onclick="clearPendingProduct()">✕</button></div>';}
+function renderSelectedProductBox(){const box=document.getElementById('selectedProductBox');if(!pendingProduct){box.innerHTML='';return}box.innerHTML='<div class="selected-product"><div><div class="sp-name">'+esc(pendingProduct.name)+'</div><div class="sp-info">'+pendingProduct.calories+' ккал · Б '+pendingProduct.protein+' · Ж '+pendingProduct.fats+' · У '+pendingProduct.carbs+'</div></div><button class="sp-remove" onclick="clearPendingProduct()">✕</button></div>';}
 function clearPendingProduct(){pendingProduct=null;['mealName','mealCalories','mealProtein','mealFats','mealCarbs'].forEach(id=>document.getElementById(id).value='');renderSelectedProductBox();}
 function saveCustomProduct(){
 const name=document.getElementById('custName').value.trim();
@@ -1998,17 +2029,17 @@ showScreen('screen-products');alert('Продукт сохранён ✅');
 function renderRecipes(){
 const recipes=loadRecipes();const list=document.getElementById('recipesList');
 if(recipes.length===0){list.innerHTML='<div class="empty"><span class="emoji">🍱</span><div class="text">Пока нет рецептов</div></div>';return}
-list.innerHTML=recipes.map(r=>{const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal}),{cal:0});return'<div class="template-card"><div class="template-header"><div class="template-icon">🍱</div><div class="t-info"><div class="t-name">'+r.name+'</div><div class="t-count">'+r.ingredients.length+' ингредиентов · '+total.cal+' ккал</div></div></div><div class="template-exercises">'+r.ingredients.slice(0,3).map(i=>'<div class="template-ex-tag">'+i.name+' '+i.weight+'г</div>').join('')+(r.ingredients.length>3?'<div class="template-ex-tag">+'+(r.ingredients.length-3)+'</div>':'')+'</div><div class="template-actions"><button class="t-action-btn start" onclick="pickRecipe('+r.id+')">🍽 Добавить</button><button class="t-action-btn delete" onclick="deleteRecipe('+r.id+')">🗑</button></div></div>';}).join('');
+list.innerHTML=recipes.map(r=>{const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal}),{cal:0});return'<div class="template-card"><div class="template-header"><div class="template-icon">🍱</div><div class="t-info"><div class="t-name">'+esc(r.name)+'</div><div class="t-count">'+r.ingredients.length+' ингредиентов · '+total.cal+' ккал</div></div></div><div class="template-exercises">'+r.ingredients.slice(0,3).map(i=>'<div class="template-ex-tag">'+esc(i.name)+' '+i.weight+'г</div>').join('')+(r.ingredients.length>3?'<div class="template-ex-tag">+'+(r.ingredients.length-3)+'</div>':'')+'</div><div class="template-actions"><button class="t-action-btn start" onclick="pickRecipe('+r.id+')">🍽 Добавить</button><button class="t-action-btn delete" onclick="deleteRecipe('+r.id+')">🗑</button></div></div>';}).join('');
 }
 function openRecipeCreate(){recipeDraft={id:null,name:'',ingredients:[]};document.getElementById('recipeCreateTitle').textContent='Рецепт';document.getElementById('recipeName').value='';showScreen('screen-recipe-create');}
 function openProductPickerForRecipe(){recipePickerTarget='recipe';selectedProdGroup='Все';document.getElementById('prodSearch').value='';showScreen('screen-products');}
-function renderRecipeDraft(){const list=document.getElementById('recipeIngredientsList');if(recipeDraft.ingredients.length===0){list.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">Добавь продукты</div></div>';}else{list.innerHTML=recipeDraft.ingredients.map((i,idx)=>'<div class="recipe-ingredient"><div class="ri-name">'+i.name+'</div><div class="ri-weight">'+i.weight+'г · '+i.cal+' ккал</div><button class="ri-remove" onclick="removeRecipeIngredient('+idx+')">✕</button></div>').join('');}const totals=recipeDraft.ingredients.reduce((s,i)=>({cal:s.cal+i.cal,p:s.p+i.p,f:s.f+i.f,c:s.c+i.c}),{cal:0,p:0,f:0,c:0});document.getElementById('recipeSummary').innerHTML=recipeDraft.ingredients.length?'<div class="product-summary"><div class="ps-title">Итого</div><div class="ps-grid"><div class="ps-item"><div class="v k">'+totals.cal+'</div><div class="l">Ккал</div></div><div class="ps-item"><div class="v">'+totals.p.toFixed(1)+'</div><div class="l">Б</div></div><div class="ps-item"><div class="v f">'+totals.f.toFixed(1)+'</div><div class="l">Ж</div></div><div class="ps-item"><div class="v c">'+totals.c.toFixed(1)+'</div><div class="l">У</div></div></div></div>':'';}
+function renderRecipeDraft(){const list=document.getElementById('recipeIngredientsList');if(recipeDraft.ingredients.length===0){list.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">Добавь продукты</div></div>';}else{list.innerHTML=recipeDraft.ingredients.map((i,idx)=>'<div class="recipe-ingredient"><div class="ri-name">'+esc(i.name)+'</div><div class="ri-weight">'+i.weight+'г · '+i.cal+' ккал</div><button class="ri-remove" onclick="removeRecipeIngredient('+idx+')">✕</button></div>').join('');}const totals=recipeDraft.ingredients.reduce((s,i)=>({cal:s.cal+i.cal,p:s.p+i.p,f:s.f+i.f,c:s.c+i.c}),{cal:0,p:0,f:0,c:0});document.getElementById('recipeSummary').innerHTML=recipeDraft.ingredients.length?'<div class="product-summary"><div class="ps-title">Итого</div><div class="ps-grid"><div class="ps-item"><div class="v k">'+totals.cal+'</div><div class="l">Ккал</div></div><div class="ps-item"><div class="v">'+totals.p.toFixed(1)+'</div><div class="l">Б</div></div><div class="ps-item"><div class="v f">'+totals.f.toFixed(1)+'</div><div class="l">Ж</div></div><div class="ps-item"><div class="v c">'+totals.c.toFixed(1)+'</div><div class="l">У</div></div></div></div>':'';}
 function removeRecipeIngredient(i){recipeDraft.ingredients.splice(i,1);renderRecipeDraft();}
-function saveRecipe(){const name=document.getElementById('recipeName').value.trim();if(!name)return alert('Введите название');if(recipeDraft.ingredients.length===0)return alert('Добавьте ингредиенты');const recipes=loadRecipes();recipes.push({id:Date.now(),name,ingredients:[...recipeDraft.ingredients]});saveRecipes(recipes);showScreen('screen-recipes');}
+function saveRecipe(){const name=document.getElementById('recipeName').value.trim();if(!name)return alert('Введите название');if(recipeDraft.ingredients.length===0)return alert('Добавьте ингредиенты');const recipes=loadRecipes();recipes.push({id:newId(),name,ingredients:[...recipeDraft.ingredients]});saveRecipes(recipes);showScreen('screen-recipes');}
 function deleteRecipe(id){if(!confirm('Удалить?'))return;saveRecipes(loadRecipes().filter(r=>r.id!==id));renderRecipes();}
 function openRecipePicker(){showScreen('screen-recipe-picker');}
 function closeRecipePicker(){showScreen('screen-food-add');}
-function renderRecipePicker(){const recipes=loadRecipes();const list=document.getElementById('recipePickerList');if(recipes.length===0){list.innerHTML='<div class="empty"><span class="emoji">🍱</span><div class="text">Нет рецептов</div></div>';return}list.innerHTML=recipes.map(r=>{const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal,p:s.p+i.p,f:s.f+i.f,c:s.c+i.c}),{cal:0,p:0,f:0,c:0});return'<div class="product-item" onclick="pickRecipe('+r.id+')"><div class="p-info"><div class="p-name">'+r.name+'</div><div class="p-macros">Б '+total.p.toFixed(1)+' · Ж '+total.f.toFixed(1)+' · У '+total.c.toFixed(1)+'</div></div><div class="p-cal"><div class="val">'+total.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');}
+function renderRecipePicker(){const recipes=loadRecipes();const list=document.getElementById('recipePickerList');if(recipes.length===0){list.innerHTML='<div class="empty"><span class="emoji">🍱</span><div class="text">Нет рецептов</div></div>';return}list.innerHTML=recipes.map(r=>{const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal,p:s.p+i.p,f:s.f+i.f,c:s.c+i.c}),{cal:0,p:0,f:0,c:0});return'<div class="product-item" onclick="pickRecipe('+r.id+')"><div class="p-info"><div class="p-name">'+esc(r.name)+'</div><div class="p-macros">Б '+total.p.toFixed(1)+' · Ж '+total.f.toFixed(1)+' · У '+total.c.toFixed(1)+'</div></div><div class="p-cal"><div class="val">'+total.cal+'</div><div class="lbl">ккал</div></div></div>';}).join('');}
 function pickRecipe(id){const r=loadRecipes().find(x=>x.id===id);if(!r)return;const total=r.ingredients.reduce((s,i)=>({cal:s.cal+i.cal,p:s.p+i.p,f:s.f+i.f,c:s.c+i.c}),{cal:0,p:0,f:0,c:0});pendingProduct={name:r.name,calories:total.cal,protein:parseFloat(total.p.toFixed(1)),fats:parseFloat(total.f.toFixed(1)),carbs:parseFloat(total.c.toFixed(1))};fillMealForm();showScreen('screen-food-add');}
 
 // ============ LIBRARY ============
@@ -2021,7 +2052,7 @@ if(selectedExGroup!=='Все')items=items.filter(e=>e.group===selectedExGroup);
 if(search)items=items.filter(e=>e.name.toLowerCase().includes(search));
 const listDiv=document.getElementById('libList');
 if(items.length===0){listDiv.innerHTML='<div class="empty"><span class="emoji">🔍</span><div class="text">Ничего не найдено</div></div>';return}
-listDiv.innerHTML=items.map(e=>'<div class="product-item" onclick="pickExercise(\''+e.name.replace(/'/g,"\\'")+'\')"><div class="p-info"><div class="p-name">'+e.name+'</div><div class="p-macros" style="color:var(--mint);font-weight:900;text-transform:uppercase;">'+e.group+'</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>').join('');
+listDiv.innerHTML=items.map(e=>'<div class="product-item" onclick="pickExercise('+jsArg(e.name)+')"><div class="p-info"><div class="p-name">'+esc(e.name)+'</div><div class="p-macros" style="color:var(--mint);font-weight:900;text-transform:uppercase;">'+e.group+'</div></div><div style="color:var(--mint);font-size:26px;font-weight:300;">+</div></div>').join('');
 }
 function selectExGroup(g){selectedExGroup=g;renderLibrary();}
 function openLibrary(){libraryMode='exercise';document.getElementById('libraryTitle').textContent='Библиотека';selectedExGroup='Все';document.getElementById('libSearch').value='';showScreen('screen-library');}
@@ -2033,32 +2064,33 @@ function pickExercise(name){if(libraryMode==='template'){templateDraft.exercises
 function renderTemplates(){
 const templates=loadTemplates();const list=document.getElementById('templatesList');
 if(templates.length===0){list.innerHTML='<div class="empty"><span class="emoji">📋</span><div class="text">Пока нет шаблонов</div></div>';return}
-list.innerHTML=templates.map(t=>'<div class="template-card"><div class="template-header"><div class="template-icon">'+t.icon+'</div><div class="t-info"><div class="t-name">'+t.name+'</div><div class="t-count">'+t.exercises.length+' упражнений</div></div></div><div class="template-exercises">'+t.exercises.slice(0,3).map(e=>'<div class="template-ex-tag">'+e+'</div>').join('')+(t.exercises.length>3?'<div class="template-ex-tag">+'+(t.exercises.length-3)+'</div>':'')+'</div><div class="template-actions"><button class="t-action-btn start" onclick="startSession('+t.id+')">▶ Старт</button><button class="t-action-btn" onclick="editTemplate('+t.id+')">✏️</button><button class="t-action-btn delete" onclick="deleteTemplate('+t.id+')">🗑</button></div></div>').join('');
+list.innerHTML=templates.map(t=>'<div class="template-card"><div class="template-header"><div class="template-icon">'+esc(t.icon)+'</div><div class="t-info"><div class="t-name">'+esc(t.name)+'</div><div class="t-count">'+t.exercises.length+' упражнений</div></div></div><div class="template-exercises">'+t.exercises.slice(0,3).map(e=>'<div class="template-ex-tag">'+esc(e)+'</div>').join('')+(t.exercises.length>3?'<div class="template-ex-tag">+'+(t.exercises.length-3)+'</div>':'')+'</div><div class="template-actions"><button class="t-action-btn start" onclick="startSession('+t.id+')">▶ Старт</button><button class="t-action-btn" onclick="editTemplate('+t.id+')">✏️</button><button class="t-action-btn delete" onclick="deleteTemplate('+t.id+')">🗑</button></div></div>').join('');
 }
 
 function addCustomExerciseToTemplate(){
-    const name=prompt('Введите название упражнения:');
-    if(!name||!name.trim())return;
-    templateDraft.exercises.push(name.trim());
-    renderTemplateDraft();
+    askInput('Название упражнения','',name=>{
+        if(!name||!name.trim())return;
+        templateDraft.exercises.push(name.trim());
+        renderTemplateDraft();
+    });
 }  
   
 function openTemplateCreate(){templateDraft={id:null,name:'',icon:'💪',exercises:[]};document.getElementById('templateCreateTitle').textContent='Шаблон';document.getElementById('tplName').value='';document.getElementById('tplIcon').value='💪';showScreen('screen-template-create');}
 function editTemplate(id){const t=loadTemplates().find(x=>x.id===id);if(!t)return;templateDraft=JSON.parse(JSON.stringify(t));document.getElementById('templateCreateTitle').textContent='Редакт.';document.getElementById('tplName').value=t.name;document.getElementById('tplIcon').value=t.icon;showScreen('screen-template-create');}
-function renderTemplateDraft(){const list=document.getElementById('templateDraftList');if(templateDraft.exercises.length===0){list.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">Пусто</div></div>';return}list.innerHTML=templateDraft.exercises.map((e,i)=>'<div class="draft-exercise"><div class="de-name">'+(i+1)+'. '+e+'</div><button class="de-remove" onclick="removeDraftExercise('+i+')">✕</button></div>').join('');}
+function renderTemplateDraft(){const list=document.getElementById('templateDraftList');if(templateDraft.exercises.length===0){list.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">Пусто</div></div>';return}list.innerHTML=templateDraft.exercises.map((e,i)=>'<div class="draft-exercise"><div class="de-name">'+(i+1)+'. '+esc(e)+'</div><button class="de-remove" onclick="removeDraftExercise('+i+')">✕</button></div>').join('');}
 function removeDraftExercise(i){templateDraft.exercises.splice(i,1);renderTemplateDraft();}
 function cancelTemplateCreate(){if(templateDraft.exercises.length>0||templateDraft.name){if(!confirm('Отменить?'))return}templateDraft={id:null,name:'',icon:'💪',exercises:[]};showScreen('screen-templates');}
-function saveTemplate(){const name=document.getElementById('tplName').value.trim();const icon=document.getElementById('tplIcon').value;if(!name)return alert('Введите название');if(templateDraft.exercises.length===0)return alert('Добавьте упражнения');const templates=loadTemplates();if(templateDraft.id){const idx=templates.findIndex(x=>x.id===templateDraft.id);templates[idx]={id:templateDraft.id,name,icon,exercises:[...templateDraft.exercises]};}else templates.push({id:Date.now(),name,icon,exercises:[...templateDraft.exercises]});saveTemplates(templates);templateDraft={id:null,name:'',icon:'💪',exercises:[]};showScreen('screen-templates');}
+function saveTemplate(){const name=document.getElementById('tplName').value.trim();const icon=document.getElementById('tplIcon').value;if(!name)return alert('Введите название');if(templateDraft.exercises.length===0)return alert('Добавьте упражнения');const templates=loadTemplates();if(templateDraft.id){const idx=templates.findIndex(x=>x.id===templateDraft.id);if(idx>=0)templates[idx]={id:templateDraft.id,name,icon,exercises:[...templateDraft.exercises]};else templates.push({id:templateDraft.id,name,icon,exercises:[...templateDraft.exercises]});}else templates.push({id:newId(),name,icon,exercises:[...templateDraft.exercises]});saveTemplates(templates);templateDraft={id:null,name:'',icon:'💪',exercises:[]};showScreen('screen-templates');}
 function deleteTemplate(id){if(!confirm('Удалить?'))return;saveTemplates(loadTemplates().filter(t=>t.id!==id));renderTemplates();}
 
   
 // ============ SESSION ============
 function startSession(templateId){const t=loadTemplates().find(x=>x.id===templateId);if(!t)return;sessionData={templateName:t.name,exercises:t.exercises.map(name=>({name,weight:null,reps:null,skipped:false})),index:0};document.getElementById('sessionDate').value=todayISO();showScreen('screen-workout-session');}
-function renderSession(){if(!sessionData)return;const ex=sessionData.exercises[sessionData.index];document.getElementById('sessionCount').textContent=(sessionData.index+1)+' / '+sessionData.exercises.length;document.getElementById('sessionExerciseName').textContent=ex.name;document.getElementById('sessionBarFill').style.width=((sessionData.index)/sessionData.exercises.length*100)+'%';document.getElementById('sessionWeight').value=ex.weight||'';document.getElementById('sessionReps').value=ex.reps||'';document.getElementById('sessionNextBtn').textContent=sessionData.index===sessionData.exercises.length-1?'Завершить ✓':'Далее →';}
+function renderSession(){if(!sessionData)return;const ex=sessionData.exercises[sessionData.index];document.getElementById('sessionCount').textContent=(sessionData.index+1)+' / '+sessionData.exercises.length;document.getElementById('sessionExerciseName').textContent=ex.name;document.getElementById('sessionBarFill').style.width=((sessionData.index)/sessionData.exercises.length*100)+'%';document.getElementById('sessionWeight').value=ex.weight?ex.weight:'';document.getElementById('sessionReps').value=ex.reps||'';document.getElementById('sessionNextBtn').textContent=sessionData.index===sessionData.exercises.length-1?'Завершить ✓':'Далее →';}
 function skipSessionExercise(){sessionData.exercises[sessionData.index].skipped=true;advanceSession();}
-function nextSessionExercise(){if(!sessionData)return;const w=parseFloat(document.getElementById('sessionWeight').value);const r=parseInt(document.getElementById('sessionReps').value);const ex=sessionData.exercises[sessionData.index];if(!w||!r){if(!confirm('Пропустить?'))return;ex.skipped=true;}else{ex.weight=w;ex.reps=r;ex.skipped=false;}advanceSession();}
+function nextSessionExercise(){if(!sessionData)return;const w=readWeight('sessionWeight');const r=parseInt(document.getElementById('sessionReps').value);const ex=sessionData.exercises[sessionData.index];if(isNaN(w)||w<0||!r||r<=0){if(!confirm('Не указаны повторения. Пропустить упражнение?'))return;ex.skipped=true;}else{ex.weight=w;ex.reps=r;ex.skipped=false;}advanceSession();}
 function advanceSession(){if(sessionData.index<sessionData.exercises.length-1){sessionData.index++;renderSession();}else finishSession();}
-function finishSession(){const date=document.getElementById('sessionDate').value||todayISO();const data=loadExercises();let added=0;sessionData.exercises.forEach(sEx=>{if(sEx.skipped||!sEx.weight||!sEx.reps)return;let ex=data.find(e=>e.name.toLowerCase()===sEx.name.toLowerCase());if(!ex){ex={id:Date.now()+Math.random(),name:sEx.name,history:[]};data.push(ex);}ex.history.push({weight:sEx.weight,reps:sEx.reps,date,note:''});added++;});saveExercises(data);sessionData=null;alert('Готово! ✅\nПодходов: '+added);showScreen('screen-workouts');}
+function finishSession(){const date=document.getElementById('sessionDate').value||todayISO();const data=loadExercises();let added=0;sessionData.exercises.forEach(sEx=>{if(sEx.skipped||sEx.weight==null||!sEx.reps)return;let ex=data.find(e=>e.name.toLowerCase()===sEx.name.toLowerCase());if(!ex){ex={id:newId(),name:sEx.name,history:[]};data.push(ex);}ex.history.push({weight:sEx.weight,reps:sEx.reps,date,note:''});added++;});saveExercises(data);sessionData=null;alert('Готово! ✅\nПодходов: '+added);showScreen('screen-workouts');}
 function cancelSession(){if(!sessionData){showScreen('screen-templates');return}if(!confirm('Отменить?'))return;sessionData=null;showScreen('screen-templates');}
 
 // ============ CALENDAR ============
@@ -2078,19 +2110,20 @@ const monthPrefix=year+'-'+String(month+1).padStart(2,'0');
 const monthExercises=exercises.filter(ex=>ex.history.some(h=>h.date.startsWith(monthPrefix)));
 const listDiv=document.getElementById('calendarWorkouts');
 if(monthExercises.length===0){listDiv.innerHTML='<div class="empty" style="padding:24px;font-size:13px;"><div class="text">В этом месяце не было тренировок</div></div>';return}
-listDiv.innerHTML=monthExercises.map(ex=>{const monthHistory=ex.history.filter(h=>h.date.startsWith(monthPrefix));const totalVol=monthHistory.reduce((s,h)=>s+h.weight*h.reps,0);return'<div class="history-item"><div class="history-values">'+ex.name+'</div><div style="font-size:11px;color:var(--text-gray);text-align:right;font-weight:700;">'+monthHistory.length+' подх · '+Math.round(totalVol)+'кг</div></div>';}).join('');
+listDiv.innerHTML=monthExercises.map(ex=>{const monthHistory=ex.history.filter(h=>h.date.startsWith(monthPrefix));const totalVol=monthHistory.reduce((s,h)=>s+h.weight*h.reps,0);return'<div class="history-item"><div class="history-values">'+esc(ex.name)+'</div><div style="font-size:11px;color:var(--text-gray);text-align:right;font-weight:700;">'+monthHistory.length+' подх · '+Math.round(totalVol)+'кг</div></div>';}).join('');
 }
 function shiftCalendarMonth(delta){calendarDate.setMonth(calendarDate.getMonth()+delta);renderCalendar();}
-function calcStreak(){const exercises=loadExercises();const workoutDays=new Set();exercises.forEach(ex=>ex.history.forEach(h=>workoutDays.add(h.date)));let streak=0;const today=new Date();for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);if(workoutDays.has(iso))streak++;else if(i>0)break;}return streak;}
+function calcStreak(){const exercises=loadExercises();const workoutDays=new Set();exercises.forEach(ex=>ex.history.forEach(h=>workoutDays.add(h.date)));let streak=0;const today=new Date();for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const iso=isoOf(d);if(workoutDays.has(iso))streak++;else if(i>0)break;}return streak;}
 
 // ============ PROGRESS ============
 function renderProgress(){
 const exercises=loadExercises();const now=new Date();const todayIso=todayISO();
-const weekAgo=new Date(now);weekAgo.setDate(weekAgo.getDate()-7);
-const monthAgo=new Date(now);monthAgo.setDate(monthAgo.getDate()-30);
-const yearAgo=new Date(now);yearAgo.setDate(yearAgo.getDate()-365);
+const sod=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+const weekAgo=new Date(sod);weekAgo.setDate(weekAgo.getDate()-6);
+const monthAgo=new Date(sod);monthAgo.setDate(monthAgo.getDate()-29);
+const yearAgo=new Date(sod);yearAgo.setDate(yearAgo.getDate()-364);
 let volToday=0,volWeek=0,volMonth=0,volYear=0,volAll=0,totalApproaches=0;
-exercises.forEach(ex=>{ex.history.forEach(h=>{const vol=h.weight*h.reps;volAll+=vol;totalApproaches++;if(h.date===todayIso)volToday+=vol;const hd=new Date(h.date);if(hd>=weekAgo)volWeek+=vol;if(hd>=monthAgo)volMonth+=vol;if(hd>=yearAgo)volYear+=vol;});});
+exercises.forEach(ex=>{ex.history.forEach(h=>{const vol=h.weight*h.reps;volAll+=vol;totalApproaches++;if(h.date===todayIso)volToday+=vol;const hd=parseISO(h.date);if(hd>=weekAgo)volWeek+=vol;if(hd>=monthAgo)volMonth+=vol;if(hd>=yearAgo)volYear+=vol;});});
 document.getElementById('volToday').innerHTML=Math.round(volToday).toLocaleString('ru-RU')+'<span class="unit">кг</span>';
 document.getElementById('volWeek').innerHTML=Math.round(volWeek).toLocaleString('ru-RU')+'<span class="unit">кг</span>';
 document.getElementById('volMonth').innerHTML=Math.round(volMonth).toLocaleString('ru-RU')+'<span class="unit">кг</span>';
@@ -2106,10 +2139,12 @@ renderProgressExercises(exercises);
 }
 function saveSteps(){const val=parseInt(document.getElementById('stepsInput').value);if(!val||val<0)return alert('Введите число');const steps=loadSteps();steps[todayISO()]=val;saveStepsData(steps);document.getElementById('stepsInput').value='';renderProgress();renderHome();}
 function renderWeekCompare(exercises,weekAgo,now){
-const thisWeekStart=new Date(now);thisWeekStart.setDate(thisWeekStart.getDate()-6);
-const lastWeekStart=new Date(now);lastWeekStart.setDate(lastWeekStart.getDate()-13);
-const lastWeekEnd=new Date(now);lastWeekEnd.setDate(lastWeekEnd.getDate()-7);
-const inRange=(dateStr,start,end)=>{const d=new Date(dateStr);return d>=start&&d<=end;};
+const sod0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+const thisWeekStart=new Date(sod0);thisWeekStart.setDate(thisWeekStart.getDate()-6);
+const lastWeekStart=new Date(sod0);lastWeekStart.setDate(lastWeekStart.getDate()-13);
+const lastWeekEnd=new Date(sod0);lastWeekEnd.setDate(lastWeekEnd.getDate()-7);
+now=sod0;
+const inRange=(dateStr,start,end)=>{const d=parseISO(dateStr);return d>=start&&d<=end;};
 let tw={vol:0,app:0},lw={vol:0,app:0};
 exercises.forEach(ex=>ex.history.forEach(h=>{const vol=h.weight*h.reps;if(inRange(h.date,thisWeekStart,now)){tw.vol+=vol;tw.app++;}if(inRange(h.date,lastWeekStart,lastWeekEnd)){lw.vol+=vol;lw.app++;}}));
 document.getElementById('weekCompareContent').innerHTML='<div class="compare-week"><div class="cw-side"><div class="cw-label">Прошлая</div><div class="cw-value">'+Math.round(lw.vol).toLocaleString('ru-RU')+'</div><div class="cw-sub">'+lw.app+' подх.</div></div><div class="cw-arrow">→</div><div class="cw-side"><div class="cw-label">Эта</div><div class="cw-value">'+Math.round(tw.vol).toLocaleString('ru-RU')+'</div><div class="cw-sub">'+tw.app+' подх.</div></div></div>';
@@ -2125,14 +2160,14 @@ document.getElementById('muscleVolumeContent').innerHTML=sorted.map(([name,val])
 }
 function renderProgressExercises(exercises){
 const list=document.getElementById('progressExercises');
-if(exercises.length===0){list.innerHTML='<div class="empty"><span class="emoji">📊</span><div class="text">Нет данных</div></div>';return}
-list.innerHTML=exercises.map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const first=sorted[0],last=sorted[sorted.length-1];const diff=last.weight-first.weight;const sign=diff>0?'+':'';const color=diff>0?'var(--mint)':diff<0?'var(--red)':'var(--orange)';return'<div class="exercise-item" onclick="openHistory('+ex.id+')"><div class="info"><div class="name">'+ex.name+'</div><div class="meta">'+last.weight+'кг × '+last.reps+' · <span style="color:'+color+';font-weight:900;">'+sign+diff.toFixed(1)+' кг</span></div></div><div class="li-arrow">›</div></div>';}).join('');
+if(exercises.filter(ex=>ex.history.length).length===0){list.innerHTML='<div class="empty"><span class="emoji">📊</span><div class="text">Нет данных</div></div>';return}
+list.innerHTML=exercises.filter(ex=>ex.history.length).map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const first=sorted[0],last=sorted[sorted.length-1];const diff=last.weight-first.weight;const sign=diff>0?'+':'';const color=diff>0?'var(--mint)':diff<0?'var(--red)':'var(--orange)';return'<div class="exercise-item" onclick="openHistory('+ex.id+')"><div class="info"><div class="name">'+esc(ex.name)+'</div><div class="meta">'+last.weight+'кг × '+last.reps+' · <span style="color:'+color+';font-weight:900;">'+sign+diff.toFixed(1)+' кг</span></div></div><div class="li-arrow">›</div></div>';}).join('');
 }
 function renderRecords(){
 const exercises=loadExercises();const list=document.getElementById('recordsList');
-if(exercises.length===0){list.innerHTML='<div class="empty"><span class="emoji">🏆</span><div class="text">Нет рекордов</div></div>';return}
-const records=exercises.map(ex=>{const maxW=Math.max(...ex.history.map(h=>h.weight));const maxReps=Math.max(...ex.history.map(h=>h.reps));let best1RM=0;ex.history.forEach(h=>{const orm=h.weight*(1+h.reps/30);if(orm>best1RM)best1RM=orm;});return{name:ex.name,maxW,maxReps,best1RM:Math.round(best1RM)};}).sort((a,b)=>b.best1RM-a.best1RM);
-list.innerHTML=records.map(r=>'<div class="record-item"><div><div class="rc-name">'+r.name+'</div><div class="rc-label">макс: '+r.maxW+'кг × '+r.maxReps+'</div></div><div style="text-align:right;"><div class="rc-value">~'+r.best1RM+'<span class="unit">кг</span></div><div class="rc-label">1RM</div></div></div>').join('');
+if(exercises.filter(ex=>ex.history.length).length===0){list.innerHTML='<div class="empty"><span class="emoji">🏆</span><div class="text">Нет рекордов</div></div>';return}
+const records=exercises.filter(ex=>ex.history.length).map(ex=>{const maxW=Math.max(...ex.history.map(h=>h.weight));const maxReps=Math.max(...ex.history.map(h=>h.reps));let best1RM=0;ex.history.forEach(h=>{const orm=h.weight*(1+h.reps/30);if(orm>best1RM)best1RM=orm;});return{name:ex.name,maxW,maxReps,best1RM:Math.round(best1RM)};}).sort((a,b)=>b.best1RM-a.best1RM);
+list.innerHTML=records.map(r=>'<div class="record-item"><div><div class="rc-name">'+esc(r.name)+'</div><div class="rc-label">макс: '+r.maxW+'кг × '+r.maxReps+'</div></div><div style="text-align:right;"><div class="rc-value">~'+r.best1RM+'<span class="unit">кг</span></div><div class="rc-label">1RM</div></div></div>').join('');
 }
 
 // ============ CHART ============
@@ -2150,7 +2185,7 @@ for(let i=0;i<points.length-1;i++){const p0=points[i===0?0:i-1],p1=points[i],p2=
 let gridLines='';
 for(let i=0;i<=3;i++){const y=padT+(i/3)*chartH;const val=yMax-(i/3)*(yMax-yMin);gridLines+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="rgba(122,128,133,.15)" stroke-width="1"/>';gridLines+='<text x="'+(padL-6)+'" y="'+(y+4)+'" font-size="9" fill="#7a8085" text-anchor="end" font-weight="800">'+val.toFixed(0)+'</text>';}
 let dateLabels='';const stepL=Math.max(1,Math.ceil(points.length/4));
-points.forEach((p,i)=>{if(i%stepL===0||i===points.length-1){const d=new Date(p.date);dateLabels+='<text x="'+p.x+'" y="'+(H-8)+'" font-size="9" fill="#7a8085" text-anchor="middle" font-weight="800">'+d.getDate()+'.'+String(d.getMonth()+1).padStart(2,'0')+'</text>';}});
+points.forEach((p,i)=>{if(i%stepL===0||i===points.length-1){const d=parseISO(p.date);dateLabels+='<text x="'+p.x+'" y="'+(H-8)+'" font-size="9" fill="#7a8085" text-anchor="middle" font-weight="800">'+d.getDate()+'.'+String(d.getMonth()+1).padStart(2,'0')+'</text>';}});
 const dots=points.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="var(--white)" stroke="var(--mint)" stroke-width="2.5"/>').join('');
 return'<div class="chart-card" style="padding:14px 8px 12px;"><svg class="chart-svg" viewBox="0 0 '+W+' '+H+'">'+gridLines+'<path d="'+pathD+'" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round"/>'+dots+dateLabels+'</svg></div>';
 }
@@ -2158,11 +2193,13 @@ return'<div class="chart-card" style="padding:14px 8px 12px;"><svg class="chart-
 // ============ EXERCISES ============
 function renderExercises(){
 const list=document.getElementById('exercisesList');const data=loadExercises();
-if(data.length===0){list.innerHTML='<div class="empty"><span class="emoji">🏋️</span><div class="text">Нет упражнений<br>Добавь первое!</div></div>';return}
-list.innerHTML=data.map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const last=sorted[sorted.length-1],first=sorted[0];let badge='';if(sorted.length>1){const diff=last.weight-first.weight;if(diff>0)badge='<span class="badge badge-up">▲ +'+diff+'</span>';else if(diff<0)badge='<span class="badge badge-down">▼ '+diff+'</span>';else badge='<span class="badge badge-same">= 0</span>';}return'<div class="exercise-item '+(sorted.length>1?'has-progress':'')+'" onclick="openHistory('+ex.id+')"><div class="info"><div class="name">'+ex.name+'</div><div class="meta">'+last.weight+'кг × '+last.reps+badge+'</div></div><button class="li-delete" onclick="deleteExercise('+ex.id+');event.stopPropagation();">🗑</button></div>';}).join('');
+if(data.filter(ex=>ex.history.length).length===0){list.innerHTML='<div class="empty"><span class="emoji">🏋️</span><div class="text">Нет упражнений<br>Добавь первое!</div></div>';return}
+list.innerHTML=data.filter(ex=>ex.history.length).map(ex=>{const sorted=[...ex.history].sort((a,b)=>new Date(a.date)-new Date(b.date));const last=sorted[sorted.length-1],first=sorted[0];let badge='';if(sorted.length>1){const diff=Math.round((last.weight-first.weight)*10)/10;if(diff>0)badge='<span class="badge badge-up">▲ +'+diff+'</span>';else if(diff<0)badge='<span class="badge badge-down">▼ '+diff+'</span>';else badge='<span class="badge badge-same">= 0</span>';}return'<div class="exercise-item '+(sorted.length>1?'has-progress':'')+'" onclick="openHistory('+ex.id+')"><div class="info"><div class="name">'+esc(ex.name)+'</div><div class="meta">'+last.weight+'кг × '+last.reps+badge+'</div></div><button class="li-delete" onclick="deleteExercise('+ex.id+');event.stopPropagation();">🗑</button></div>';}).join('');
 }
+// Вес можно не указывать (подтягивания, отжимания, планка…) — тогда он равен 0
+function readWeight(id){const v=document.getElementById(id).value.trim().replace(',','.');return v===''?0:parseFloat(v);}
 function openAddExercise(){['exName','exWeight','exReps','exNote'].forEach(id=>document.getElementById(id).value='');document.getElementById('exDate').value=todayISO();showScreen('screen-add');}
-function addExercise(){const name=document.getElementById('exName').value.trim();const date=document.getElementById('exDate').value||todayISO();const weight=parseFloat(document.getElementById('exWeight').value);const reps=parseInt(document.getElementById('exReps').value);const note=document.getElementById('exNote').value.trim();if(!name)return alert('Введите название');if(!weight||!reps)return alert('Введите вес и повторения');const data=loadExercises();data.push({id:Date.now(),name,history:[{weight,reps,date,note}]});saveExercises(data);showScreen('screen-workouts');}
+function addExercise(){const name=document.getElementById('exName').value.trim();const date=document.getElementById('exDate').value||todayISO();const weight=readWeight('exWeight');const reps=parseInt(document.getElementById('exReps').value);const note=document.getElementById('exNote').value.trim();if(!name)return alert('Введите название');if(isNaN(weight)||weight<0||!reps||reps<=0)return alert('Введите повторения. Вес можно не указывать для упражнений с собственным весом');const data=loadExercises();const same=data.find(e=>e.name.toLowerCase()===name.toLowerCase());if(same)same.history.push({weight,reps,date,note});else data.push({id:newId(),name,history:[{weight,reps,date,note}]});saveExercises(data);showScreen('screen-workouts');}
 function deleteExercise(id){if(!confirm('Удалить?'))return;saveExercises(loadExercises().filter(ex=>ex.id!==id));renderExercises();}
 function openHistory(id){currentExerciseId=id;const ex=loadExercises().find(e=>e.id===id);if(!ex)return;document.getElementById('historyTitle').textContent=ex.name;showScreen('screen-history');}
 function renderHistory(){
@@ -2175,29 +2212,29 @@ document.getElementById('historyChart').innerHTML=asc.length>=2?buildChart(asc):
 const list=document.getElementById('historyList');
 if(sorted.length===0){list.innerHTML='<div class="empty"><span class="emoji">📝</span><div class="text">Нет записей</div></div>';return}
 const maxW=Math.max(...ex.history.map(x=>x.weight));
-list.innerHTML=sorted.map(h=>{const f=formatDate(h.date);const isPR=h.weight===maxW;return'<div class="history-item" style="flex-direction:column;align-items:stretch;gap:0;"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="history-values">'+h.weight+'<span class="unit"> кг × </span>'+h.reps+(isPR?' <span class="badge badge-pr">PR</span>':'')+'</div><div class="history-date"><span class="day-name">'+f.day+'</span>'+f.short+'</div></div>'+(h.note?'<div class="note-box"><div class="n-label">📝 Заметка</div>'+h.note+'</div>':'')+'</div>';}).join('');
+list.innerHTML=sorted.map(h=>{const f=formatDate(h.date);const isPR=h.weight===maxW;return'<div class="history-item" style="flex-direction:column;align-items:stretch;gap:0;"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="history-values">'+h.weight+'<span class="unit"> кг × </span>'+h.reps+(isPR?' <span class="badge badge-pr">PR</span>':'')+'</div><div class="history-date"><span class="day-name">'+f.day+'</span>'+f.short+'</div></div>'+(h.note?'<div class="note-box"><div class="n-label">📝 Заметка</div>'+esc(h.note)+'</div>':'')+'</div>';}).join('');
 }
 function addApproach(){
 const date=document.getElementById('apDate').value||todayISO();
-const weight=parseFloat(document.getElementById('apWeight').value);
+const weight=readWeight('apWeight');
 const reps=parseInt(document.getElementById('apReps').value);
 const note=document.getElementById('apNote').value.trim();
-if(!weight||!reps)return alert('Введите вес и повторения');
+if(isNaN(weight)||weight<0||!reps||reps<=0)return alert('Введите повторения. Вес можно не указывать для упражнений с собственным весом');
 const data=loadExercises();const ex=data.find(e=>e.id===currentExerciseId);if(!ex)return;
 ex.history.push({weight,reps,date,note});
 saveExercises(data);
 ['apWeight','apReps','apNote'].forEach(id=>document.getElementById(id).value='');
 document.getElementById('apDate').value=todayISO();
 const settings=loadSettings();
+showScreen('screen-history');
 if(settings.autoTimer==='on')openTimer(ex.name,parseInt(settings.timerDefault)||90);
-else showScreen('screen-history');
 }
 function addApproachNoTimer(){
 const date=document.getElementById('apDate').value||todayISO();
-const weight=parseFloat(document.getElementById('apWeight').value);
+const weight=readWeight('apWeight');
 const reps=parseInt(document.getElementById('apReps').value);
 const note=document.getElementById('apNote').value.trim();
-if(!weight||!reps)return alert('Введите вес и повторения');
+if(isNaN(weight)||weight<0||!reps||reps<=0)return alert('Введите повторения. Вес можно не указывать для упражнений с собственным весом');
 const data=loadExercises();const ex=data.find(e=>e.id===currentExerciseId);if(!ex)return;
 ex.history.push({weight,reps,date,note});
 saveExercises(data);
@@ -2207,7 +2244,7 @@ showScreen('screen-history');
 }
 
 // ============ TIMER ============
-let timerState={total:90,remaining:90,running:false,paused:false,interval:null,exerciseName:''};
+let timerState={total:90,remaining:90,running:false,paused:false,done:false,interval:null,endAt:0,exerciseName:''};
 function openTimer(exerciseName,seconds){
 timerState.exerciseName=exerciseName||'';
 document.getElementById('timerExerciseName').textContent=exerciseName||'';
@@ -2221,27 +2258,87 @@ setTimerPreset(preset,matched?document.querySelector('.timer-preset.active'):pre
 document.getElementById('timerOverlay').classList.add('active');
 }
 function openTimerFromFloat(){document.getElementById('timerOverlay').classList.add('active');}
-function closeTimer(){stopTimerInterval();timerState.running=false;timerState.paused=false;document.getElementById('timerOverlay').classList.remove('active');document.getElementById('floatingTimerBtn').classList.remove('active');}
-function setTimerPreset(seconds,el){document.querySelectorAll('.timer-preset').forEach(p=>p.classList.remove('active'));if(el)el.classList.add('active');stopTimerInterval();timerState.total=seconds;timerState.remaining=seconds;timerState.running=true;timerState.paused=false;updateTimerDisplay();startTimerInterval();document.getElementById('timerPauseBtn').textContent='⏸ Пауза';document.getElementById('floatingTimerBtn').classList.add('active');}
-function startTimerInterval(){timerState.interval=setInterval(()=>{if(timerState.paused)return;timerState.remaining--;if(timerState.remaining<=0){timerState.remaining=0;updateTimerDisplay();stopTimerInterval();timerState.running=false;onTimerComplete();return;}updateTimerDisplay();},1000);}
+function closeTimer(){stopTimerInterval();timerState.running=false;timerState.paused=false;timerState.done=false;document.getElementById('timerOverlay').classList.remove('active');document.getElementById('floatingTimerBtn').classList.remove('active');}
+function setTimerPreset(seconds,el){document.querySelectorAll('.timer-preset').forEach(p=>p.classList.remove('active'));if(el)el.classList.add('active');stopTimerInterval();timerState.total=seconds;timerState.remaining=seconds;timerState.running=true;timerState.paused=false;timerState.done=false;updateTimerDisplay();startTimerInterval();document.getElementById('timerPauseBtn').textContent='⏸ Пауза';document.getElementById('floatingTimerBtn').classList.add('active');}
+// Остаток считается от момента окончания (endAt), поэтому таймер идёт правильно, даже если Telegram свёрнут или экран заблокирован
+function timerTick(){
+if(!timerState.running||timerState.paused)return;
+timerState.remaining=Math.max(0,Math.ceil((timerState.endAt-Date.now())/1000));
+updateTimerDisplay();
+if(timerState.remaining<=0){stopTimerInterval();timerState.running=false;onTimerComplete();}
+}
+function startTimerInterval(){stopTimerInterval();timerState.endAt=Date.now()+timerState.remaining*1000;timerState.interval=setInterval(timerTick,250);}
 function stopTimerInterval(){if(timerState.interval){clearInterval(timerState.interval);timerState.interval=null;}}
 function updateTimerDisplay(){document.getElementById('timerDisplay').innerHTML=timerState.remaining+'<span class="sec-unit">с</span>';const circle=document.getElementById('timerCircle');const c=2*Math.PI*110;const pct=timerState.total>0?timerState.remaining/timerState.total:0;circle.style.strokeDashoffset=c*(1-pct);circle.classList.toggle('paused',timerState.paused);document.getElementById('floatingTimerBtn').setAttribute('data-time',timerState.remaining+'с');}
-function toggleTimerPause(){timerState.paused=!timerState.paused;document.getElementById('timerPauseBtn').textContent=timerState.paused?'▶ Продолжить':'⏸ Пауза';updateTimerDisplay();}
-function addTimerTime(sec){timerState.remaining+=sec;timerState.total=Math.max(timerState.total,timerState.remaining);if(!timerState.running&&!timerState.paused){timerState.running=true;startTimerInterval();}updateTimerDisplay();}
-function onTimerComplete(){if(navigator.vibrate)navigator.vibrate([300,100,300,100,300]);try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const beep=(f,t,d)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.01);g.gain.linearRampToValueAtTime(0,t+d);o.start(t);o.stop(t+d);};const n=ctx.currentTime;beep(880,n,0.15);beep(1100,n+0.2,0.15);beep(1320,n+0.4,0.3);}catch(e){}if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success');}catch(e){}}const pb=document.getElementById('timerPauseBtn');pb.textContent='🔄 Заново';pb.onclick=function(){setTimerPreset(timerState.total,document.querySelector('.timer-preset.active'));pb.onclick=toggleTimerPause;};setTimeout(()=>{if(timerState.remaining===0&&!timerState.running)closeTimer();},5000);}
+function toggleTimerPause(){
+if(timerState.done){setTimerPreset(timerState.total,document.querySelector('.timer-preset.active'));return;}
+if(!timerState.paused){timerTick();timerState.paused=true;}
+else{timerState.paused=false;timerState.endAt=Date.now()+timerState.remaining*1000;}
+document.getElementById('timerPauseBtn').textContent=timerState.paused?'▶ Продолжить':'⏸ Пауза';
+updateTimerDisplay();
+}
+function addTimerTime(sec){
+if(timerState.running&&!timerState.paused)timerTick();
+timerState.remaining=Math.max(0,timerState.remaining+sec);
+timerState.total=Math.max(timerState.total,timerState.remaining);
+if(timerState.done||!timerState.running){
+  if(timerState.remaining<=0){updateTimerDisplay();return;}
+  timerState.done=false;timerState.running=true;timerState.paused=false;
+  document.getElementById('timerPauseBtn').textContent='⏸ Пауза';
+  document.getElementById('floatingTimerBtn').classList.add('active');
+  startTimerInterval();
+}else if(!timerState.paused){timerState.endAt=Date.now()+timerState.remaining*1000;}
+updateTimerDisplay();
+}
+function onTimerComplete(){
+timerState.done=true;
+if(navigator.vibrate)navigator.vibrate([300,100,300,100,300]);
+try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const beep=(f,t,d)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.01);g.gain.linearRampToValueAtTime(0,t+d);o.start(t);o.stop(t+d);};const n=ctx.currentTime;beep(880,n,0.15);beep(1100,n+0.2,0.15);beep(1320,n+0.4,0.3);}catch(e){}
+if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success');}catch(e){}}
+document.getElementById('timerPauseBtn').textContent='🔄 Заново';
+setTimeout(()=>{if(timerState.done&&!timerState.running)closeTimer();},5000);
+}
+// Вернулись в приложение после сворачивания — сразу обновляем таймер
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)timerTick();});
 
 // ============ PHOTOS ============
 function compressImage(file,maxSize=800,quality=0.7){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');let{width,height}=img;if(width>height&&width>maxSize){height=Math.round((height*maxSize)/width);width=maxSize;}else if(height>maxSize){width=Math.round((width*maxSize)/height);height=maxSize;}canvas.width=width;canvas.height=height;canvas.getContext('2d').drawImage(img,0,0,width,height);resolve(canvas.toDataURL('image/jpeg',quality));};img.onerror=reject;img.src=e.target.result;};reader.onerror=reject;reader.readAsDataURL(file);});}
 function onPhotoSelected(event){const file=event.target.files[0];if(!file)return;compressImage(file).then(dataUrl=>{pendingPhotoData=dataUrl;const preview=document.getElementById('photoPreview');preview.src=dataUrl;preview.style.display='block';document.getElementById('fileDrop').classList.add('has-file');document.getElementById('fileDropText').textContent='Нажми, чтобы заменить';}).catch(()=>alert('Ошибка'));}
-function savePhoto(){if(!pendingPhotoData)return alert('Выберите фото');const date=document.getElementById('photoDate').value||todayISO();const weight=parseFloat(document.getElementById('photoWeight').value)||null;const note=document.getElementById('photoNote').value.trim();const photos=loadPhotos();photos.push({id:Date.now(),date,weight,note,data:pendingPhotoData});savePhotos(photos);pendingPhotoData=null;document.getElementById('photoPreview').style.display='none';document.getElementById('fileDrop').classList.remove('has-file');document.getElementById('fileDropText').textContent='Нажми для выбора';document.getElementById('photoWeight').value='';document.getElementById('photoNote').value='';showScreen('screen-gallery');}
+function savePhoto(){if(!pendingPhotoData)return alert('Выберите фото');const date=document.getElementById('photoDate').value||todayISO();const weight=parseFloat(document.getElementById('photoWeight').value)||null;const note=document.getElementById('photoNote').value.trim();const photos=loadPhotos();photos.push({id:newId(),date,weight,note,data:pendingPhotoData});savePhotos(photos);pendingPhotoData=null;document.getElementById('photoPreview').style.display='none';document.getElementById('fileDrop').classList.remove('has-file');document.getElementById('fileDropText').textContent='Нажми для выбора';document.getElementById('photoWeight').value='';document.getElementById('photoNote').value='';showScreen('screen-gallery');}
 function renderGallery(){const photos=loadPhotos().sort((a,b)=>new Date(b.date)-new Date(a.date));const container=document.getElementById('galleryContent');if(photos.length===0){container.innerHTML='<div class="empty"><span class="emoji">📸</span><div class="text">Пока нет фото</div></div>';return}let html='';if(photos.length>=2)html+='<button class="btn btn-secondary" onclick="openCompare()" style="margin-bottom:16px;padding:14px;font-size:12px;">🔄 Сравнить до/после</button>';html+='<div class="gallery-grid">';photos.forEach(p=>{const f=formatDate(p.date);html+='<div class="photo-card" onclick="openPhotoView('+p.id+')"><div class="photo-wrap"><img src="'+p.data+'"></div><div class="photo-date"><span class="d">'+f.short+'</span>'+(p.weight?'<span class="w">'+p.weight+'кг</span>':'')+'</div></div>';});html+='</div>';container.innerHTML=html;}
-function openPhotoView(id){const photo=loadPhotos().find(p=>p.id===id);if(!photo)return;selectedPhotoId=id;const f=formatDate(photo.date);document.getElementById('photoViewContent').innerHTML='<div class="photo-viewer"><img src="'+photo.data+'"><div class="pv-info"><div><div class="pv-date">'+f.short+'</div><div style="font-size:11px;color:var(--text-gray);">'+f.day+'</div></div>'+(photo.weight?'<div class="pv-weight">'+photo.weight+' кг</div>':'')+'</div>'+(photo.note?'<div style="padding:12px 4px 0;text-align:left;color:var(--text-gray);font-size:13px;">📝 '+photo.note+'</div>':'')+'</div><button class="btn btn-danger" onclick="deletePhoto('+id+')">🗑 Удалить</button>';showScreen('screen-photo-view');}
+function openPhotoView(id){const photo=loadPhotos().find(p=>p.id===id);if(!photo)return;selectedPhotoId=id;const f=formatDate(photo.date);document.getElementById('photoViewContent').innerHTML='<div class="photo-viewer"><img src="'+photo.data+'"><div class="pv-info"><div><div class="pv-date">'+f.short+'</div><div style="font-size:11px;color:var(--text-gray);">'+f.day+'</div></div>'+(photo.weight?'<div class="pv-weight">'+photo.weight+' кг</div>':'')+'</div>'+(photo.note?'<div style="padding:12px 4px 0;text-align:left;color:var(--text-gray);font-size:13px;">📝 '+esc(photo.note)+'</div>':'')+'</div><button class="btn btn-danger" onclick="deletePhoto('+id+')">🗑 Удалить</button>';showScreen('screen-photo-view');}
 function deletePhoto(id){if(!confirm('Удалить?'))return;savePhotos(loadPhotos().filter(p=>p.id!==id));showScreen('screen-gallery');}
 function openCompare(){const photos=loadPhotos().sort((a,b)=>new Date(a.date)-new Date(b.date));if(photos.length<2)return;const first=photos[0],last=photos[photos.length-1];const f1=formatDate(first.date),f2=formatDate(last.date);document.getElementById('compareContent').innerHTML='<div class="compare-container"><div class="compare-item before"><img src="'+first.data+'"><div class="ci-label">ДО · '+f1.short+'</div></div><div class="compare-item after"><img src="'+last.data+'"><div class="ci-label">ПОСЛЕ · '+f2.short+'</div></div></div>';let statsHtml='';if(first.weight&&last.weight){const diff=last.weight-first.weight;const sign=diff>0?'+':'';const days=Math.round((new Date(last.date)-new Date(first.date))/86400000);statsHtml='<div class="progress-hero '+(diff<0?'up':diff>0?'down':'same')+'"><div class="progress-label">Изменение веса</div><div class="progress-value">'+sign+diff.toFixed(1)+' кг</div><div class="progress-sub">за '+days+' дн.</div></div>';}else statsHtml='<div style="text-align:center;color:var(--text-gray);font-size:13px;padding:20px;">Укажи вес в фото</div>';document.getElementById('compareStats').innerHTML=statsHtml;showScreen('screen-compare');}
 
 // ============ EXPORT/IMPORT ============
-function exportData(){const data={};[PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY].forEach(k=>{data[k]=localStorage.getItem(k);});const json=JSON.stringify(data);const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='atom-backup.json';a.click();URL.revokeObjectURL(url);alert('Файл сохранён');}
-function importData(){const txt=document.getElementById('importText').value.trim();if(!txt)return alert('Вставь JSON');try{const data=JSON.parse(txt);Object.keys(data).forEach(k=>{if(data[k])localStorage.setItem(k,data[k]);});alert('Загружено! Обновление...');setTimeout(()=>location.reload(),800);}catch(e){alert('Ошибка: '+e.message);}}
+// Все ключи, которые нужно сохранять в резервную копию (раньше терялись цели КБЖУ и отметки о выполненных днях программы)
+function backupKeys(){return[PROFILE_KEY,EXERCISES_KEY,MEALS_KEY,CUSTOM_PRODUCTS_KEY,PHOTOS_KEY,TEMPLATES_KEY,WATER_KEY,RECIPES_KEY,SETTINGS_KEY,STEPS_KEY,'fitness_program_progress',TARGETS_KEY];}
+function exportData(){
+const data={};
+backupKeys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)data[k]=v;});
+const json=JSON.stringify(data);
+try{const blob=new Blob([json],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='atom-backup.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}catch(e){}
+// В некоторых встроенных браузерах (в т.ч. Telegram) скачивание файлов не работает — поэтому дублируем копию в буфер обмена
+const msgFile='Файл atom-backup.json отправлен на скачивание.';
+if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(json).then(()=>alert(msgFile+'\nКопия данных также скопирована в буфер обмена — её можно вставить в «Импорт».')).catch(()=>alert(msgFile+'\nЕсли файл не появился, открой приложение в обычном браузере и повтори экспорт.'));
+}else alert(msgFile+'\nЕсли файл не появился, открой приложение в обычном браузере и повтори экспорт.');
+}
+function importData(){
+const txt=document.getElementById('importText').value.trim();if(!txt)return alert('Вставь JSON');
+try{
+  const data=JSON.parse(txt);
+  if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('неверный формат файла');
+  const allowed=new Set(backupKeys());let restored=0;
+  Object.keys(data).forEach(k=>{
+    if(!allowed.has(k)||typeof data[k]!=='string')return; // импортируем только свои ключи приложения
+    try{JSON.parse(data[k]);}catch(_){return;}
+    if(lsSet(k,data[k]))restored++;
+  });
+  if(restored===0)return alert('В файле не найдено данных ATOM.');
+  alert('Загружено разделов: '+restored+'. Обновление...');setTimeout(()=>location.reload(),800);
+}catch(e){alert('Ошибка: '+e.message);}
+}
 
 function renderAIMessages(){
     const c=document.getElementById('aiMessages');if(!c)return;
@@ -2256,10 +2353,12 @@ function renderAIMessages(){
             +'</div></div>';
         return;
     }
-    c.innerHTML=aiMessages.map(m=>'<div style="background:'+(m.role==='user'?'var(--mint)':'var(--white)')+';color:'+(m.role==='user'?'#fff':'var(--text-dark)')+';padding:14px 16px;border-radius:16px;'+(m.role==='user'?'border-bottom-right-radius:4px;align-self:flex-end;':'border-bottom-left-radius:4px;align-self:flex-start;')+'font-size:14px;font-weight:600;line-height:1.5;box-shadow:var(--shadow-sm);max-width:85%;white-space:pre-wrap;">'+m.content+'</div>').join('');
-    setTimeout(()=>{c.scrollIntoView({behavior:'smooth',block:'end'});},100);
+    c.innerHTML=aiMessages.map(m=>'<div style="background:'+(m.role==='user'?'var(--mint)':'var(--white)')+';color:'+(m.role==='user'?'#fff':'var(--text-dark)')+';padding:14px 16px;border-radius:16px;'+(m.role==='user'?'border-bottom-right-radius:4px;align-self:flex-end;':'border-bottom-left-radius:4px;align-self:flex-start;')+'font-size:14px;font-weight:600;line-height:1.5;box-shadow:var(--shadow-sm);max-width:85%;white-space:pre-wrap;word-break:break-word;">'+esc(m.content)+'</div>').join('');
+    scrollAIToEnd();
 }
 
+function scrollAIToEnd(){const c=document.getElementById('aiMessages');if(!c)return;requestAnimationFrame(()=>{c.scrollTop=c.scrollHeight;});}
+let aiBusy=false;
 function askQuick(text){
     document.getElementById('aiInput').value=text;
     sendAIMessage();
@@ -2268,7 +2367,8 @@ function askQuick(text){
 async function sendAIMessage(){
     const input=document.getElementById('aiInput');
     const text=input.value.trim();
-    if(!text)return;
+    if(!text||aiBusy)return;
+    aiBusy=true;
     input.value='';
     aiMessages.push({role:'user',content:text});
     aiHistory.push({role:'user',content:text});
@@ -2279,7 +2379,7 @@ async function sendAIMessage(){
     loading.style.cssText='background:var(--white);padding:14px 16px;border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start;box-shadow:var(--shadow-sm);font-size:14px;color:var(--text-gray);font-weight:600;';
     loading.textContent='Печатает...';
     c.appendChild(loading);
-    setTimeout(()=>{c.scrollIntoView({behavior:'smooth',block:'end'});},50);
+    scrollAIToEnd();
 
     try{
         const systemPrompt='Ты — ATOM, профессиональный фитнес-тренер и нутрициолог с 10-летним опытом. Отвечай коротко (максимум 4-5 абзацев), по делу, дружелюбно, но профессионально. Давай конкретные советы по тренировкам, питанию, восстановлению. При вопросе о программе тренировок — предлагай конкретные упражнения и подходы. Отвечай ТОЛЬКО на русском языке. Если вопрос не по теме фитнеса — вежливо верни пользователя к теме.';
@@ -2288,19 +2388,27 @@ async function sendAIMessage(){
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({messages:[{role:'system',content:systemPrompt}].concat(aiHistory.slice(-10))})
         });
-        const data=await res.json();
+        let data=null;
+        try{data=await res.json();}catch(_){}
         let reply='Извини, не смог ответить. Попробуй ещё раз.';
-        if(data&&data.choices&&data.choices[0]&&data.choices[0].message){
-            reply=data.choices[0].message.content;
+        let ok=false;
+        if(data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content){
+            reply=String(data.choices[0].message.content);ok=true;
         }else if(data&&data.error){
-            reply='Ошибка: '+(data.error.message||JSON.stringify(data.error));
+            reply='Ошибка: '+(typeof data.error==='string'?data.error:(data.error.message||JSON.stringify(data.error)));
         }
         loading.remove();
         aiMessages.push({role:'assistant',content:reply});
-        aiHistory.push({role:'assistant',content:reply});
+        if(ok)aiHistory.push({role:'assistant',content:reply});
+        else aiHistory.pop(); // неудачный запрос не должен портить историю диалога
         renderAIMessages();
     }catch(e){
-        loading.textContent='Ошибка соединения. Проверь интернет.';
+        loading.remove();
+        aiHistory.pop();
+        aiMessages.push({role:'assistant',content:'Ошибка соединения. Проверь интернет и попробуй ещё раз.'});
+        renderAIMessages();
+    }finally{
+        aiBusy=false;
     }
 }
 
@@ -2358,6 +2466,11 @@ async function openBarcodeScanner(){
     return;
   }
   
+  if(typeof Html5Qrcode==='undefined'){
+    status.textContent = '⚠️ Сканер не загрузился. Проверь интернет и открой экран заново.';
+    return;
+  }
+  if(scannerRunning){ try{ await html5QrCode.stop(); }catch(e){} scannerRunning=false; }
   try {
     html5QrCode = new Html5Qrcode("barcodeReader");
     const config = {
@@ -2406,37 +2519,42 @@ async function onBarcodeDetected(decodedText, decodedResult){
   // Ищем в базе
   try {
     const res = await fetch(WORKER_URL + '/food-search?q=' + encodeURIComponent(decodedText));
+    if(!res.ok) throw new Error('сервер ответил ' + res.status);
     const data = await res.json();
-    
-    if(data.products && data.products.length > 0){
-      const p = data.products[0];
+    const found = (data.products || []).filter(x => x && typeof x.product_name === 'string' && x.product_name.trim());
+
+    if(found.length > 0){
+      const p = found[0];
       const n = p.nutriments || {};
-      const cal = Math.round(n['energy-kcal_100g'] || 0);
-      const prot = parseFloat((n['proteins_100g'] || 0).toFixed(1));
-      const fat = parseFloat((n['fat_100g'] || 0).toFixed(1));
-      const carb = parseFloat((n['carbohydrates_100g'] || 0).toFixed(1));
-      const brand = p.brands ? p.brands.split(',')[0] : '';
-      
-      // Показываем результат
+      const cal = Math.round(num(n['energy-kcal_100g']));
+      const prot = parseFloat(num(n['proteins_100g']).toFixed(1));
+      const fat = parseFloat(num(n['fat_100g']).toFixed(1));
+      const carb = parseFloat(num(n['carbohydrates_100g']).toFixed(1));
+      const brand = p.brands ? String(p.brands).split(',')[0].trim() : '';
+      const pname = p.product_name.trim();
+
+      // Показываем результат (все строки экранируются)
       status.innerHTML = `
         <div style="background:var(--mint-soft);border-radius:16px;padding:16px;margin-top:12px;text-align:left;">
-          <div style="font-weight:900;font-size:16px;margin-bottom:4px;">${p.product_name}</div>
-          <div style="font-size:12px;color:var(--text-gray);margin-bottom:8px;">${brand}</div>
+          <div style="font-weight:900;font-size:16px;margin-bottom:4px;">${esc(pname)}</div>
+          <div style="font-size:12px;color:var(--text-gray);margin-bottom:8px;">${esc(brand)}</div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
             <div><div style="font-weight:900;color:var(--mint);">${cal}</div><div style="font-size:9px;color:var(--text-gray);">ккал</div></div>
             <div><div style="font-weight:900;color:var(--orange);">${prot}</div><div style="font-size:9px;color:var(--text-gray);">Б</div></div>
             <div><div style="font-weight:900;color:var(--purple);">${fat}</div><div style="font-size:9px;color:var(--text-gray);">Ж</div></div>
             <div><div style="font-weight:900;color:var(--blue);">${carb}</div><div style="font-size:9px;color:var(--text-gray);">У</div></div>
           </div>
-          <button class="btn" onclick="useScannedProduct('${p.product_name.replace(/'/g,"\\'")}',${cal},${prot},${fat},${carb},'${brand.replace(/'/g,"\\'")}')" style="margin-top:14px;">Использовать</button>
+          <div style="font-size:10px;color:var(--text-gray);margin-top:8px;">на 100 г</div>
+          <button class="btn" onclick="useScannedProduct(${jsArg(pname)},${cal},${prot},${fat},${carb},${jsArg(brand)})" style="margin-top:14px;">Использовать</button>
+          <button class="btn btn-secondary" onclick="openBarcodeScanner()" style="margin-top:10px;padding:12px;font-size:12px;">Сканировать заново</button>
         </div>
       `;
     } else {
-      status.innerHTML = `⚠️ Продукт со штрих-кодом <b>${decodedText}</b> не найден в базе.<br><br>
+      status.innerHTML = `⚠️ Продукт со штрих-кодом <b>${esc(decodedText)}</b> не найден в базе.<br><br>
         <button class="btn btn-secondary" onclick="openBarcodeScanner()" style="padding:12px;font-size:12px;">Сканировать заново</button>`;
     }
   } catch(e){
-    status.textContent = '⚠️ Ошибка поиска: ' + e.message;
+    status.innerHTML = '⚠️ Не удалось найти продукт. Проверь интернет.<br><br><button class="btn btn-secondary" onclick="openBarcodeScanner()" style="padding:12px;font-size:12px;">Сканировать заново</button>';
   }
 }
 
@@ -2453,11 +2571,14 @@ function useScannedProduct(name, cal, prot, fat, carb, brand){
   openPortion(fullName);
 }
 
-function closeBarcodeScanner(){
+function stopBarcodeScanner(){
   if(html5QrCode && scannerRunning){
-    html5QrCode.stop().catch(() => {});
     scannerRunning = false;
+    try{ html5QrCode.stop().catch(() => {}); }catch(e){}
   }
+}
+function closeBarcodeScanner(){
+  stopBarcodeScanner();
   showScreen('screen-products');
 }
 
@@ -2531,7 +2652,11 @@ function startTodayWorkout(){
 const TARGETS_KEY = 'fitness_custom_targets';
 
 function loadCustomTargets() {
-  try { return JSON.parse(localStorage.getItem(TARGETS_KEY)) || null; } catch { return null; }
+  try {
+    const t = JSON.parse(localStorage.getItem(TARGETS_KEY));
+    // защита от повреждённых данных: нужны все четыре положительных числа
+    return (t && t.calories > 0 && t.protein >= 0 && t.fats >= 0 && t.carbs >= 0) ? t : null;
+  } catch { return null; }
 }
 
 function saveCustomTargets() {
@@ -2541,8 +2666,10 @@ function saveCustomTargets() {
   const carb = parseInt(document.getElementById('setCarbs').value);
   
   if(!cal || !prot || !fat || !carb) return alert('Заполни все поля для ручного расчёта');
+  if(cal<500||cal>10000) return alert('Калории: от 500 до 10 000 ккал');
+  if(prot>1000||fat>1000||carb>2000) return alert('Проверь значения белков, жиров и углеводов');
   
-  localStorage.setItem(TARGETS_KEY, JSON.stringify({ calories: cal, protein: prot, fats: fat, carbs: carb }));
+  if(!lsSet(TARGETS_KEY, JSON.stringify({ calories: cal, protein: prot, fats: fat, carbs: carb }))) return;
   alert('Твои личные цели сохранены! ✅');
   renderSettings();
 }
