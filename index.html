@@ -3228,6 +3228,14 @@ function maybeChannelPrompt(){
     o.querySelector('[data-a=go]').onclick=()=>{o.remove();atomOpenChannel();};o.querySelector('[data-a=later]').onclick=()=>o.remove();
   }catch(e){}
 }
+window.atomShareRef=function(){
+  if(!(ST&&ST.uid&&CFG&&CFG.bot))return;
+  const link='https://t.me/'+CFG.bot+'?start=ref_'+ST.uid;
+  const text='Попробуй ATOM — фитнес-приложение с ИИ-тренером, дневником питания и прогрессом. Заходи по моей ссылке — получишь бонусные дни:';
+  const share='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(text);
+  try{if(tg&&tg.openTelegramLink){tg.openTelegramLink(share);return;}}catch(e){}
+  try{navigator.clipboard.writeText(link);toast('Ссылка скопирована');}catch(e){window.open(share,'_blank');}
+};
 function renderSubCard(){
   const el=document.getElementById('atomSubCard');if(!el)return;
   if(!(CFG&&CFG.enabled)){el.style.display='none';return;}el.style.display='';
@@ -3236,6 +3244,10 @@ function renderSubCard(){
   if(!ST)h='<div style="font-size:13px;opacity:.75;">Статус подписки появится после проверки.</div>';
   else if(ST.reason==='subscribed')h='<div style="font-weight:900;">✅ ATOM Pro активен</div><div style="font-size:12px;opacity:.7;margin:4px 0 0;">до '+fmt(ST.subUntil)+'</div>';
   else h='<div style="font-weight:900;">⚡ Пробный период</div><div style="font-size:12px;opacity:.7;margin:4px 0 12px;">до '+fmt(ST.trialEndsAt)+' · осталось '+daysLeft()+' дн.</div>'+(ST.bonusAvailable&&CFG.channel&&CFG.channel.url?btn('📣 Подписаться на канал (+'+(CFG.bonusDays||3)+' дня)','atomOpenChannel()','btn-secondary','margin:0 0 8px;padding:12px;font-size:12px;'):'')+btn('⭐ Оформить за '+((CFG&&CFG.price)||250)+' ⭐ / месяц','atomPay()','','margin:0;padding:12px;font-size:12px;');
+  if(ST&&ST.uid&&CFG.bot){
+    const rd=ST.refDays||CFG.refDays||7;
+    h+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(128,128,128,.25);"><div style="font-weight:900;">🎁 Пригласи друга</div><div style="font-size:12px;opacity:.7;margin:4px 0 10px;">Друг получит +'+rd+' дн. и ты +'+rd+' дн. бесплатно. Приглашено: '+(ST.refs||0)+(ST.refMax?' из '+ST.refMax:'')+'</div>'+btn('📤 Отправить ссылку','atomShareRef()','btn-secondary','margin:0;padding:12px;font-size:12px;')+'</div>';
+  }
   if(tg.initData)h+=btn('🔗 Скопировать код привязки','atomCopyToken()','btn-secondary','margin:10px 0 0;padding:10px;font-size:11px;');
   el.innerHTML=h;
 }

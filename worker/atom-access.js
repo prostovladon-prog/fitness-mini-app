@@ -27,6 +27,8 @@ function atomCfg(env) {
     price: Number(env.PRICE_STARS) || 250,
     channel,                                            // @name или числовой id (-100...)
     channelUrl: channel.startsWith('@') ? 'https://t.me/' + channel.slice(1) : String(env.CHANNEL_URL || ''),
+    refDays: Number(env.REF_DAYS) || 7,                  // сколько дней получает каждый за приглашённого друга
+    refMax: Number(env.REF_MAX) || 10,                   // максимум наград за приглашения на одного человека
     bot: String(env.BOT_USERNAME || '').replace(/^@/, ''),
     maxAge: Number(env.INITDATA_MAX_AGE) || 86400       // сколько живёт подпись Telegram, сек
   };
@@ -127,26 +129,79 @@ async function atomAuth(request, body, env) {
 // ---------- статистика (один документ в KV: итоги + последние 60 дней) ----------
 // События: new (новый пользователь), active (заходил в этот день), bonus, inv (дошёл до оплаты),
 // paid (первая оплата), renew (повторные платежи), rev (звёзды). Для аналитики; точность ±1 при гонках.
-async function atomCount(env, ev, n) {
+async function atomCount(env, ev, n, src) {
   try {
     const day = new Date().toISOString().slice(0, 10);
     const st = (await env.ATOM_KV.get('st', 'json')) || { total: {}, days: {} };
     st.total[ev] = (st.total[ev] || 0) + (n || 1);
     const d = st.days[day] || (st.days[day] = {});
     d[ev] = (d[ev] || 0) + (n || 1);
+    if (src) {                                   // разрез по источникам (метки ?start=...)
+      st.src = st.src || {};
+      const k = (st.src[src] || Object.keys(st.src).length < 50) ? src : 'other';
+      const b = st.src[k] || (st.src[k] = {});
+      b[ev] = (b[ev] || 0) + (n || 1);
+    }
     const keys = Object.keys(st.days).sort();
     while (keys.length > 60) delete st.days[keys.shift()];
     await env.ATOM_KV.put('st', JSON.stringify(st));
   } catch (e) { /* статистика не должна ломать основную работу */ }
 }
 
+// ---------- метки источников и рефералы ----------
+// Ссылка вида t.me/бот?start=МЕТКА — метка запоминается; ?start=ref_<id> — приглашение друга.
+function atomSrcTag(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24) || 'direct'; }
+function atomParseStart(text) {
+  const m = /^\/start(?:@\w+)?\s+([A-Za-z0-9_-]{1,64})\s*$/i.exec(String(text || ''));
+  if (!m) return { src: 'direct', param: false };
+  const r = /^ref_(\d{3,15})$/.exec(m[1]);
+  if (r) return { src: 'ref', ref: Number(r[1]), param: true };
+  return { src: atomSrcTag(m[1]), param: true };
+}
+// Запоминаем, откуда пришёл человек (только пока он ещё не открывал приложение)
+async function atomTrackStart(env, uid, text) {
+  try {
+    if (await env.ATOM_KV.get('u:' + uid)) return;
+    const p = atomParseStart(text);
+    if (p.ref === uid) { p.ref = 0; p.src = 'direct'; }       // себя пригласить нельзя
+    const prev = await env.ATOM_KV.get('a:' + uid, 'json');
+    if (prev && !p.param) return;
+    await env.ATOM_KV.put('a:' + uid, JSON.stringify({ src: p.src, ref: p.ref || 0 }), { expirationTtl: 2592000 });
+    if (!prev) await atomCount(env, 'start', 1, p.src);
+  } catch (e) { /* не мешаем приветствию */ }
+}
+// Награда за приглашение: +refDays обоим (один раз на нового пользователя, не больше refMax на пригласившего)
+async function atomApplyReferral(env, uid, u) {
+  try {
+    const cfg = atomCfg(env);
+    const rid = u.ref;
+    if (!rid || rid === uid) return;
+    const r = await env.ATOM_KV.get('u:' + rid, 'json');
+    if (!r || (r.refs || 0) >= cfg.refMax) return;
+    const now = Date.now();
+    const bump = x => {
+      const trialEnd = x.t0 + cfg.trialDays * ATOM_DAY + (x.bonus ? cfg.bonusDays * ATOM_DAY : 0);
+      x.freeUntil = Math.max(now, x.freeUntil || 0, trialEnd) + cfg.refDays * ATOM_DAY;
+    };
+    bump(r); r.refs = (r.refs || 0) + 1;
+    await atomSaveUser(env, rid, r);
+    bump(u); u.refd = 1;
+    await atomSaveUser(env, uid, u);
+    await atomCount(env, 'ref', 1, u.src);
+    await atomTg(env, 'sendMessage', { chat_id: rid, text: '🎉 По твоей ссылке пришёл новый пользователь ATOM! Тебе +' + cfg.refDays + ' дней доступа. Приглашай ещё 💪' });
+  } catch (e) { /* реферал не должен ломать вход */ }
+}
+
 // ---------- хранилище пользователей (KV) ----------
 async function atomGetUser(env, uid, create) {
   let u = await env.ATOM_KV.get('u:' + uid, 'json');
   if (!u && create) {
-    u = { t0: Date.now(), bonus: 0, sub: 0, pays: [] };
+    const at = await env.ATOM_KV.get('a:' + uid, 'json');
+    u = { t0: Date.now(), bonus: 0, sub: 0, pays: [], src: (at && at.src) || 'direct' };
+    if (at && at.ref && at.ref !== uid) u.ref = at.ref;
     await env.ATOM_KV.put('u:' + uid, JSON.stringify(u));
-    await atomCount(env, 'new');
+    await atomCount(env, 'new', 1, u.src);
+    if (u.ref) await atomApplyReferral(env, uid, u);
   }
   return u;
 }
@@ -155,9 +210,9 @@ async function atomSaveUser(env, uid, u) {
 }
 
 // Состояние доступа
-function atomStatus(u, cfg, now) {
+function atomStatus(u, cfg, now, uid) {
   const base = cfg.trialDays * ATOM_DAY;
-  const trialEnd = u.t0 + base + (u.bonus ? cfg.bonusDays * ATOM_DAY : 0);
+  const trialEnd = Math.max(u.t0 + base + (u.bonus ? cfg.bonusDays * ATOM_DAY : 0), u.freeUntil || 0);
   const subscribed = (u.sub || 0) > now;
   const inTrial = now < trialEnd;
   return {
@@ -173,7 +228,11 @@ function atomStatus(u, cfg, now) {
     channel: cfg.channel ? { url: cfg.channelUrl || null } : null,
     price: cfg.price,
     trialDays: cfg.trialDays,
-    bonusDays: cfg.bonusDays
+    bonusDays: cfg.bonusDays,
+    uid: uid || null,
+    refs: u.refs || 0,
+    refDays: cfg.refDays,
+    refMax: cfg.refMax
   };
 }
 
@@ -215,8 +274,8 @@ async function atomHandleUpdate(upd, env) {
     const firstPay = !u.paid;
     u.paid = 1;
     await atomSaveUser(env, uid, u);
-    await atomCount(env, firstPay ? 'paid' : 'renew');
-    await atomCount(env, 'rev', Number(sp.total_amount) || 0);
+    await atomCount(env, firstPay ? 'paid' : 'renew', 1, u.src || 'direct');
+    await atomCount(env, 'rev', Number(sp.total_amount) || 0, u.src || 'direct');
     const d = new Date(u.sub);
     const dd = String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + d.getUTCFullYear();
     await atomTg(env, 'sendMessage', { chat_id: uid, text: '✅ ATOM Pro активен до ' + dd + '. Спасибо, что с нами! 💪' });
@@ -225,6 +284,7 @@ async function atomHandleUpdate(upd, env) {
   // Команды /start и /help в личном чате: приветствие и кнопка запуска приложения
   const text = msg && typeof msg.text === 'string' ? msg.text.trim() : '';
   if (msg && msg.chat && msg.chat.type === 'private' && /^\/(start|help)(@\w+)?(\s|$)/i.test(text)) {
+    await atomTrackStart(env, msg.from && msg.from.id, text);
     const appUrl = env.APP_URL || 'https://prostovladon-prog.github.io/fitness-mini-app/';
     const name = msg.from && msg.from.first_name ? ', ' + String(msg.from.first_name).slice(0, 40) : '';
     await atomTg(env, 'sendMessage', {
@@ -262,7 +322,7 @@ async function atomAccessHandle(request, env) {
   if (p === '/api/config') {
     return atomJson({
       enabled, bot: cfg.bot || null, price: cfg.price, trialDays: cfg.trialDays, bonusDays: cfg.bonusDays,
-      channel: cfg.channel ? { url: cfg.channelUrl || null } : null
+      channel: cfg.channel ? { url: cfg.channelUrl || null } : null, refDays: cfg.refDays
     }, 200, env);
   }
   if (!enabled) return atomJson({ error: 'not_configured' }, 503, env);
@@ -282,8 +342,9 @@ async function atomAccessHandle(request, env) {
       u.seen = today; u.days = (u.days || 0) + 1;
       await atomSaveUser(env, a.uid, u);
       await atomCount(env, 'active');
+      if (u.days === 2) await atomCount(env, 'ret', 1, u.src || 'direct');   // вернулся в другой день
     }
-    return atomJson(atomStatus(u, cfg, Date.now()), 200, env);
+    return atomJson(atomStatus(u, cfg, Date.now(), a.uid), 200, env);
   }
 
   if (p === '/api/channel-check') {
@@ -298,9 +359,9 @@ async function atomAccessHandle(request, env) {
     if (subscribed && !u.bonus && now < u.t0 + (cfg.trialDays + cfg.bonusDays) * ATOM_DAY) {
       u.bonus = 1; granted = true;
       await atomSaveUser(env, a.uid, u);
-      await atomCount(env, 'bonus');
+      await atomCount(env, 'bonus', 1, u.src || 'direct');
     }
-    return atomJson(Object.assign(atomStatus(u, cfg, now), { subscribed, granted }), 200, env);
+    return atomJson(Object.assign(atomStatus(u, cfg, now, a.uid), { subscribed, granted }), 200, env);
   }
 
   if (p === '/api/invoice') {
@@ -314,7 +375,7 @@ async function atomAccessHandle(request, env) {
     });
     if (!r.ok) return atomJson({ error: 'invoice_failed', hint: r.description || '' }, 502, env);
     const uu = await atomGetUser(env, a.uid, true);
-    if (!uu.inv) { uu.inv = Date.now(); await atomSaveUser(env, a.uid, uu); await atomCount(env, 'inv'); }
+    if (!uu.inv) { uu.inv = Date.now(); await atomSaveUser(env, a.uid, uu); await atomCount(env, 'inv', 1, uu.src || 'direct'); }
     return atomJson({ url: r.result }, 200, env);
   }
 
@@ -354,6 +415,11 @@ async function atomAdmin(url, env) {
     return '<tr><td>' + d + '</td><td>' + (x.new || 0) + '</td><td>' + (x.active || 0) + '</td><td>' + (x.inv || 0) + '</td><td>' + (x.paid || 0) + '</td><td>' + (x.rev || 0) + '</td></tr>';
   }).join('');
   const bar = (label, v, max) => '<div class="b"><span>' + label + '</span><div><i style="width:' + (max ? Math.max(2, Math.round(v / max * 100)) : 2) + '%"></i></div><b>' + v + '</b></div>';
+  const srcs = st.src || {};
+  const srcRows = Object.keys(srcs).sort((x, y) => ((srcs[y].new || 0) + (srcs[y].start || 0)) - ((srcs[x].new || 0) + (srcs[x].start || 0))).map(k => {
+    const x = srcs[k];
+    return '<tr><td>' + String(k).replace(/[^a-z0-9_]/g, '') + '</td><td>' + (x.start || 0) + '</td><td>' + (x.new || 0) + '</td><td>' + (x.ret || 0) + '</td><td>' + (x.inv || 0) + '</td><td>' + (x.paid || 0) + '</td><td>' + (x.rev || 0) + '</td></tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;opacity:.5">пока нет данных</td></tr>';
   const users = n('new');
   const html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATOM — статистика</title>'
     + '<style>body{font:15px system-ui,sans-serif;background:#0f1314;color:#fff;margin:0;padding:20px;max-width:640px;margin:auto}h1{font-size:22px}h2{font-size:15px;opacity:.7;margin:26px 0 10px}'
@@ -365,7 +431,9 @@ async function atomAdmin(url, env) {
     + '<div class="c"><b>' + n('paid') + '</b><span>оплатили (конверсия ' + pct(n('paid'), users) + ')</span></div>'
     + '<div class="c"><b>' + n('rev') + ' ⭐</b><span>выручка всего</span></div>'
     + '<div class="c"><b>' + n('renew') + '</b><span>продлений</span></div></div>'
-    + '<h2>Воронка</h2>' + bar('Открыли', users, users) + bar('Бонус за канал', n('bonus'), users) + bar('Нажали «Оформить»', n('inv'), users) + bar('Оплатили', n('paid'), users)
+    + '<h2>Воронка</h2>' + bar('Нажали /start', n('start'), Math.max(n('start'), users)) + bar('Открыли приложение', users, Math.max(n('start'), users)) + bar('Вернулись на др. день', n('ret'), Math.max(n('start'), users)) + bar('Бонус за канал', n('bonus'), users) + bar('Нажали «Оформить»', n('inv'), users) + bar('Оплатили', n('paid'), users)
+    + '<h2>Источники (метка в ссылке ?start=...)</h2><table><tr><th>Метка</th><th>/start</th><th>Открыли</th><th>Вернулись</th><th>К оплате</th><th>Оплатили</th><th>⭐</th></tr>' + srcRows + '</table>'
+    + '<p style="opacity:.6;font-size:12px">Друзей приведено по рефералке: ' + n('ref') + '. Ссылка для метки: t.me/' + (cfg.bot || 'бот') + '?start=МЕТКА (латиница, цифры, _)</p>'
     + '<h2>Последние 14 дней</h2><table><tr><th>День (UTC)</th><th>Новые</th><th>Активные</th><th>К оплате</th><th>Оплат</th><th>⭐</th></tr>' + rows + '</table>'
     + '<p style="opacity:.5;font-size:12px;margin-top:24px">Цена: ' + cfg.price + ' ⭐ · триал ' + cfg.trialDays + ' дн. · данные ведутся с момента запуска статистики; при одновременных событиях возможна погрешность ±1.</p>';
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
